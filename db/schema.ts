@@ -7,6 +7,7 @@ import {
   timestamp,
   pgEnum,
   jsonb,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // ── Enums ────────────────────────────────────────────────────────────────
@@ -45,30 +46,46 @@ export const modulos = pgTable("modulos", {
 });
 
 // ── Stock ────────────────────────────────────────────────────────────────
-export const stock = pgTable("stock", {
-  id: serial("id").primaryKey(),
-  productoId: integer("producto_id")
-    .notNull()
-    .references(() => productos.id),
-  bodegaId: integer("bodega_id").references(() => bodegas.id),
-  moduloId: integer("modulo_id").references(() => modulos.id),
-  cantidad: integer("cantidad").notNull().default(0),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const stock = pgTable(
+  "stock",
+  {
+    id: serial("id").primaryKey(),
+    productoId: integer("producto_id")
+      .notNull()
+      .references(() => productos.id),
+    bodegaId: integer("bodega_id").references(() => bodegas.id),
+    moduloId: integer("modulo_id").references(() => modulos.id),
+    cantidad: integer("cantidad").notNull().default(0),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => [
+    // ON CONFLICT en sync y salidas/retornos requiere estas constraints.
+    unique("uq_stock_producto_bodega").on(t.productoId, t.bodegaId),
+    unique("uq_stock_producto_modulo").on(t.productoId, t.moduloId),
+  ]
+);
 
 // ── Movimientos ──────────────────────────────────────────────────────────
-export const movimientos = pgTable("movimientos", {
-  id: serial("id").primaryKey(),
-  productoId: integer("producto_id")
-    .notNull()
-    .references(() => productos.id),
-  tipo: tipoMovimientoEnum("tipo").notNull(),
-  cantidad: integer("cantidad").notNull(),
-  bodegaOrigenId: integer("bodega_origen_id").references(() => bodegas.id),
-  moduloDestinoId: integer("modulo_destino_id").references(() => modulos.id),
-  usuarioId: integer("usuario_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const movimientos = pgTable(
+  "movimientos",
+  {
+    id: serial("id").primaryKey(),
+    folio: varchar("folio", { length: 50 }),
+    productoId: integer("producto_id")
+      .notNull()
+      .references(() => productos.id),
+    tipo: tipoMovimientoEnum("tipo").notNull(),
+    cantidad: integer("cantidad").notNull(),
+    bodegaOrigenId: integer("bodega_origen_id").references(() => bodegas.id),
+    moduloDestinoId: integer("modulo_destino_id").references(() => modulos.id),
+    usuarioId: integer("usuario_id").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    // Idempotencia: mismo folio + producto no puede moverse dos veces.
+    unique("uq_movimientos_folio_producto").on(t.folio, t.productoId),
+  ]
+);
 
 // ── Activity Log ─────────────────────────────────────────────────────────
 export const activityLog = pgTable("activity_log", {
@@ -79,6 +96,14 @@ export const activityLog = pgTable("activity_log", {
   entidadId: integer("entidad_id"),
   detalles: jsonb("detalles"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── Sync Watermark ───────────────────────────────────────────────────────
+export const syncWatermark = pgTable("sync_watermark", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: varchar("value", { length: 100 }).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // ── NextAuth ─────────────────────────────────────────────────────────────
