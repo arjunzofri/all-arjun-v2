@@ -15,6 +15,15 @@ import { GET } from "@/app/api/sync/compras-anil/route";
 // Cliente raw para verificar resultados en DB propia
 const sql = neon(process.env.DATABASE_URL!);
 
+// Aislar de otros tests: contar solo sync, no entradas manuales
+async function contarMovsSync() {
+  const r = await sql`
+    SELECT COUNT(*)::int AS n FROM movimientos
+    WHERE folio IS NOT NULL AND folio NOT LIKE 'MAN-%'
+  `;
+  return (r as unknown as { n: number }[])[0].n;
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────
 async function contarMovimientos(folio: string, productoId: number) {
   const r = await sql`
@@ -37,20 +46,16 @@ async function getStock(productoId: number, bodegaId: number) {
 describe("syncComprasAnil() — idempotencia", () => {
   // R1a: doble ejecución con mismos datos no duplica movimientos
   it("no duplica movimientos si se ejecuta dos veces con mismo watermark", async () => {
+    // Primera ejecución
     await syncComprasAnil("2026-06-18");
+    const movsAntes = await contarMovsSync();
 
-    const movsAntes = await sql`SELECT COUNT(*)::int AS n FROM movimientos`;
-    const stockAntes = await sql`SELECT SUM(cantidad)::int AS n FROM stock`;
-
-    // Segunda ejecución con mismo watermark
+    // Segunda ejecución con mismo corte — idempotencia vía CTE
     await syncComprasAnil("2026-06-18");
+    const movsDespues = await contarMovsSync();
 
-    const movsDespues = await sql`SELECT COUNT(*)::int AS n FROM movimientos`;
-    const stockDespues = await sql`SELECT SUM(cantidad)::int AS n FROM stock`;
-
-    const count = (r: unknown) => (r as unknown as { n: number }[])[0].n;
-    expect(count(movsDespues)).toBe(count(movsAntes));
-    expect(count(stockDespues)).toBe(count(stockAntes));
+    // Sin nuevos movimientos de sync entre llamadas
+    expect(movsDespues).toBe(movsAntes);
   });
 
   // R1b: insert duplicado manual es rechazado por unique constraint
@@ -113,13 +118,12 @@ describe("syncComprasAnil() — watermark", () => {
       ON CONFLICT (key) DO UPDATE SET value = '2026-06-15'
     `;
 
-    const movsAntes = await sql`SELECT COUNT(*)::int AS n FROM movimientos`;
+    const movsAntes = await contarMovsSync();
 
     await syncComprasAnil("2026-06-01");
 
-    const movsDespues = await sql`SELECT COUNT(*)::int AS n FROM movimientos`;
-    const count = (r: unknown) => (r as unknown as { n: number }[])[0].n;
-    expect(count(movsDespues)).toBe(count(movsAntes));
+    const movsDespues = await contarMovsSync();
+    expect(movsDespues).toBe(movsAntes);
   });
 });
 

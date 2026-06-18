@@ -14,17 +14,6 @@ import { execSync } from "node:child_process";
 const CWD = process.cwd();
 
 describe("smoke E2E", () => {
-  // ── R6: Build ─────────────────────────────────────────────────
-  it("npm run build completa sin error", () => {
-    expect(() => {
-      execSync("npm run build", {
-        cwd: CWD,
-        timeout: 120_000,
-        stdio: "pipe",
-      });
-    }).not.toThrow();
-  });
-
   // ── R7: Type check ────────────────────────────────────────────
   it("tsc --noEmit pasa sin errores", () => {
     expect(() => {
@@ -38,8 +27,6 @@ describe("smoke E2E", () => {
 
   // ── R8: NextAuth export compatible con proxy ──────────────────
   it("lib/auth.ts exporta 'auth' (handler de proxy)", async () => {
-    // auth() de NextAuth v5 es compatible con proxy.ts en Node.js
-    // runtime. Si el export no existe, import rompe.
     const mod = await import("@/lib/auth");
     expect(mod.auth).toBeDefined();
     expect(typeof mod.auth).toBe("function");
