@@ -156,7 +156,7 @@ timestamp.
 
 ## 8. Restricciones técnicas
 
-- Next.js 15, React 19, TypeScript 5.9, Tailwind v4, Drizzle ORM.
+- Next.js 16, React 19, TypeScript 5.9, Tailwind v4, Drizzle ORM.
 - Debe correr en Vercel.
 - Base de datos propia en Neon PostgreSQL, completamente separada de la v1.
 - Toda mutación de stock usa CTE atómica con `FOR UPDATE` y aritmética
