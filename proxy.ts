@@ -23,6 +23,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  // Control por rol: solo admin accede a /usuarios
+  const role = (session.user as { role?: string }).role;
+  if (pathname === "/usuarios" && role !== "admin") {
+    return new NextResponse("No autorizado", { status: 403 });
+  }
+
   return NextResponse.next();
 }
 

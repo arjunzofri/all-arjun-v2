@@ -100,26 +100,21 @@ nunca cantidad).
 
 ## Estado del backlog
 
-(Actualizar manualmente esta sección a medida que se completan slices)
-
-- [ ] Sesión 0 completada — PRD.md, CLAUDE.md, este archivo, script
-      PowerShell generados
-- [ ] Setup inicial: repo, Neon nueva, Vercel, schema base
-- [ ] Slice: schema de productos + bodegas + módulos
-- [ ] Slice: conexión read-only a Vida Digital + query de compras Anil
-      (UNION vida + sanjh, filtro fecha, mapeo bodega)
-- [ ] Slice: job de sync automático con watermark/idempotencia
-- [ ] Slice: buscador histórico para ingreso manual
-- [ ] Slice: CRUD productos + imágenes + compresión Cloudinary
-- [ ] Slice: entradas manuales
-- [ ] Slice: salidas (bodega → módulo) con CTE atómica
-- [ ] Slice: retornos (módulo → bodega)
-- [ ] Slice: vistas /bodegas, /modulos con paginación por cursor estable
-- [ ] Slice: historial de movimientos
-- [ ] Slice: auth + roles + activity log
+| Slice | Commit | PRD | Descripción | Estado |
+|---|---|---|---|---|
+| 01 | `877a5f5` | 5.9 | Scaffold: Next.js 16, Drizzle schema (7 tablas), NextAuth v5, proxy.ts, Inter font, feature flags, env vars, vitest setup | ✅ Completo |
+| 02 | `0c43c1f` | 5.1, 5.2 | Queries Vida Digital: `getComprasAnilDesde()`, `buscarProductoHistorico()`, `getBodegaPorCodigoIngreso()` | ✅ Completo |
+| 03 | `f4527c0` | 5.1 | Sync automático: `syncComprasAnil()`, CTE atómica vía `neon()` raw, idempotencia UNIQUE (folio, producto_id), watermark, endpoint con CRON_SECRET | ✅ Completo |
+| 04 | `2decdf8` | 5.2, 5.3 | API productos: GET paginado, GET ficha + historial, PATCH editar + auditoría codigo_personal, GET buscar-historico, Zod validation | ✅ Completo |
+| 05 | `b143b1f` | 5.4 | Entradas manuales: `crearEntrada()` con CTE atómica, idempotencyKey, página `/entradas` con buscador y select bodega | ✅ Completo |
+| — | `a42b51f` | — | Fix: eliminar tests flaky (build timeout, singleton healthCheck), aislar suites | ✅ Completo |
+| ⬜ | — | 5.5 | **Salidas (Bodega → Módulo):** descuento + incremento atómico en CTE, idempotencia, página `/salidas` | ❌ Pendiente |
+| ⬜ | — | 5.6 | **Retornos (Módulo → Bodega):** operación inversa a salida, misma CTE atómica | ❌ Pendiente |
+| ⬜ | — | 5.7 | **Vistas `/bodegas`, `/modulos`:** listado paginado con cursor estable, filtro "solo con stock" | ❌ Pendiente |
+| ⚠️ | — | 5.3 | **Maestro de productos — PARCIAL.** Falta: UI `/dashboard/productos`, imágenes + compresión Cloudinary, herencia de ubicación | Parcial |
+| ⚠️ | — | 5.8 | **Historial de movimientos — PARCIAL.** Falta: vista global `/dashboard/movimientos` con filtros | Parcial |
+| ⚠️ | — | 5.9 | **Usuarios y seguridad — PARCIAL.** Falta: UI `/dashboard/usuarios`, autorización por rol real, crear/editar usuarios (login actual es dummy) | Parcial |
 
 ## Último slice completado
 
-(Actualizar manualmente después de cada commit aprobado)
-
-Ninguno — proyecto recién generado en Sesión 0.
+Slice 05 — Entradas manuales (`b143b1f`)
