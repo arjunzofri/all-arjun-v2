@@ -65,20 +65,3 @@ describe("applyProductoSugerencia", () => {
   });
 });
 
-// ══════════════════════════════════════════════════════════════════════
-// Tests de especificación (sin jsdom)
-// ══════════════════════════════════════════════════════════════════════
-
-describe("entradas — imagen UI (especificación, NO regresión)", () => {
-  it("[especificación] dropdown muestra miniatura 32x32 con fallback si no hay imagen", () => {
-    expect(true).toBe(true);
-  });
-
-  it("[especificación] post-selección muestra imagen 96x96 con fallback onError", () => {
-    expect(true).toBe(true);
-  });
-
-  it("[especificación] imagen persiste al editar código manualmente (mismo bug que detalle)", () => {
-    expect(true).toBe(true);
-  });
-});

@@ -105,20 +105,3 @@ describe("mergeProductStock", () => {
   });
 });
 
-// ══════════════════════════════════════════════════════════════════════
-// Tests de especificación (sin jsdom)
-// ══════════════════════════════════════════════════════════════════════
-
-describe("productos — stock UI (especificación, NO regresión)", () => {
-  it("[especificación] tabla tiene columnas Bodegas y Módulos", () => {
-    expect(true).toBe(true);
-  });
-
-  it("[especificación] sin stock muestra '—' en ambas columnas", () => {
-    expect(true).toBe(true);
-  });
-
-  it("[especificación] stock se muestra como 'nombre: N uds' por línea", () => {
-    expect(true).toBe(true);
-  });
-});

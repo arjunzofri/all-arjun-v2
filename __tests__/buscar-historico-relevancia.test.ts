@@ -47,16 +47,6 @@ describe("buscarProductoHistorico — relevancia + dedup (integración real)", (
   });
 });
 
-// ══════════════════════════════════════════════════════════════════════
-// Smoke: el resto del comportamiento no se toca
-// ══════════════════════════════════════════════════════════════════════
-
-describe("buscarProductoHistorico — regresión (especificación)", () => {
-  it("[especificación] LIMIT 20 se mantiene", () => {
-    expect(true).toBe(true);
-  });
-
-  it("[especificación] solo devuelve codigo, detalle, imagen — nunca cantidad ni bodega", () => {
-    expect(true).toBe(true);
-  });
-});
+// ── Especificación del contrato de la query (documentado, no testeable sin DB) ──
+// LIMIT 20: el buscador nunca devuelve más de 20 resultados.
+// Solo devuelve codigo, detalle e imagen — nunca cantidad ni bodega.

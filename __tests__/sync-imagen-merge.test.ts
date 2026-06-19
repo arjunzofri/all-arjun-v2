@@ -90,12 +90,3 @@ describe("sync — producto_ok con COALESCE (integración real)", () => {
   });
 });
 
-// ══════════════════════════════════════════════════════════════════════
-// Smoke: el sync de stock/movimientos no se toca
-// ══════════════════════════════════════════════════════════════════════
-
-describe("sync — regresión stock/movimientos (especificación)", () => {
-  it("[especificación] stock_ok sigue usando WHERE NOT EXISTS por folio", () => {
-    expect(true).toBe(true);
-  });
-});

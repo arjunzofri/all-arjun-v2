@@ -81,30 +81,3 @@ describe("productos — URL sync", () => {
   });
 });
 
-// ══════════════════════════════════════════════════════════════════════
-// Tests de especificación — sin jsdom no son verificables contra el
-// componente real
-// ══════════════════════════════════════════════════════════════════════
-
-describe("productos — URL sync (especificación, NO regresión)", () => {
-  it("[especificación] q se lee de ?q= en un useEffect post-hydratación", () => {
-    // La carga inicial lee: new URLSearchParams(window.location.search).get("q")
-    // en el useEffect de montaje (no en useState, para evitar hydration mismatch).
-    // Si hay ?q=, se usa para el fetch inicial y se sync a q vía setQ.
-    // Sin jsdom, no podemos mockear window.location.search.
-    expect(true).toBe(true);
-  });
-
-  it("[especificación] router.replace se llama en el mismo useEffect que search(q)", () => {
-    // El useEffect (línea 182-185) hace: search(q) + router.replace(buildProductosUrl(q))
-    // Ambas llamadas en el mismo tick, sin segundo debounce.
-    expect(true).toBe(true);
-  });
-
-  it("[especificación] <Link href='/productos'> en página de detalle", () => {
-    // app/(dashboard)/productos/[id]/page.tsx agrega:
-    // <Link href="/productos">← Volver a productos</Link>
-    // JSX estático, sin lógica.
-    expect(true).toBe(true);
-  });
-});
