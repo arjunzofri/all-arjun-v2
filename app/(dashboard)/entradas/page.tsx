@@ -2,12 +2,7 @@
 
 import { useState, useRef } from "react";
 import { crearEntrada } from "@/lib/actions/entradas";
-
-const BODEGAS = [
-  { id: 1, nombre: "Bodega 1 Vida Digital" },
-  { id: 2, nombre: "Bodega 2 Vida Digital" },
-  { id: 3, nombre: "Bodega Arjun" },
-];
+import { BODEGAS } from "@/lib/constants";
 
 // ponytail: form inline sin react-hook-form — un solo formulario, pocas validaciones.
 
