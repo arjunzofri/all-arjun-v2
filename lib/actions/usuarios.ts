@@ -7,8 +7,8 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 
 const crearUsuarioSchema = z.object({
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Password mínimo 6 caracteres"),
+  username: z.string().min(1, "Username requerido"),
+  password: z.string().min(1, "Password requerido"),
   role: z.enum(["admin", "operador"]),
 });
 
@@ -18,7 +18,6 @@ export async function crearUsuario(
   input: CrearUsuarioInput,
   requestUserId?: number
 ) {
-  // Solo admin puede crear usuarios
   if (requestUserId) {
     const [actor] = await db
       .select({ role: users.role })
@@ -31,14 +30,13 @@ export async function crearUsuario(
 
   const parsed = crearUsuarioSchema.parse(input);
 
-  // Verificar email único
   const [existente] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, parsed.email));
+    .where(eq(users.username, parsed.username));
 
   if (existente) {
-    throw new Error("El email ya existe");
+    throw new Error("El username ya existe");
   }
 
   const passwordHash = await bcrypt.hash(parsed.password, 10);
@@ -46,8 +44,7 @@ export async function crearUsuario(
   const [created] = await db
     .insert(users)
     .values({
-      email: parsed.email,
-      name: parsed.email.split("@")[0],
+      username: parsed.username,
       role: parsed.role,
       passwordHash,
     })
@@ -60,8 +57,7 @@ export async function listarUsuarios() {
   return db
     .select({
       id: users.id,
-      email: users.email,
-      name: users.name,
+      username: users.username,
       role: users.role,
       createdAt: users.createdAt,
     })

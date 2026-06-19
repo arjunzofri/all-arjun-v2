@@ -12,19 +12,19 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     Credentials({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        username: { label: "Usuario", type: "text" },
+        password: { label: "Contraseña", type: "password" },
       },
       authorize: async (credentials) => {
-        const email = String(credentials?.email ?? "").trim();
+        const username = String(credentials?.username ?? "").trim();
         const password = String(credentials?.password ?? "");
 
-        if (!email || !password) return null;
+        if (!username || !password) return null;
 
         const [user] = await db
           .select()
           .from(users)
-          .where(eq(users.email, email));
+          .where(eq(users.username, username));
 
         if (!user?.passwordHash) return null;
 
@@ -33,8 +33,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
         return {
           id: String(user.id),
-          email: user.email,
-          name: user.name ?? email,
+          name: user.username,
+          email: user.username,
           role: user.role,
         };
       },
@@ -42,13 +42,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     jwt({ token, user }) {
-      if (user) token.role = (user as { role?: string }).role;
+      if (user) {
+        token.role = (user as { role?: string }).role;
+        token.username = (user as { name?: string }).name;
+      }
       return token;
     },
     session({ session, token }) {
       if (session.user) {
-        (session.user as { role?: string }).role =
+        (session.user as { role?: string; username?: string }).role =
           (token.role as string) ?? "operador";
+        (session.user as { username?: string }).username =
+          token.username as string;
       }
       return session;
     },

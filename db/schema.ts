@@ -109,9 +109,8 @@ export const syncWatermark = pgTable("sync_watermark", {
 // ── NextAuth ─────────────────────────────────────────────────────────────
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  name: varchar("name", { length: 255 }),
-  role: varchar("role", { length: 20 }).notNull().default("operador"),
+  username: varchar("username", { length: 100 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 255 }),
+  role: varchar("role", { length: 20 }).notNull().default("operador"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

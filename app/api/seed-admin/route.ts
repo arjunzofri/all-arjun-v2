@@ -13,7 +13,6 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  // Solo si la tabla está vacía
   const result = await db.execute(sql`SELECT COUNT(*)::int AS n FROM users`);
   const count = (result.rows[0] as unknown as { n: number }).n;
 
@@ -21,19 +20,15 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ ok: false, reason: "usuarios ya existen" });
   }
 
-  const email = process.env.ADMIN_EMAIL ?? "admin@arjun.local";
+  const username = process.env.ADMIN_USERNAME ?? "admin";
   const password = process.env.ADMIN_PASSWORD ?? "admin123";
   const hash = await bcrypt.hash(password, 10);
 
   await db.insert(users).values({
-    email,
-    name: "Admin",
+    username,
     role: "admin",
     passwordHash: hash,
   });
 
-  return NextResponse.json(
-    { ok: true, email },
-    { status: 201 }
-  );
+  return NextResponse.json({ ok: true, username }, { status: 201 });
 }

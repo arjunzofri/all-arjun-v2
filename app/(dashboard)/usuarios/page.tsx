@@ -5,15 +5,14 @@ import { crearUsuario, listarUsuarios } from "@/lib/actions/usuarios";
 
 type Usuario = {
   id: number;
-  email: string;
-  name: string | null;
+  username: string;
   role: string;
   createdAt: Date;
 };
 
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "operador">("operador");
   const [error, setError] = useState("");
@@ -34,9 +33,9 @@ export default function UsuariosPage() {
     setOk("");
 
     try {
-      await crearUsuario({ email: email.trim(), password, role });
-      setOk(`Usuario ${email} creado`);
-      setEmail("");
+      await crearUsuario({ username: username.trim(), password, role });
+      setOk(`Usuario ${username} creado`);
+      setUsername("");
       setPassword("");
       setRole("operador");
       cargar();
@@ -49,12 +48,11 @@ export default function UsuariosPage() {
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Usuarios</h1>
 
-      {/* Listado */}
       <div className="mb-8">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-gray-500">
-              <th className="py-2">Email</th>
+              <th className="py-2">Usuario</th>
               <th className="py-2">Rol</th>
               <th className="py-2">Creado</th>
             </tr>
@@ -62,7 +60,7 @@ export default function UsuariosPage() {
           <tbody>
             {usuarios.map((u) => (
               <tr key={u.id} className="border-b">
-                <td className="py-2">{u.email}</td>
+                <td className="py-2">{u.username}</td>
                 <td className="py-2">
                   <span
                     className={`text-xs px-2 py-0.5 rounded ${
@@ -79,27 +77,19 @@ export default function UsuariosPage() {
                 </td>
               </tr>
             ))}
-            {usuarios.length === 0 && (
-              <tr>
-                <td colSpan={3} className="py-4 text-gray-400 text-center">
-                  Sin usuarios
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
 
-      {/* Formulario crear */}
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Nuevo usuario
       </h2>
       <form onSubmit={handleSubmit} className="space-y-3 max-w-sm">
         <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
           className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
           required
         />
@@ -107,9 +97,8 @@ export default function UsuariosPage() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password (mín. 6)"
+          placeholder="Password"
           className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-          minLength={6}
           required
         />
         <select

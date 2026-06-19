@@ -2,31 +2,31 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-// ponytail: form inline sin librería de validación — solo email no vacío.
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!email.trim()) {
-      setError("Ingresá un email");
+    if (!username.trim() || !password) {
+      setError("Ingresá usuario y contraseña");
       return;
     }
 
     const result = await signIn("credentials", {
-      email: email.trim(),
-      password: ".",
+      username: username.trim(),
+      password,
       redirect: false,
     });
 
     if (result?.error) {
-      setError("Credenciales inválidas");
+      setError("Usuario o contraseña inválidos");
     } else {
-      window.location.href = "/dashboard";
+      window.location.href = "/";
     }
   };
 
@@ -39,19 +39,32 @@ export default function LoginPage() {
         <h1 className="mb-6 text-2xl font-bold text-gray-900">
           App Arjun v2
         </h1>
-        <label className="mb-2 block text-sm text-gray-700" htmlFor="email">
-          Email
+
+        <label className="mb-2 block text-sm text-gray-700" htmlFor="username">
+          Usuario
         </label>
         <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           className="mb-4 w-full rounded border border-gray-300 px-3 py-2 text-sm"
-          placeholder="usuario@arjun.cl"
           autoFocus
         />
+
+        <label className="mb-2 block text-sm text-gray-700" htmlFor="password">
+          Contraseña
+        </label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="mb-4 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+        />
+
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+
         <button
           type="submit"
           className="w-full rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
