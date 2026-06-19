@@ -1,8 +1,11 @@
 import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
   const session = await auth();
-  const user = session?.user as { username?: string } | undefined;
+  if (!session?.user) redirect("/login");
+
+  const user = session.user as { username?: string } | undefined;
 
   return (
     <div>
