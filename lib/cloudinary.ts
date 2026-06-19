@@ -37,8 +37,7 @@ export async function subirImagen(file: File): Promise<string> {
 
   // Subir a Cloudinary
   const formData = new FormData();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  formData.append("file", new Blob([compressed as any], { type: "image/jpeg" }));
+  formData.append("file", new Blob([new Uint8Array(compressed)], { type: "image/jpeg" }));
   formData.append("upload_preset", "arjun-products");
   formData.append("api_key", key);
 

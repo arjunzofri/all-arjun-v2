@@ -175,7 +175,13 @@ export default function ProductosPage() {
     });
   }
 
-  // Carga inicial inmediata (sin debounce) — lee ?q= de la URL
+  // Carga inicial inmediata (sin debounce) — lee ?q= de la URL.
+  //
+  // initialQApplied previene un fetch duplicado: cuando la URL trae ?q=,
+  // la carga inicial setea q → el useEffect([q]) vuelve a disparar → search(q)
+  // ejecutaría el mismo fetch otra vez. Este flag bloquea esa segunda llamada
+  // exactamente una vez. NO es removible sin rediseñar el flujo completo de
+  // carga inicial + búsqueda (se evaluó en ponytail-review, Grupo 1).
   const initialQApplied = useRef(false);
 
   useEffect(() => {
