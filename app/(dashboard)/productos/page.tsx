@@ -70,15 +70,47 @@ export function createProductSearch(config: SearchConfig) {
   };
 }
 
-// ── Helper de fetch (compartido entre carga inicial y search controller) ──
+// ── Lógica pura de "Cargar más" (exportada para test sin jsdom) ──────────
+
+type LoadMoreConfig = {
+  fetchFn: (q: string, cursor: number) => Promise<ProductoResponse>;
+  getQ: () => string;
+  getNextCursor: () => number | null;
+  isPending: () => boolean;
+  setPending: (v: boolean) => void;
+  onResults: (items: ProductoItem[], nextCursor: number | null) => void;
+  onError: (error: Error) => void;
+};
+
+export function createLoadMoreHandler(config: LoadMoreConfig) {
+  return async () => {
+    const cursor = config.getNextCursor();
+    if (!cursor || config.isPending()) return;
+    config.setPending(true);
+    try {
+      const data = await config.fetchFn(config.getQ(), cursor);
+      config.onResults(data.items, data.nextCursor);
+    } catch (err) {
+      config.onError(
+        err instanceof Error ? err : new Error(String(err)),
+      );
+    } finally {
+      config.setPending(false);
+    }
+  };
+}
+
+// ── Helper de fetch (compartido entre carga inicial, search y Cargar más) ──
 
 async function fetchProductos(
   query: string,
   signal?: AbortSignal,
+  cursor?: number,
 ): Promise<ProductoResponse> {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   params.set("limit", "20");
+  if (cursor) params.set("cursor", String(cursor));
   const res = await fetch(
     `/api/productos?${params.toString()}`,
     signal ? { signal } : undefined,
@@ -94,6 +126,7 @@ export default function ProductosPage() {
   const [items, setItems] = useState<ProductoItem[]>([]);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchRef = useRef<ReturnType<typeof createProductSearch> | undefined>(undefined);
   const initialDone = useRef(false);
@@ -150,6 +183,21 @@ export default function ProductosPage() {
     if (!initialDone.current) return;
     searchRef.current?.search(q);
   }, [q]);
+
+  // "Cargar más" — append con cursor, sin reemplazo
+  const handleLoadMore = createLoadMoreHandler({
+    fetchFn: (query, cursor) => fetchProductos(query, undefined, cursor),
+    getQ: () => q,
+    getNextCursor: () => nextCursor,
+    isPending: () => loadingMore,
+    setPending: setLoadingMore,
+    onResults: (newItems, cursor) => {
+      setItems((prev) => [...prev, ...newItems]);
+      setNextCursor(cursor);
+      setError(null);
+    },
+    onError: (err) => setError(err.message),
+  });
 
   // Cleanup al desmontar
   useEffect(() => {
@@ -233,6 +281,18 @@ export default function ProductosPage() {
           </tbody>
         </table>
       </div>
+
+      {nextCursor && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            className="w-full rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {loadingMore ? "Cargando..." : "Cargar más"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

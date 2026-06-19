@@ -199,3 +199,74 @@ describe("productos — búsqueda en vivo", () => {
     expect(results[results.length - 1]).toEqual(todos);
   });
 });
+
+// ══════════════════════════════════════════════════════════════════════
+// Paginación "Cargar más" — Sub-slice 2
+// ══════════════════════════════════════════════════════════════════════
+
+let createLoadMoreHandler: any = null;
+try {
+  createLoadMoreHandler = (await import("@/app/(dashboard)/productos/page")).createLoadMoreHandler;
+} catch {
+  // Esperado si el export aún no existe
+}
+
+describe("productos — cargar más", () => {
+  it("el archivo exporta createLoadMoreHandler", () => {
+    expect(createLoadMoreHandler).not.toBeNull();
+    expect(typeof createLoadMoreHandler).toBe("function");
+  });
+
+  // ── R6: Appendea, no reemplaza ────────────────────────────────────
+  it("appendea resultados a items existentes, no los reemplaza", async () => {
+    const existentes: ProductoItem[] = [
+      { id: 1, codigo: "A001", detalle: "Alpha", packing: null, ubicacion: null },
+    ];
+    const nuevos: ProductoItem[] = [
+      { id: 2, codigo: "B002", detalle: "Beta", packing: null, ubicacion: null },
+    ];
+
+    const items: ProductoItem[] = [...existentes];
+    const fetchFn = vi.fn().mockResolvedValue({ items: nuevos, nextCursor: null });
+    let pending = false;
+
+    const handler = createLoadMoreHandler({
+      fetchFn: (q: string, cursor: number) => fetchFn(q, cursor),
+      getQ: () => "test",
+      getNextCursor: () => 123,
+      isPending: () => pending,
+      setPending: (v: boolean) => { pending = v; },
+      onResults: (fetched: ProductoItem[], _cursor: number | null) => {
+        items.push(...fetched);
+      },
+      onError: vi.fn(),
+    });
+
+    await handler();
+
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    expect(items).toHaveLength(2);
+    expect(items[0]).toEqual(existentes[0]);
+    expect(items[1]).toEqual(nuevos[0]);
+  });
+
+  // ── R7: Doble-click no duplica fetch ──────────────────────────────
+  it("clicks repetidos mientras loadingMore=true no disparan fetches duplicados", async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ items: [], nextCursor: null });
+    let pending = false;
+
+    const handler = createLoadMoreHandler({
+      fetchFn: (q: string, cursor: number) => fetchFn(q, cursor),
+      getQ: () => "test",
+      getNextCursor: () => 123,
+      isPending: () => pending,
+      setPending: (v: boolean) => { pending = v; },
+      onResults: vi.fn(),
+      onError: vi.fn(),
+    });
+
+    await Promise.all([handler(), handler()]);
+
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+});
