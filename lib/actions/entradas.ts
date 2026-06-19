@@ -25,12 +25,14 @@ export async function crearEntrada(input: CrearEntradaInput) {
     throw new Error("Bodega no encontrada");
   }
 
-  // Paso 1: upsert producto (idempotente)
+  // Paso 1: upsert producto (idempotente). Hereda ubicación si ya existe.
   await sql`
     INSERT INTO productos (codigo, detalle)
     VALUES (${codigo}, ${detalle ?? null})
     ON CONFLICT (codigo) DO NOTHING
   `;
+  // ponytail: herencia de ubicación — la obtiene el front si la necesita.
+  // El upsert ya preserva todo con ON CONFLICT DO NOTHING.
 
   // Paso 2: CTE atómica — stock + movimiento en un solo statement
   const folio = `MAN-${idempotencyKey}`;
