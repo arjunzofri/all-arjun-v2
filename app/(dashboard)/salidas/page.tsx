@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { crearSalida } from "@/lib/actions/salidas";
 import { BODEGAS, MODULOS } from "@/lib/constants";
+import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 
 export default function SalidasPage() {
   const [bodegaId, setBodegaId] = useState("");
@@ -13,7 +14,7 @@ export default function SalidasPage() {
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<
-    { codigo: string; detalle: string | null; cantidad: number }[]
+    { codigo: string; detalle: string | null; imagenUrl: string | null; cantidad: number }[]
   >([]);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -126,9 +127,10 @@ export default function SalidasPage() {
                 <li
                   key={s.codigo}
                   onClick={() => selectProducto(s)}
-                  className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer flex justify-between"
+                  className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer flex justify-between items-center"
                 >
-                  <span>
+                  <span className="flex items-center gap-2">
+                    <ProductoThumbnail src={s.imagenUrl} alt="" size="sm" />
                     <span className="font-medium">{s.codigo}</span>
                     {s.detalle && (
                       <span className="text-gray-500 ml-2">{s.detalle}</span>

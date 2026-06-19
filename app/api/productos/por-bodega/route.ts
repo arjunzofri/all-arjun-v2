@@ -37,6 +37,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       id: productos.id,
       codigo: productos.codigo,
       detalle: productos.detalle,
+      imagenUrl: productos.imagenUrl,
       cantidad: stock.cantidad,
     })
     .from(stock)
