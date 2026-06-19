@@ -1,20 +1,12 @@
 /**
  * Fase B — Slice 01 / R1: Tests que intentan romper el proxy de auth.
- *
- * Riesgo: rutas /dashboard expuestas sin sesión → redirect no funciona.
- * Proxy en Next.js 16: export function proxy(req) en vez de middleware().
- *
- * Sin mock: intentamos importar el proxy real. Si el módulo no existe
- * (Fase B), vitest tira MODULE_NOT_FOUND → ROJO esperado.
+ * Proxy en Next.js 16: protege todas las rutas excepto /login y /api/auth/*.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 
-// Import real del proxy — si no existe, este test rompe con error claro.
 import { proxy } from "@/proxy";
-
-// Mockeamos auth() para controlar sesión presente/ausente.
 import { auth } from "@/lib/auth";
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
@@ -26,50 +18,59 @@ function req(pathname: string) {
 describe("proxy de auth (proxy.ts)", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  // ── Sin sesión → redirect ──────────────────────────────────────
-  it("redirige a /login cuando NO hay sesión y se accede a /dashboard", async () => {
+  // ── Sin sesión → redirect a login ───────────────────────────────
+  it("redirige a /login sin sesión en /productos", async () => {
     (auth as any).mockResolvedValue(null);
-    const res = await proxy(req("/dashboard"));
-
+    const res = await proxy(req("/productos"));
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toMatch(/\/login/);
   });
 
-  it("redirige a /login desde sub-ruta /dashboard/productos sin sesión", async () => {
+  it("redirige a /login sin sesión en /entradas", async () => {
     (auth as any).mockResolvedValue(null);
-    const res = await proxy(req("/dashboard/productos"));
-
+    const res = await proxy(req("/entradas"));
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toMatch(/\/login/);
   });
 
   // ── Con sesión → deja pasar ────────────────────────────────────
-  it("deja pasar a /dashboard cuando SÍ hay sesión", async () => {
+  it("deja pasar a /productos con sesión", async () => {
     (auth as any).mockResolvedValue({
       user: { email: "op@arjun.local", role: "operador" },
     });
-    const res = await proxy(req("/dashboard"));
-
+    const res = await proxy(req("/productos"));
     expect(res.status).toBe(200);
-    expect(res.headers.get("location")).toBeNull();
   });
 
-  // ── Rutas públicas no protegidas ───────────────────────────────
-  it("NO protege /api/auth/* sin sesión (el login no funcionaría)", async () => {
+  // ── Rutas públicas no protegidas ────────────────────────────────
+  it("NO protege /login sin sesión", async () => {
+    (auth as any).mockResolvedValue(null);
+    const res = await proxy(req("/login"));
+    expect(res.status).toBe(200);
+  });
+
+  it("NO protege /api/auth/* sin sesión", async () => {
     (auth as any).mockResolvedValue(null);
     const res = await proxy(req("/api/auth/callback/credentials"));
-
     expect(res.status).toBe(200);
   });
 
-  // ── Redirect raíz con sesión ───────────────────────────────────
-  it("redirige / → /dashboard si hay sesión", async () => {
+  // ── Sesión en /login → redirect a raíz ──────────────────────────
+  it("redirige /login a / si ya hay sesión", async () => {
     (auth as any).mockResolvedValue({
       user: { email: "admin@arjun.local", role: "admin" },
     });
-    const res = await proxy(req("/"));
-
+    const res = await proxy(req("/login"));
     expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toMatch(/\/dashboard$/);
+    expect(res.headers.get("location")).toMatch(/\/$/);
+  });
+
+  // ── Control por rol ─────────────────────────────────────────────
+  it("operador en /usuarios → 403", async () => {
+    (auth as any).mockResolvedValue({
+      user: { email: "op@arjun.local", role: "operador" },
+    });
+    const res = await proxy(req("/usuarios"));
+    expect(res.status).toBe(403);
   });
 });

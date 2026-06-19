@@ -6,21 +6,22 @@ export async function proxy(request: NextRequest) {
   const session = await auth();
   const { pathname } = request.nextUrl;
 
-  // Rutas públicas: auth API y assets
+  // Rutas públicas: auth API y assets (nunca protegidas)
   if (pathname.startsWith("/api/auth/") || pathname.startsWith("/_next/")) {
     return NextResponse.next();
   }
 
-  if (!session?.user) {
-    if (pathname.startsWith("/dashboard")) {
-      return NextResponse.redirect(new URL("/login", request.url));
+  // /login: pública sin sesión, redirige si ya hay sesión
+  if (pathname === "/login") {
+    if (session?.user) {
+      return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
   }
 
-  // Con sesión: / → /dashboard
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Proteger todas las demás rutas
+  if (!session?.user) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // Control por rol: solo admin accede a /usuarios

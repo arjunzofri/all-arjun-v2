@@ -1,12 +1,15 @@
 import Link from "next/link";
 
 const NAV = [
-  { href: "/dashboard", label: "Inicio" },
-  { href: "/dashboard/productos", label: "Productos" },
-  { href: "/dashboard/entradas", label: "Entradas" },
-  { href: "/dashboard/salidas", label: "Salidas" },
-  { href: "/dashboard/bodegas", label: "Bodegas" },
-  { href: "/dashboard/modulos", label: "Módulos" },
+  { href: "/", label: "Inicio" },
+  { href: "/productos", label: "Productos" },
+  { href: "/entradas", label: "Entradas" },
+  { href: "/salidas", label: "Salidas" },
+  { href: "/retornos", label: "Retornos" },
+  { href: "/bodegas", label: "Bodegas" },
+  { href: "/modulos", label: "Módulos" },
+  { href: "/movimientos", label: "Movimientos" },
+  { href: "/usuarios", label: "Usuarios" },
 ];
 
 export default function DashboardLayout({
