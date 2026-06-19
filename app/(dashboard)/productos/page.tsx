@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
 // ── Tipos ──────────────────────────────────────────────────────────────
@@ -119,9 +120,17 @@ async function fetchProductos(
   return res.json();
 }
 
+// ── URL builder (exportado para test sin jsdom) ───────────────────────
+
+export function buildProductosUrl(q: string): string {
+  if (!q) return "/productos";
+  return `/productos?q=${encodeURIComponent(q)}`;
+}
+
 // ── Componente de página ───────────────────────────────────────────────
 
 export default function ProductosPage() {
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [items, setItems] = useState<ProductoItem[]>([]);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
@@ -146,19 +155,29 @@ export default function ProductosPage() {
     });
   }
 
-  // Carga inicial inmediata (sin debounce)
+  // Carga inicial inmediata (sin debounce) — lee ?q= de la URL
+  const initialQApplied = useRef(false);
+
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
 
+    // window siempre existe en useEffect (cliente post-hydratación)
+    const urlQ =
+      new URLSearchParams(window.location.search).get("q") ?? "";
+
     (async () => {
       setLoading(true);
       try {
-        const data = await fetchProductos("", controller.signal);
+        const data = await fetchProductos(urlQ, controller.signal);
         if (cancelled) return;
         setItems(data.items);
         setNextCursor(data.nextCursor);
         setError(null);
+        if (urlQ) {
+          setQ(urlQ);
+          initialQApplied.current = true;
+        }
       } catch (err) {
         if (cancelled) return;
         if (err instanceof DOMException && err.name === "AbortError") return;
@@ -181,8 +200,14 @@ export default function ProductosPage() {
   // Búsqueda con debounce al cambiar q (solo después de carga inicial)
   useEffect(() => {
     if (!initialDone.current) return;
+    // La carga inicial ya aplicó el q de la URL — no re-disparar
+    if (initialQApplied.current) {
+      initialQApplied.current = false;
+      return;
+    }
     searchRef.current?.search(q);
-  }, [q]);
+    router.replace(buildProductosUrl(q));
+  }, [q, router]);
 
   // "Cargar más" — append con cursor, sin reemplazo
   const handleLoadMore = createLoadMoreHandler({

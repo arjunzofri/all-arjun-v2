@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getProducto } from "@/lib/actions/productos";
 import { notFound } from "next/navigation";
 import { EditarProductoForm } from "./form";
@@ -15,6 +16,12 @@ export default async function ProductoDetallePage({
 
   return (
     <div className="max-w-2xl">
+      <Link
+        href="/productos"
+        className="inline-block mb-4 text-sm text-gray-500 hover:text-gray-900"
+      >
+        ← Volver a productos
+      </Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">
         {producto.codigo}
       </h1>
