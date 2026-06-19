@@ -4,12 +4,19 @@ import { notFound } from "next/navigation";
 import { EditarProductoForm } from "./form";
 import { ImagenProducto } from "./imagen";
 
+export function buildVolverHref(refQ: string | undefined): string {
+  if (!refQ) return "/productos";
+  return `/productos?q=${encodeURIComponent(refQ)}`;
+}
+
 export default async function ProductoDetallePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ refQ?: string }>;
 }) {
-  const { id } = await params;
+  const [{ id }, { refQ }] = await Promise.all([params, searchParams]);
   const producto = await getProducto(Number(id));
 
   if (!producto) notFound();
@@ -17,7 +24,7 @@ export default async function ProductoDetallePage({
   return (
     <div className="max-w-2xl">
       <Link
-        href="/productos"
+        href={buildVolverHref(refQ)}
         className="inline-block mb-4 text-sm text-gray-500 hover:text-gray-900"
       >
         ← Volver a productos

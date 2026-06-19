@@ -127,6 +127,12 @@ export function buildProductosUrl(q: string): string {
   return `/productos?q=${encodeURIComponent(q)}`;
 }
 
+// Link al detalle con refQ para preservar el filtro al volver
+export function buildProductoDetailHref(id: number, q: string): string {
+  if (!q) return `/productos/${id}`;
+  return `/productos/${id}?refQ=${encodeURIComponent(q)}`;
+}
+
 // Aplica la URL inicial — siempre, incluso si urlQ es "" (limpia ?q= residual)
 export function applyInitialUrlSync(
   urlQ: string,
@@ -275,7 +281,7 @@ export default function ProductosPage() {
               <tr key={p.id} className="border-b hover:bg-gray-50">
                 <td className="py-2">
                   <Link
-                    href={`/productos/${p.id}`}
+                    href={buildProductoDetailHref(p.id, q)}
                     className="font-medium text-gray-900 hover:underline"
                   >
                     {p.codigo}
