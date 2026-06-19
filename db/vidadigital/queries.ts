@@ -10,6 +10,7 @@ export interface CompraAnil {
   detalle: string | null;
   cantidad: number;
   cantcaja: number | null;
+  imagenUrl: string | null;
   bodega: string;
 }
 
@@ -37,6 +38,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         p.detalle,
         i.cantidad  AS cantidad,
         p.cantcaja,
+        p.imagen_url AS imagen_url,
         i.knumezet AS nro_ingreso
       FROM vida.itemdcto i
       JOIN vida.movidcto m ON i.knumfoli = m.knumfoli
@@ -54,6 +56,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         p.detalle,
         i.cantidad  AS cantidad,
         p.cantcaja,
+        p.imagen_url AS imagen_url,
         i.knumezet AS nro_ingreso
       FROM sanjh.itemdcto i
       JOIN sanjh.movidcto m ON i.knumfoli = m.knumfoli
@@ -75,6 +78,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
       detalle: string | null;
       cantidad: number;
       cantcaja: number | null;
+      imagen_url: string | null;
       nro_ingreso: string | null;
     }[];
   };
@@ -88,6 +92,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
       detalle: r.detalle,
       cantidad: r.cantidad,
       cantcaja: r.cantcaja,
+      imagenUrl: r.imagen_url,
       bodega: getBodegaPorCodigoIngreso(codigoBodega) ?? "Bodega desconocida",
     };
   });

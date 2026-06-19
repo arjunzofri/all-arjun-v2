@@ -10,6 +10,27 @@ const BODEGA_ID: Record<string, number> = {
 
 const SYNC_KEY = "compras-anil";
 
+// ── Upsert de producto desde sync (exportado para test de integración) ──
+
+export async function upsertProductoDesdeSync(
+  sql: { (strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown> },
+  compra: {
+    codigo: string;
+    detalle: string | null;
+    cantcaja: number | null;
+    imagenUrl: string | null;
+  },
+) {
+  await sql`
+    INSERT INTO productos (codigo, detalle, packing, imagen_url)
+    VALUES (${compra.codigo}, ${compra.detalle}, ${compra.cantcaja}, ${compra.imagenUrl})
+    ON CONFLICT (codigo) DO UPDATE
+      SET imagen_url = COALESCE(productos.imagen_url, EXCLUDED.imagen_url)
+  `;
+}
+
+// ── Sync principal ────────────────────────────────────────────────────
+
 export async function syncComprasAnil(corte: string): Promise<{
   procesadas: number;
   watermark: string;
@@ -24,18 +45,16 @@ export async function syncComprasAnil(corte: string): Promise<{
     const bodegaId = BODEGA_ID[compra.bodega];
     if (!bodegaId) continue; // R5: bodega desconocida → skip
 
-    // CTE atómica en un solo statement — sin leer-calcular-escribir.
-    // Si el folio ya fue procesado, WHERE NOT EXISTS bloquea todo.
+    // Upsert de producto — idempotente, sin dependencia de existing
+    await upsertProductoDesdeSync(sql, compra);
+
+    // CTE atómica: stock + movimientos en un solo statement.
+    // Si el folio ya fue procesado, WHERE NOT EXISTS bloquea ambos.
     await sql`
       WITH existing AS (
         SELECT id FROM movimientos
         WHERE folio = ${compra.folio}
           AND producto_id = (SELECT id FROM productos WHERE codigo = ${compra.codigo})
-      ),
-      producto_ok AS (
-        INSERT INTO productos (codigo, detalle, packing)
-        VALUES (${compra.codigo}, ${compra.detalle}, ${compra.cantcaja})
-        ON CONFLICT (codigo) DO NOTHING
       ),
       stock_ok AS (
         INSERT INTO stock (producto_id, bodega_id, cantidad)

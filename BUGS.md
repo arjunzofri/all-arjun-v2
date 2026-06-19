@@ -85,6 +85,46 @@ distintas — riesgo documentado en CLAUDE.md regla #6.
 **Verificación:** 4/4 tests de `resolveTipoUbicacion` (función pura),
 25/25 files, 181/181 tests, build limpio.
 
+---
+
+## 2026-06-19 — VD-002 muestra imagen en /entradas pero no en el resto de la app
+
+**Síntoma:** VD-002 (y cualquier producto sincronizado desde Vida Digital)
+muestra imagen en el typeahead de `/entradas` pero no en `/productos`,
+`/salidas`, `/retornos` ni el detalle de producto.
+
+**Causa raíz:** dos fuentes de imagen distintas:
+- `/entradas` busca en el catálogo externo de Vida Digital (`public.productos`
+  de `VIDADIGITAL_DATABASE_URL`), que ya tiene `imagen_url` poblada.
+- El resto de la app lee `productos.imagen_url` de la base local de
+  app-arjun-v2. El sync (`compras-anil.ts`) insertaba productos con
+  `(codigo, detalle, packing)` — sin `imagen_url`. La columna local
+  quedaba NULL para todo producto sincronizado.
+
+**Fix:**
+1. `getComprasAnilDesde()` ahora selecciona `p.imagen_url` desde Vida Digital
+   (ambos UNION ALL: vida y sanjh). `CompraAnil` incluye `imagenUrl`.
+2. `upsertProductoDesdeSync()` extraído como función independiente desde el
+   CTE `producto_ok`. Usa `ON CONFLICT (codigo) DO UPDATE SET imagen_url =
+   COALESCE(productos.imagen_url, EXCLUDED.imagen_url)` — si el usuario
+   ya subió imagen (no NULL), gana el usuario; si está NULL, se llena con
+   la de Vida Digital. Idempotente: re-correr el sync no pisa ni duplica.
+3. La extracción permite testear el SQL real contra DB real vía
+   `upsertProductoDesdeSync()` exportada. El test de integración
+   (`sync-imagen-merge.test.ts`) ejecuta la misma función que corre en
+   producción — sin copia inline del SQL.
+
+**Atomicidad:** `upsertProductoDesdeSync()` se ejecuta antes del CTE de
+stock/movimientos. Si el CTE de stock falla, el watermark no avanza
+(porque la excepción sale del loop sin actualizar `maxFecha`), así
+que el sync reprocesa la NV en la próxima corrida. El upsert de producto
+es idempotente — repetirlo es inocuo.
+
+**Verificación:** 26/26 files, 185/185 tests. 4/4 tests de integración
+real (importan `upsertProductoDesdeSync` de `compras-anil.ts`, no una copia).
+Rojo retroactivo confirmado: con `git stash` (código viejo), 3/4 tests
+fallan porque la función no existe.
+
 **No tocar sin revisar:** cualquier endpoint que reciba un parámetro de
 ubicación DEBE validar el tipo de ubicación antes de elegir la columna
 del WHERE. El nombre `bodegaId` en la URL es engañoso — cuando `tipo=modulo`,
