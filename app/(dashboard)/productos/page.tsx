@@ -127,6 +127,14 @@ export function buildProductosUrl(q: string): string {
   return `/productos?q=${encodeURIComponent(q)}`;
 }
 
+// Aplica la URL inicial — siempre, incluso si urlQ es "" (limpia ?q= residual)
+export function applyInitialUrlSync(
+  urlQ: string,
+  replace: (url: string) => void,
+): void {
+  replace(buildProductosUrl(urlQ));
+}
+
 // ── Componente de página ───────────────────────────────────────────────
 
 export default function ProductosPage() {
@@ -186,6 +194,7 @@ export default function ProductosPage() {
         if (!cancelled) {
           setLoading(false);
           initialDone.current = true;
+          applyInitialUrlSync(urlQ, router.replace);
         }
       }
     })();

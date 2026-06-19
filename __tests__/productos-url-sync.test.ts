@@ -12,14 +12,17 @@
  * AHORA EN ROJO: page.tsx no exporta buildProductosUrl.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
-// ── RED: el archivo actual no exporta buildProductosUrl ──
+// ── RED: el archivo actual no exporta buildProductosUrl ni applyInitialUrlSync ──
 let buildProductosUrl: any = null;
+let applyInitialUrlSync: any = null;
 try {
-  buildProductosUrl = (await import("@/app/(dashboard)/productos/page")).buildProductosUrl;
+  const mod = await import("@/app/(dashboard)/productos/page");
+  buildProductosUrl = mod.buildProductosUrl;
+  applyInitialUrlSync = mod.applyInitialUrlSync;
 } catch {
-  // Esperado en Fase B — export no existe
+  // Esperado en Fase B — exports no existen
 }
 
 describe("productos — URL sync", () => {
@@ -54,6 +57,27 @@ describe("productos — URL sync", () => {
     expect(url).toContain("%20%26%20");
     expect(url).toContain("t%C3%A9");
     expect(url).not.toContain("&"); // sin ampersand crudo
+  });
+  // ── R5: applyInitialUrlSync llama replace SIEMPRE (incluso urlQ="") ──
+  it("el archivo exporta applyInitialUrlSync", () => {
+    expect(applyInitialUrlSync).not.toBeNull();
+    expect(typeof applyInitialUrlSync).toBe("function");
+  });
+
+  // ── R6: urlQ vacío → replace("/productos"), no se omite ──────────
+  it("urlQ vacio llama replace con /productos (limpia ?q= residual)", () => {
+    const replace = vi.fn();
+    applyInitialUrlSync("", replace);
+    expect(replace).toHaveBeenCalledTimes(1);
+    expect(replace).toHaveBeenCalledWith("/productos");
+  });
+
+  // ── R7: urlQ con valor → replace con la URL encodeada ────────────
+  it("urlQ con valor llama replace con /productos?q=valor", () => {
+    const replace = vi.fn();
+    applyInitialUrlSync("test", replace);
+    expect(replace).toHaveBeenCalledTimes(1);
+    expect(replace).toHaveBeenCalledWith("/productos?q=test");
   });
 });
 
