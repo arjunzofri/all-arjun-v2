@@ -56,3 +56,36 @@ test (applyInitialUrlSync), confirma que replace se llama incluso con urlQ="".
 **No tocar sin revisar:** cualquier sincronización de estado-a-URL en
 este proyecto debe tratar "" explícitamente, no asumir que un check
 truthy es equivalente a "no hay valor que sincronizar".
+
+---
+
+## 2026-06-19 — Retornos mostraba productos que no pertenecen al módulo origen
+
+**Síntoma:** en `/retornos`, al seleccionar "Módulo 180" como origen, el
+typeahead mostraba VD-002 (y posiblemente otros productos) que no existen
+en ese módulo. Registrado por Pablo durante verificación visual post-Slice B.
+
+**Causa raíz:** el endpoint `/api/productos/por-bodega` ignoraba el
+parámetro `tipo=modulo` que retornos le mandaba. Siempre filtraba por
+`stock.bodegaId`, incluso cuando el caller pedía filtrar por módulo.
+Retornos pasaba `bodegaId=${moduloId}&tipo=modulo` pero el endpoint solo
+leía `bodegaId` y hardcodeaba `eq(stock.bodegaId, bodegaId)`.
+
+**Por qué VD-002 específicamente:** Bodega 1 Vida Digital y Módulo 180
+comparten el mismo ID interno (ambos id=1 en sus respectivas tablas,
+confirmado en `lib/constants.ts`). VD-002 tiene stock en Bodega 1. El
+`INNER JOIN` con productos hacía `eq(stock.bodegaId, 1)` → devolvía
+VD-002 como si estuviera en Módulo 180. Colisión de IDs entre tablas
+distintas — riesgo documentado en CLAUDE.md regla #6.
+
+**Fix:** agregar `resolveTipoUbicacion(tipo)` que devuelve "modulo" vs
+"bodega", y usar la columna correcta en el WHERE del endpoint
+(`stock.moduloId` cuando tipo=modulo, `stock.bodegaId` en caso contrario).
+
+**Verificación:** 4/4 tests de `resolveTipoUbicacion` (función pura),
+25/25 files, 181/181 tests, build limpio.
+
+**No tocar sin revisar:** cualquier endpoint que reciba un parámetro de
+ubicación DEBE validar el tipo de ubicación antes de elegir la columna
+del WHERE. El nombre `bodegaId` en la URL es engañoso — cuando `tipo=modulo`,
+el valor es un móduloId, no un bodegaId.
