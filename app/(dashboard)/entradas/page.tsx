@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { crearEntrada } from "@/lib/actions/entradas";
 import { BODEGAS } from "@/lib/constants";
+import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 
 type Sugerencia = {
   codigo: string;
@@ -93,8 +94,6 @@ export default function EntradasPage() {
     }
   };
 
-  const showImagen = imagenUrl && !imagenError;
-
   return (
     <div className="max-w-lg">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Nueva entrada</h1>
@@ -119,20 +118,7 @@ export default function EntradasPage() {
                   onClick={() => selectProducto(s)}
                   className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
                 >
-                  {s.imagenUrl ? (
-                    <img
-                      src={s.imagenUrl}
-                      alt=""
-                      className="w-8 h-8 rounded object-cover shrink-0 bg-gray-100"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded bg-gray-100 shrink-0 flex items-center justify-center text-gray-400 text-xs">
-                      —
-                    </div>
-                  )}
+                  <ProductoThumbnail src={s.imagenUrl} alt="" size="sm" />
                   <div className="min-w-0">
                     <span className="font-medium">{s.codigo}</span>
                     {s.detalle && (
@@ -148,18 +134,13 @@ export default function EntradasPage() {
         {/* Imagen post-selección */}
         {imagenUrl && (
           <div className="flex items-center gap-3 p-3 rounded border bg-gray-50">
-            {showImagen ? (
-              <img
-                src={imagenUrl}
-                alt={codigo}
-                className="w-24 h-24 rounded object-cover bg-gray-100"
-                onError={() => setImagenError(true)}
-              />
-            ) : (
-              <div className="w-24 h-24 rounded bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
-                Sin imagen
-              </div>
-            )}
+            <ProductoThumbnail
+              src={imagenError ? null : imagenUrl}
+              alt={codigo}
+              size="lg"
+              fallbackText="Sin imagen"
+              onError={() => setImagenError(true)}
+            />
             <span className="text-sm font-medium text-gray-900">{codigo}</span>
           </div>
         )}
