@@ -16,17 +16,12 @@ beforeEach(() => {
 });
 
 // Imports reales — si el módulo no existe (Fase B), MODULE_NOT_FOUND.
-import {
-  getBodegas,
-  getModulos,
-  getStockPorBodega,
-  getStockPorModulo,
-} from "@/lib/actions/vistas";
+import { getBodegas, getModulos, getStockPorUbicacion } from "@/lib/actions/vistas";
 
 // ── R1: Paginación con cursor estable ──────────────────────────────────
-describe("getStockPorBodega() — paginación", () => {
+describe("getStockPorUbicacion() — paginación", () => {
   it("devuelve página con nextCursor", async () => {
-    const page = await getStockPorBodega({ bodegaId: 1, limit: 5 });
+    const page = await getStockPorUbicacion({ tipo: "bodega", ubicacionId: 1, limit: 5 });
     expect(page).toHaveProperty("items");
     expect(page).toHaveProperty("nextCursor");
     expect(Array.isArray(page.items)).toBe(true);
@@ -35,10 +30,10 @@ describe("getStockPorBodega() — paginación", () => {
 
   // R1: cursor inestable → items se repiten
   it("no repite items entre páginas", async () => {
-    const p1 = await getStockPorBodega({ bodegaId: 1, limit: 3 });
+    const p1 = await getStockPorUbicacion({ tipo: "bodega", ubicacionId: 1, limit: 3 });
     if (!p1.nextCursor) return;
 
-    const p2 = await getStockPorBodega({ bodegaId: 1, limit: 3, cursor: p1.nextCursor });
+    const p2 = await getStockPorUbicacion({ tipo: "bodega", ubicacionId: 1, limit: 3, cursor: p1.nextCursor });
     const ids1 = new Set(p1.items.map((i: { id: number }) => i.id));
     for (const item of p2.items) {
       expect(ids1.has(item.id)).toBe(false);
@@ -46,7 +41,7 @@ describe("getStockPorBodega() — paginación", () => {
   });
 
   it("soloConStock: true no devuelve items con cantidad 0", async () => {
-    const page = await getStockPorBodega({ bodegaId: 1, soloConStock: true });
+    const page = await getStockPorUbicacion({ tipo: "bodega", ubicacionId: 1, soloConStock: true });
     for (const item of page.items) {
       expect(item.cantidad).toBeGreaterThan(0);
     }
@@ -54,16 +49,16 @@ describe("getStockPorBodega() — paginación", () => {
 
   // R2: filtro "solo con stock" = false trae todos (no bloquea legítimos)
   it("soloConStock: false incluye items sin stock", async () => {
-    const page = await getStockPorBodega({ bodegaId: 1, soloConStock: false });
+    const page = await getStockPorUbicacion({ tipo: "bodega", ubicacionId: 1, soloConStock: false });
     // Solo verificamos que no crashea y devuelve estructura correcta
     expect(Array.isArray(page.items)).toBe(true);
   });
 });
 
-// ── getStockPorModulo() mismo patrón ───────────────────────────────────
-describe("getStockPorModulo()", () => {
+// ── getStockPorUbicacion() módulo ─────────────────────────────────────
+describe("getStockPorUbicacion() — módulo", () => {
   it("devuelve items con paginación", async () => {
-    const page = await getStockPorModulo({ moduloId: 1, limit: 5 });
+    const page = await getStockPorUbicacion({ tipo: "modulo", ubicacionId: 1, limit: 5 });
     expect(page).toHaveProperty("items");
     expect(page.items.length).toBeLessThanOrEqual(5);
   });

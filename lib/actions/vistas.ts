@@ -36,63 +36,20 @@ export async function getModulos() {
   return rows;
 }
 
-// ── Stock por bodega ────────────────────────────────────────────────────
-export async function getStockPorBodega(params: {
-  bodegaId: number;
+// ── Stock por ubicación (bodega o módulo) ───────────────────────────────
+export async function getStockPorUbicacion(params: {
+  tipo: "bodega" | "modulo";
+  ubicacionId: number;
   limit?: number;
   cursor?: number;
   q?: string;
   soloConStock?: boolean;
 }) {
-  const { bodegaId, limit = 20, cursor, q, soloConStock = true } = params;
+  const { tipo, ubicacionId, limit = 20, cursor, q, soloConStock = true } = params;
+  const columna = tipo === "bodega" ? stock.bodegaId : stock.moduloId;
 
   const where = and(
-    eq(stock.bodegaId, bodegaId),
-    cursor !== undefined ? lt(productos.id, cursor) : undefined,
-    soloConStock ? gt(stock.cantidad, 0) : undefined,
-    q
-      ? or(
-          ilike(productos.codigo, `%${q}%`),
-          ilike(productos.detalle, `%${q}%`)
-        )
-      : undefined
-  );
-
-  const rows = await db
-    .select({
-      id: productos.id,
-      codigo: productos.codigo,
-      detalle: productos.detalle,
-      packing: productos.packing,
-      cantidad: stock.cantidad,
-    })
-    .from(stock)
-    .innerJoin(productos, eq(stock.productoId, productos.id))
-    .where(where)
-    .orderBy(desc(productos.id))
-    .limit(limit + 1);
-
-  const hasMore = rows.length > limit;
-  const items = rows.slice(0, limit);
-
-  return {
-    items,
-    nextCursor: hasMore ? items[items.length - 1].id : null,
-  };
-}
-
-// ── Stock por módulo ────────────────────────────────────────────────────
-export async function getStockPorModulo(params: {
-  moduloId: number;
-  limit?: number;
-  cursor?: number;
-  q?: string;
-  soloConStock?: boolean;
-}) {
-  const { moduloId, limit = 20, cursor, q, soloConStock = true } = params;
-
-  const where = and(
-    eq(stock.moduloId, moduloId),
+    eq(columna, ubicacionId),
     cursor !== undefined ? lt(productos.id, cursor) : undefined,
     soloConStock ? gt(stock.cantidad, 0) : undefined,
     q
