@@ -1,3 +1,5 @@
+"use server";
+
 import { db } from "@/db";
 import { productos, movimientos, activityLog } from "@/db/schema";
 import { eq, and, lt, desc, or, ilike } from "drizzle-orm";
