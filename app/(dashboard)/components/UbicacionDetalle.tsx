@@ -6,6 +6,7 @@ import { getStockPorUbicacion } from "@/lib/actions/vistas";
 
 type Item = { id: number; codigo: string; detalle: string | null; packing: number | null; cantidad: number };
 type Tipo = "bodega" | "modulo";
+type Page = { items: Item[]; nextCursor: number | null };
 
 // ── Lógica pura de debounce (exportada para test sin jsdom) ───────────
 
@@ -23,6 +24,29 @@ export function createDebounce(fn: () => void, ms: number) {
   };
 }
 
+// ── Lógica pura de carga con error handling (exportada para test) ────
+
+type ExecuteLoadConfig = {
+  load: () => Promise<Page>;
+  reset?: boolean;
+  onSuccess: (result: Page, reset?: boolean) => void;
+  onError: (error: Error) => void;
+  onSettled: () => void;
+};
+
+export async function executeLoad(config: ExecuteLoadConfig) {
+  try {
+    const result = await config.load();
+    config.onSuccess(result, config.reset);
+  } catch (err) {
+    config.onError(
+      err instanceof Error ? err : new Error(String(err)),
+    );
+  } finally {
+    config.onSettled();
+  }
+}
+
 // ── Componente ────────────────────────────────────────────────────────
 
 export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
@@ -36,25 +60,34 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
   const [q, setQ] = useState("");
   const [soloConStock, setSoloConStock] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const cargar = useCallback(
     async (reset?: boolean) => {
       setLoading(true);
-      const page = await getStockPorUbicacion({
-        tipo,
-        ubicacionId,
-        limit: 20,
-        cursor: reset ? undefined : (cursor ?? undefined),
-        q: q || undefined,
-        soloConStock,
+      await executeLoad({
+        load: () =>
+          getStockPorUbicacion({
+            tipo,
+            ubicacionId,
+            limit: 20,
+            cursor: reset ? undefined : (cursor ?? undefined),
+            q: q || undefined,
+            soloConStock,
+          }),
+        reset,
+        onSuccess: (page, isReset) => {
+          if (isReset) {
+            setItems(page.items);
+          } else {
+            setItems((prev) => [...prev, ...page.items]);
+          }
+          setNextCursor(page.nextCursor);
+          setError(null);
+        },
+        onError: (err) => setError(err.message),
+        onSettled: () => setLoading(false),
       });
-      if (reset) {
-        setItems(page.items);
-      } else {
-        setItems((prev) => [...prev, ...page.items]);
-      }
-      setNextCursor(page.nextCursor);
-      setLoading(false);
     },
     [tipo, ubicacionId, cursor, q, soloConStock],
   );
@@ -116,6 +149,12 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
         </label>
       </div>
 
+      {error && (
+        <div className="mb-4 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -135,7 +174,7 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
                 <td className="py-2 text-right font-semibold">{item.cantidad}</td>
               </tr>
             ))}
-            {items.length === 0 && !loading && (
+            {items.length === 0 && !loading && !error && (
               <tr>
                 <td colSpan={4} className="py-8 text-center text-gray-400">Sin productos</td>
               </tr>
