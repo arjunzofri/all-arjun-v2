@@ -7,7 +7,12 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rutas públicas: auth API y assets (nunca protegidas)
-  if (pathname.startsWith("/api/auth/") || pathname.startsWith("/_next/")) {
+  if (
+    pathname.startsWith("/api/auth/") ||
+    pathname.startsWith("/_next/") ||
+    pathname === "/api/seed-admin" ||
+    pathname === "/api/sync/compras-anil"
+  ) {
     return NextResponse.next();
   }
 

@@ -53,6 +53,15 @@ describe("GET /api/productos/buscar-historico", () => {
     expect(body.length).toBeLessThanOrEqual(20);
   });
 
+  it("rechaza sin sesión (401)", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+    const req = new NextRequest(
+      "https://app-arjun.local/api/productos/buscar-historico?q=test"
+    );
+    const res = await getBuscarHistorico(req);
+    expect(res.status).toBe(401);
+  });
+
   it("requiere parámetro q", async () => {
     const req = new NextRequest(
       "https://app-arjun.local/api/productos/buscar-historico"

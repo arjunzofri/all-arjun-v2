@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { buscarProductoHistorico } from "@/db/vidadigital/queries";
 import { buscarHistoricoSchema } from "@/lib/validations";
 
 export async function GET(request: Request): Promise<NextResponse> {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
 
