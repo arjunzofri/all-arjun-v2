@@ -6,12 +6,16 @@ import { useState, useEffect, useRef } from "react";
 
 // ── Tipos ──────────────────────────────────────────────────────────────
 
+type StockUbicacion = { id: number; nombre: string; cantidad: number };
+
 type ProductoItem = {
   id: number;
   codigo: string;
   detalle: string | null;
   packing: number | null;
   ubicacion: string | null;
+  stockBodegas: StockUbicacion[];
+  stockModulos: StockUbicacion[];
 };
 
 type ProductoResponse = { items: ProductoItem[]; nextCursor: number | null };
@@ -273,6 +277,8 @@ export default function ProductosPage() {
               <th className="py-2">Código</th>
               <th className="py-2">Detalle</th>
               <th className="py-2">Pack</th>
+              <th className="py-2">Bodegas</th>
+              <th className="py-2">Módulos</th>
               <th className="py-2">Ubicación</th>
             </tr>
           </thead>
@@ -293,6 +299,24 @@ export default function ProductosPage() {
                 <td className="py-2 text-gray-500">
                   {p.packing ?? "—"}
                 </td>
+                <td className="py-2 text-gray-700">
+                  {p.stockBodegas.length === 0
+                    ? "—"
+                    : p.stockBodegas.map((s) => (
+                        <div key={s.id}>
+                          {s.nombre}: {s.cantidad} uds
+                        </div>
+                      ))}
+                </td>
+                <td className="py-2 text-gray-700">
+                  {p.stockModulos.length === 0
+                    ? "—"
+                    : p.stockModulos.map((s) => (
+                        <div key={s.id}>
+                          {s.nombre}: {s.cantidad} uds
+                        </div>
+                      ))}
+                </td>
                 <td className="py-2 text-gray-500">
                   {p.ubicacion ?? "—"}
                 </td>
@@ -301,7 +325,7 @@ export default function ProductosPage() {
             {!loading && !error && items.length === 0 && (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={6}
                   className="py-8 text-center text-gray-400"
                 >
                   Sin productos
@@ -311,7 +335,7 @@ export default function ProductosPage() {
             {loading && items.length === 0 && (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={6}
                   className="py-8 text-center text-gray-400"
                 >
                   Cargando...

@@ -1,8 +1,9 @@
 "use server";
 
 import { db } from "@/db";
-import { productos, movimientos, activityLog } from "@/db/schema";
-import { eq, and, lt, desc, or, ilike } from "drizzle-orm";
+import { productos, movimientos, activityLog, stock, bodegas, modulos } from "@/db/schema";
+import { eq, and, lt, gt, desc, or, ilike, inArray, sql } from "drizzle-orm";
+import { mergeProductStock } from "@/lib/utils/merge-product-stock";
 
 type UpdateProductoInput = {
   codigoPersonal?: string;
@@ -39,9 +40,53 @@ export async function getProductos(params: {
   const hasMore = rows.length > limit;
   const items = rows.slice(0, limit);
 
+  // Stock agregado si hay productos en la página
+  if (items.length > 0) {
+    const ids = items.map((p) => p.id);
+
+    const [bodegaRows, moduloRows] = await Promise.all([
+      db
+        .select({
+          productoId: stock.productoId,
+          id: bodegas.id,
+          nombre: bodegas.nombre,
+          cantidad: sql<number>`SUM(${stock.cantidad})`.mapWith(Number),
+        })
+        .from(stock)
+        .innerJoin(bodegas, eq(stock.bodegaId, bodegas.id))
+        .where(and(inArray(stock.productoId, ids), gt(stock.cantidad, 0)))
+        .groupBy(stock.productoId, bodegas.id, bodegas.nombre),
+      db
+        .select({
+          productoId: stock.productoId,
+          id: modulos.id,
+          nombre: modulos.nombre,
+          cantidad: sql<number>`SUM(${stock.cantidad})`.mapWith(Number),
+        })
+        .from(stock)
+        .innerJoin(modulos, eq(stock.moduloId, modulos.id))
+        .where(and(inArray(stock.productoId, ids), gt(stock.cantidad, 0)))
+        .groupBy(stock.productoId, modulos.id, modulos.nombre),
+    ]);
+
+    const stockMap = mergeProductStock(items, bodegaRows, moduloRows);
+
+    return {
+      items: items.map((p) => {
+        const s = stockMap.get(p.id);
+        return {
+          ...p,
+          stockBodegas: s?.bodegas ?? [],
+          stockModulos: s?.modulos ?? [],
+        };
+      }),
+      nextCursor: hasMore ? items[items.length - 1].id : null,
+    };
+  }
+
   return {
-    items,
-    nextCursor: hasMore ? items[items.length - 1].id : null,
+    items: items.map((p) => ({ ...p, stockBodegas: [], stockModulos: [] })),
+    nextCursor: null,
   };
 }
 
