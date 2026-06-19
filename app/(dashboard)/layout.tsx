@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 
 const NAV = [
   { href: "/", label: "Inicio" },
@@ -19,9 +20,9 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex min-h-screen">
-      <aside className="w-56 border-r bg-gray-50 px-4 py-6">
+      <aside className="w-56 border-r bg-gray-50 px-4 py-6 flex flex-col">
         <h2 className="mb-4 text-sm font-semibold text-gray-500">NAVEGACIÓN</h2>
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1 flex-1">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -32,6 +33,7 @@ export default function DashboardLayout({
             </Link>
           ))}
         </nav>
+        <LogoutButton />
       </aside>
       <main className="flex-1 p-6">{children}</main>
     </div>
