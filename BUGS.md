@@ -129,3 +129,43 @@ fallan porque la función no existe.
 ubicación DEBE validar el tipo de ubicación antes de elegir la columna
 del WHERE. El nombre `bodegaId` en la URL es engañoso — cuando `tipo=modulo`,
 el valor es un móduloId, no un bodegaId.
+
+---
+
+## 2026-06-19 — Buscador de /entradas no priorizaba coincidencias exactas, mostraba duplicados
+
+**Síntoma:** al escribir un código completo (ej. "VD-002"), el dropdown
+mostraba otros productos sin relación (ej. "CVD-12") antes del match
+exacto. Además, el mismo código podía aparecer dos veces en la lista.
+
+**Causa raíz:**
+1. buscarProductoHistorico() ordenaba con ORDER BY codigo (alfabético
+   puro, sin ranking de relevancia) — C ordena antes que V sin importar
+   qué tan bien coincide con la búsqueda.
+2. Sin DISTINCT — public.productos unifica Sanjh (empresa_id=1) y Vida
+   Digital (empresa_id=2). Un mismo código existente en ambas empresas
+   producía dos filas.
+
+**Fix:** subquery con DISTINCT ON (codigo) para deduplicar (DISTINCT
+simple no es compatible con el ORDER BY de ranking — Postgres exige que
+las expresiones del ORDER BY estén en el SELECT cuando se usa DISTINCT
+plano; confirmado con error real contra la DB antes de aplicar). El
+ORDER BY externo prioriza codigo ILIKE query% DESC (match de prefijo
+exacto primero), luego alfabético.
+
+**Decisión consciente:** cuando un código existe en ambas empresas con
+detalle/imagen distintos, DISTINCT ON (codigo) ORDER BY codigo no
+garantiza determinismo sobre cuál fila gana. Se acepta sin desambiguar
+por empresa_id — las diferencias entre catálogos son mínimas para este
+uso (typeahead de selección rápida), no amerita la complejidad extra.
+
+**Verificación:** test de integración real contra DB (mismo patrón que
+sync-imagen-merge.test.ts) — rojo confirmado antes del fix (1/4 fallando
+por duplicados), verde después (4/4). 27/27 files, build limpio. El SQL
+con DISTINCT + ORDER BY expresión fue probado contra Postgres real antes
+de aplicar — falló como se esperaba, confirmando la necesidad del subquery.
+
+**No tocar sin revisar:** cualquier query con DISTINCT en este proyecto
+debe verificar compatibilidad con ORDER BY de expresiones calculadas —
+Postgres exige que coincidan salvo que se use DISTINCT ON o un subquery
+intermedio.

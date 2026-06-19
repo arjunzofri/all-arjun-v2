@@ -110,11 +110,18 @@ export async function buscarProductoHistorico(
 
   const result = await db.execute(
     sql`
-      SELECT codigo, detalle, imagen_url AS imagen
-      FROM public.productos
-      WHERE codigo ILIKE '%' || ${query} || '%'
-         OR detalle ILIKE '%' || ${query} || '%'
-      ORDER BY codigo
+      SELECT codigo, detalle, imagen
+      FROM (
+        SELECT DISTINCT ON (codigo)
+               codigo, detalle, imagen_url AS imagen
+        FROM public.productos
+        WHERE codigo ILIKE '%' || ${query} || '%'
+           OR detalle ILIKE '%' || ${query} || '%'
+        ORDER BY codigo
+      ) AS deduped
+      ORDER BY
+        codigo ILIKE ${query} || '%' DESC,
+        codigo
       LIMIT 20
     `
   );
