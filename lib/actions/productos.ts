@@ -99,14 +99,46 @@ export async function getProducto(id: number) {
 
   if (!producto) return null;
 
-  const historial = await db
-    .select()
-    .from(movimientos)
-    .where(eq(movimientos.productoId, id))
-    .orderBy(desc(movimientos.createdAt))
-    .limit(50);
+  const [historial, bodegaRows, moduloRows] = await Promise.all([
+    db
+      .select()
+      .from(movimientos)
+      .where(eq(movimientos.productoId, id))
+      .orderBy(desc(movimientos.createdAt))
+      .limit(50),
+    db
+      .select({
+        productoId: stock.productoId,
+        id: bodegas.id,
+        nombre: bodegas.nombre,
+        cantidad: sql<number>`SUM(${stock.cantidad})`.mapWith(Number),
+      })
+      .from(stock)
+      .innerJoin(bodegas, eq(stock.bodegaId, bodegas.id))
+      .where(and(eq(stock.productoId, id), gt(stock.cantidad, 0)))
+      .groupBy(stock.productoId, bodegas.id, bodegas.nombre),
+    db
+      .select({
+        productoId: stock.productoId,
+        id: modulos.id,
+        nombre: modulos.nombre,
+        cantidad: sql<number>`SUM(${stock.cantidad})`.mapWith(Number),
+      })
+      .from(stock)
+      .innerJoin(modulos, eq(stock.moduloId, modulos.id))
+      .where(and(eq(stock.productoId, id), gt(stock.cantidad, 0)))
+      .groupBy(stock.productoId, modulos.id, modulos.nombre),
+  ]);
 
-  return { ...producto, movimientos: historial };
+  const stockMap = mergeProductStock([producto], bodegaRows, moduloRows);
+  const s = stockMap.get(producto.id);
+
+  return {
+    ...producto,
+    movimientos: historial,
+    bodegas: s?.bodegas ?? [],
+    modulos: s?.modulos ?? [],
+  };
 }
 
 // ── Editar producto ──────────────────────────────────────────────────────

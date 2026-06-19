@@ -69,6 +69,36 @@ export default async function ProductoDetallePage({
 
       <hr className="my-6" />
 
+      <h2 className="text-lg font-semibold text-gray-900 mb-3">Stock</h2>
+      <div className="grid gap-4 sm:grid-cols-2 text-sm">
+        <div>
+          <h3 className="font-medium text-gray-500 mb-2">Bodegas</h3>
+          {producto.bodegas?.length > 0
+            ? producto.bodegas.map(
+                (b: { id: number; nombre: string; cantidad: number }) => (
+                  <p key={b.id} className="text-gray-700">
+                    {b.nombre}: {b.cantidad} uds
+                  </p>
+                )
+              )
+            : <p className="text-gray-400">—</p>}
+        </div>
+        <div>
+          <h3 className="font-medium text-gray-500 mb-2">Módulos</h3>
+          {producto.modulos?.length > 0
+            ? producto.modulos.map(
+                (m: { id: number; nombre: string; cantidad: number }) => (
+                  <p key={m.id} className="text-gray-700">
+                    {m.nombre}: {m.cantidad} uds
+                  </p>
+                )
+              )
+            : <p className="text-gray-400">—</p>}
+        </div>
+      </div>
+
+      <hr className="my-6" />
+
       <EditarProductoForm producto={producto} />
     </div>
   );
