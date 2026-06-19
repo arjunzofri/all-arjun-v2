@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { getProducto, updateProducto } from "@/lib/actions/productos";
-import { updateProductoSchema } from "@/lib/validations";
+
+const patchSchema = z.object({
+  codigoPersonal: z.string().max(50).optional(),
+  packing: z.number().int().positive().optional(),
+  ubicacion: z.string().max(100).optional(),
+  observaciones: z.string().optional(),
+});
 
 export async function GET(
   request: Request,
@@ -33,7 +40,7 @@ export async function PATCH(
   const { id } = await params;
   const body: unknown = await request.json().catch(() => ({}));
 
-  const parsed = updateProductoSchema.safeParse(body);
+  const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Campos inválidos", details: parsed.error.flatten() },

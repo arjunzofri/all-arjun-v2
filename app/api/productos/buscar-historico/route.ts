@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { buscarProductoHistorico } from "@/db/vidadigital/queries";
-import { buscarHistoricoSchema } from "@/lib/validations";
+
+const qSchema = z.object({ q: z.string().min(1, "Parámetro q requerido") });
 
 export async function GET(request: Request): Promise<NextResponse> {
   const session = await auth();
@@ -12,7 +14,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
 
-  const parsed = buscarHistoricoSchema.safeParse({ q });
+  const parsed = qSchema.safeParse({ q });
   if (!parsed.success) {
     return NextResponse.json({ error: "Parámetro q requerido" }, { status: 400 });
   }

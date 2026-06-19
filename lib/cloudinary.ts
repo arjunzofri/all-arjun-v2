@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 const CLOUD_NAME = "dbl8yxnjy"; // Arjun
 const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -35,10 +37,8 @@ export async function subirImagen(file: File): Promise<string> {
 
   // Subir a Cloudinary
   const formData = new FormData();
-  formData.append(
-    "file",
-    new Blob([new Uint8Array(compressed)], { type: "image/jpeg" })
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  formData.append("file", new Blob([compressed as any], { type: "image/jpeg" }));
   formData.append("upload_preset", "arjun-products");
   formData.append("api_key", key);
 
@@ -64,7 +64,7 @@ export async function eliminarImagen(url: string): Promise<void> {
   if (!key || !secret) return;
 
   const timestamp = Math.floor(Date.now() / 1000);
-  const signature = await generarFirma(publicId, timestamp, secret);
+  const signature = generarFirma(publicId, timestamp, secret);
 
   const formData = new FormData();
   formData.append("public_id", publicId);
@@ -78,12 +78,11 @@ export async function eliminarImagen(url: string): Promise<void> {
   );
 }
 
-async function generarFirma(
+function generarFirma(
   publicId: string,
   timestamp: number,
   secret: string
-): Promise<string> {
-  const { createHash } = await import("node:crypto");
+): string {
   const params = `public_id=${publicId}&timestamp=${timestamp}${secret}`;
   return createHash("sha1").update(params).digest("hex");
 }

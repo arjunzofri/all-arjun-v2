@@ -1,7 +1,13 @@
 import { db } from "@/db";
 import { productos, movimientos, activityLog } from "@/db/schema";
 import { eq, and, lt, desc, or, ilike } from "drizzle-orm";
-import type { UpdateProductoInput } from "@/lib/validations";
+
+type UpdateProductoInput = {
+  codigoPersonal?: string;
+  packing?: number;
+  ubicacion?: string;
+  observaciones?: string;
+};
 
 // ── Listado paginado ─────────────────────────────────────────────────────
 export async function getProductos(params: {

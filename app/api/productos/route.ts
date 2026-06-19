@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { getProductos } from "@/lib/actions/productos";
-import { productosQuerySchema } from "@/lib/validations";
+
+const querySchema = z.object({
+  q: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  cursor: z.coerce.number().int().positive().optional(),
+});
 
 export async function GET(request: Request): Promise<NextResponse> {
   const session = await auth();
@@ -10,7 +16,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   const { searchParams } = new URL(request.url);
-  const parsed = productosQuerySchema.safeParse({
+  const parsed = querySchema.safeParse({
     q: searchParams.get("q") ?? undefined,
     limit: searchParams.get("limit") ?? "20",
     cursor: searchParams.get("cursor") ?? undefined,
