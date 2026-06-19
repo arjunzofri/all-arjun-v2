@@ -212,3 +212,9 @@ app-arjun-v2/
 │       └── get-bodega-por-codigo-ingreso.ts  # GLP/GL1/GL2 → bodega
 └── __tests__/
 ```
+
+## Zonas de riesgo conocidas
+
+| Archivo | Riesgo | Acción recomendada |
+|---|---|---|
+| `app/(dashboard)/entradas/page.tsx` | `detalle` e `imagenUrl` no se limpian al editar el código manualmente tras seleccionar una sugerencia — quedan pegados a la selección anterior aunque el código ya no coincida | Si se toca el flujo de selección/edición del código en este archivo, considerar si corresponde limpiar ambos estados juntos en el mismo cambio |

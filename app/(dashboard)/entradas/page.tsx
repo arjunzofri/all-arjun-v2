@@ -4,19 +4,36 @@ import { useState, useRef } from "react";
 import { crearEntrada } from "@/lib/actions/entradas";
 import { BODEGAS } from "@/lib/constants";
 
-// ponytail: form inline sin react-hook-form — un solo formulario, pocas validaciones.
+type Sugerencia = {
+  codigo: string;
+  detalle: string | null;
+  imagenUrl: string | null;
+};
+
+// ── Lógica pura de selección (exportada para test sin jsdom) ──────────
+
+export function applyProductoSugerencia(item: Sugerencia) {
+  return {
+    codigo: item.codigo,
+    detalle: item.detalle ?? "",
+    imagenUrl: item.imagenUrl,
+    suggestions: [] as never[],
+  };
+}
+
+// ── Componente ────────────────────────────────────────────────────────
 
 export default function EntradasPage() {
   const [codigo, setCodigo] = useState("");
   const [detalle, setDetalle] = useState("");
+  const [imagenUrl, setImagenUrl] = useState<string | null>(null);
+  const [imagenError, setImagenError] = useState(false);
   const [cantidad, setCantidad] = useState("");
   const [bodegaId, setBodegaId] = useState("");
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<
-    { codigo: string; detalle: string | null }[]
-  >([]);
+  const [suggestions, setSuggestions] = useState<Sugerencia[]>([]);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const buscar = async (q: string) => {
@@ -34,9 +51,12 @@ export default function EntradasPage() {
     debounce.current = setTimeout(() => buscar(q), 250);
   };
 
-  const selectProducto = (item: { codigo: string; detalle: string | null }) => {
-    setCodigo(item.codigo);
-    setDetalle(item.detalle ?? "");
+  const selectProducto = (item: Sugerencia) => {
+    const state = applyProductoSugerencia(item);
+    setCodigo(state.codigo);
+    setDetalle(state.detalle);
+    setImagenUrl(state.imagenUrl);
+    setImagenError(false);
     setSuggestions([]);
   };
 
@@ -62,6 +82,8 @@ export default function EntradasPage() {
       setOk("Entrada registrada");
       setCodigo("");
       setDetalle("");
+      setImagenUrl(null);
+      setImagenError(false);
       setCantidad("");
       setBodegaId("");
     } catch (err) {
@@ -70,6 +92,8 @@ export default function EntradasPage() {
       setLoading(false);
     }
   };
+
+  const showImagen = imagenUrl && !imagenError;
 
   return (
     <div className="max-w-lg">
@@ -93,17 +117,52 @@ export default function EntradasPage() {
                 <li
                   key={s.codigo}
                   onClick={() => selectProducto(s)}
-                  className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
                 >
-                  <span className="font-medium">{s.codigo}</span>
-                  {s.detalle && (
-                    <span className="text-gray-500 ml-2">{s.detalle}</span>
+                  {s.imagenUrl ? (
+                    <img
+                      src={s.imagenUrl}
+                      alt=""
+                      className="w-8 h-8 rounded object-cover shrink-0 bg-gray-100"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded bg-gray-100 shrink-0 flex items-center justify-center text-gray-400 text-xs">
+                      —
+                    </div>
                   )}
+                  <div className="min-w-0">
+                    <span className="font-medium">{s.codigo}</span>
+                    {s.detalle && (
+                      <span className="text-gray-500 ml-2 truncate">{s.detalle}</span>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
           )}
         </div>
+
+        {/* Imagen post-selección */}
+        {imagenUrl && (
+          <div className="flex items-center gap-3 p-3 rounded border bg-gray-50">
+            {showImagen ? (
+              <img
+                src={imagenUrl}
+                alt={codigo}
+                className="w-24 h-24 rounded object-cover bg-gray-100"
+                onError={() => setImagenError(true)}
+              />
+            ) : (
+              <div className="w-24 h-24 rounded bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+                Sin imagen
+              </div>
+            )}
+            <span className="text-sm font-medium text-gray-900">{codigo}</span>
+          </div>
+        )}
 
         {/* Detalle */}
         <div>
