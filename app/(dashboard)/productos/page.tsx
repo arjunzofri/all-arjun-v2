@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 
 // ── Tipos ──────────────────────────────────────────────────────────────
 
@@ -12,6 +13,7 @@ type ProductoItem = {
   id: number;
   codigo: string;
   detalle: string | null;
+  imagenUrl: string | null;
   packing: number | null;
   ubicacion: string | null;
   stockBodegas: StockUbicacion[];
@@ -274,6 +276,7 @@ export default function ProductosPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-gray-500">
+              <th className="py-2 w-8"></th>
               <th className="py-2">Código</th>
               <th className="py-2">Detalle</th>
               <th className="py-2">Pack</th>
@@ -285,6 +288,9 @@ export default function ProductosPage() {
           <tbody>
             {items.map((p) => (
               <tr key={p.id} className="border-b hover:bg-gray-50">
+                <td className="py-1">
+                  <ProductoThumbnail src={p.imagenUrl} alt={p.codigo} size="sm" />
+                </td>
                 <td className="py-2">
                   <Link
                     href={buildProductoDetailHref(p.id, q)}
@@ -325,7 +331,7 @@ export default function ProductosPage() {
             {!loading && !error && items.length === 0 && (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="py-8 text-center text-gray-400"
                 >
                   Sin productos
@@ -335,7 +341,7 @@ export default function ProductosPage() {
             {loading && items.length === 0 && (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="py-8 text-center text-gray-400"
                 >
                   Cargando...
