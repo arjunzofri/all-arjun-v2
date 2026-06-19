@@ -12,7 +12,7 @@ export async function getProductos(params: {
   const { q, limit, cursor } = params;
 
   const where = and(
-    cursor ? lt(productos.id, cursor) : undefined,
+    cursor !== undefined ? lt(productos.id, cursor) : undefined,
     q
       ? or(
           ilike(productos.codigo, `%${q}%`),

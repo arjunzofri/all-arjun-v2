@@ -48,7 +48,7 @@ export async function getStockPorBodega(params: {
 
   const where = and(
     eq(stock.bodegaId, bodegaId),
-    cursor ? lt(productos.id, cursor) : undefined,
+    cursor !== undefined ? lt(productos.id, cursor) : undefined,
     soloConStock ? gt(stock.cantidad, 0) : undefined,
     q
       ? or(
@@ -93,7 +93,7 @@ export async function getStockPorModulo(params: {
 
   const where = and(
     eq(stock.moduloId, moduloId),
-    cursor ? lt(productos.id, cursor) : undefined,
+    cursor !== undefined ? lt(productos.id, cursor) : undefined,
     soloConStock ? gt(stock.cantidad, 0) : undefined,
     q
       ? or(
