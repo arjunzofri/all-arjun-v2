@@ -1,11 +1,29 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getStockPorUbicacion } from "@/lib/actions/vistas";
 
 type Item = { id: number; codigo: string; detalle: string | null; packing: number | null; cantidad: number };
 type Tipo = "bodega" | "modulo";
+
+// ── Lógica pura de debounce (exportada para test sin jsdom) ───────────
+
+export function createDebounce(fn: () => void, ms: number) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  return {
+    trigger() {
+      clearTimeout(timer);
+      timer = setTimeout(fn, ms);
+    },
+    cancel() {
+      clearTimeout(timer);
+    },
+  };
+}
+
+// ── Componente ────────────────────────────────────────────────────────
 
 export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
   const params = useParams();
@@ -38,14 +56,37 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
       setNextCursor(page.nextCursor);
       setLoading(false);
     },
-    [tipo, ubicacionId, cursor, q, soloConStock]
+    [tipo, ubicacionId, cursor, q, soloConStock],
   );
 
+  // Ref siempre actualizado con el último cargar (q/cursor/soloConStock)
+  const cargarRef = useRef(cargar);
+  cargarRef.current = cargar;
+
+  // Debounce para el input de búsqueda — creado una sola vez
+  const debounceRef = useRef<ReturnType<typeof createDebounce> | undefined>(undefined);
+  if (!debounceRef.current) {
+    debounceRef.current = createDebounce(() => {
+      setItems([]);
+      setCursor(null);
+      cargarRef.current(true);
+    }, 250);
+  }
+
+  // Cambios que disparan cargar inmediatamente (sin debounce):
+  // navegación entre ubicaciones + toggle "Solo con stock"
   useEffect(() => {
+    debounceRef.current?.cancel();
     setItems([]);
     setCursor(null);
     cargar(true);
-  }, [tipo, ubicacionId, q, soloConStock]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipo, ubicacionId, soloConStock]);
+
+  // Cleanup al desmontar
+  useEffect(() => {
+    return () => debounceRef.current?.cancel();
+  }, []);
 
   return (
     <div>
@@ -57,7 +98,10 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
         <input
           type="text"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => {
+            setQ(e.target.value);
+            debounceRef.current?.trigger();
+          }}
           placeholder="Buscar código o descripción..."
           className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
         />
@@ -94,6 +138,11 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
             {items.length === 0 && !loading && (
               <tr>
                 <td colSpan={4} className="py-8 text-center text-gray-400">Sin productos</td>
+              </tr>
+            )}
+            {loading && items.length === 0 && (
+              <tr>
+                <td colSpan={4} className="py-8 text-center text-gray-400">Cargando...</td>
               </tr>
             )}
           </tbody>
