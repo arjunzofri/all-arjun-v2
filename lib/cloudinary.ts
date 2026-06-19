@@ -1,5 +1,3 @@
-"use server";
-
 const CLOUD_NAME = "dbl8yxnjy"; // Arjun
 const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
