@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { crearEntrada } from "@/lib/actions/entradas";
 import { BODEGAS } from "@/lib/constants";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
+import { createProductoSearch } from "@/components/useProductoSearch";
 
 type Sugerencia = {
   codigo: string;
@@ -35,22 +36,27 @@ export default function EntradasPage() {
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Sugerencia[]>([]);
-  const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const buscar = async (q: string) => {
-    if (q.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-    const res = await fetch(`/api/productos/buscar-historico?q=${encodeURIComponent(q)}`);
-    if (res.ok) setSuggestions(await res.json());
-  };
+  const searchRef = useRef<ReturnType<typeof createProductoSearch> | undefined>(undefined);
+  if (!searchRef.current) {
+    searchRef.current = createProductoSearch({
+      fetchFn: async (q) => {
+        const res = await fetch(`/api/productos/buscar-historico?q=${encodeURIComponent(q)}`);
+        if (!res.ok) throw new Error("fetch error");
+        return res.json();
+      },
+      onResults: setSuggestions,
+    });
+  }
 
   const handleSearch = (q: string) => {
     setCodigo(q);
-    clearTimeout(debounce.current);
-    debounce.current = setTimeout(() => buscar(q), 250);
+    searchRef.current?.search(q);
   };
+
+  useEffect(() => {
+    return () => searchRef.current?.dispose();
+  }, []);
 
   const selectProducto = (item: Sugerencia) => {
     const state = applyProductoSugerencia(item);

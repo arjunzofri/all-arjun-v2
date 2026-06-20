@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { crearSalida } from "@/lib/actions/salidas";
 import { BODEGAS, MODULOS } from "@/lib/constants";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
+import { createProductoSearch } from "@/components/useProductoSearch";
 
 export default function SalidasPage() {
   const [bodegaId, setBodegaId] = useState("");
@@ -16,27 +17,33 @@ export default function SalidasPage() {
   const [suggestions, setSuggestions] = useState<
     { codigo: string; detalle: string | null; imagenUrl: string | null; cantidad: number }[]
   >([]);
-  const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const buscar = async (q: string) => {
-    if (q.length < 2 || !bodegaId) {
-      setSuggestions([]);
-      return;
-    }
-    const res = await fetch(
-      `/api/productos/por-bodega?bodegaId=${bodegaId}&q=${encodeURIComponent(q)}`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      setSuggestions(data.items ?? []);
-    }
-  };
+  const bodegaRef = useRef(bodegaId);
+  bodegaRef.current = bodegaId;
+
+  const searchRef = useRef<ReturnType<typeof createProductoSearch> | undefined>(undefined);
+  if (!searchRef.current) {
+    searchRef.current = createProductoSearch({
+      fetchFn: async (q) => {
+        const res = await fetch(
+          `/api/productos/por-bodega?bodegaId=${bodegaRef.current}&q=${encodeURIComponent(q)}`
+        );
+        if (!res.ok) throw new Error("fetch error");
+        return res.json();
+      },
+      onResults: setSuggestions,
+      guard: () => !!bodegaRef.current,
+    });
+  }
 
   const handleSearch = (q: string) => {
     setCodigo(q);
-    clearTimeout(debounce.current);
-    debounce.current = setTimeout(() => buscar(q), 250);
+    searchRef.current?.search(q);
   };
+
+  useEffect(() => {
+    return () => searchRef.current?.dispose();
+  }, []);
 
   const selectProducto = (item: {
     codigo: string;

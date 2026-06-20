@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { crearRetorno } from "@/lib/actions/retornos";
 import { BODEGAS, MODULOS } from "@/lib/constants";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
+import { createProductoSearch } from "@/components/useProductoSearch";
 
 export default function RetornosPage() {
   const [moduloId, setModuloId] = useState("");
@@ -16,27 +17,33 @@ export default function RetornosPage() {
   const [suggestions, setSuggestions] = useState<
     { codigo: string; detalle: string | null; imagenUrl: string | null; cantidad: number }[]
   >([]);
-  const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const buscar = async (q: string) => {
-    if (q.length < 2 || !moduloId) {
-      setSuggestions([]);
-      return;
-    }
-    const res = await fetch(
-      `/api/productos/por-bodega?bodegaId=${moduloId}&tipo=modulo&q=${encodeURIComponent(q)}`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      setSuggestions(data.items ?? []);
-    }
-  };
+  const moduloRef = useRef(moduloId);
+  moduloRef.current = moduloId;
+
+  const searchRef = useRef<ReturnType<typeof createProductoSearch> | undefined>(undefined);
+  if (!searchRef.current) {
+    searchRef.current = createProductoSearch({
+      fetchFn: async (q) => {
+        const res = await fetch(
+          `/api/productos/por-bodega?bodegaId=${moduloRef.current}&tipo=modulo&q=${encodeURIComponent(q)}`
+        );
+        if (!res.ok) throw new Error("fetch error");
+        return res.json();
+      },
+      onResults: setSuggestions,
+      guard: () => !!moduloRef.current,
+    });
+  }
 
   const handleSearch = (q: string) => {
     setCodigo(q);
-    clearTimeout(debounce.current);
-    debounce.current = setTimeout(() => buscar(q), 250);
+    searchRef.current?.search(q);
   };
+
+  useEffect(() => {
+    return () => searchRef.current?.dispose();
+  }, []);
 
   const selectProducto = (item: { codigo: string }) => {
     setCodigo(item.codigo);
