@@ -65,6 +65,7 @@ export async function getStockPorUbicacion(params: {
       id: productos.id,
       codigo: productos.codigo,
       detalle: productos.detalle,
+      imagenUrl: productos.imagenUrl,
       packing: productos.packing,
       cantidad: stock.cantidad,
     })

@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getStockPorUbicacion } from "@/lib/actions/vistas";
+import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 
-type Item = { id: number; codigo: string; detalle: string | null; packing: number | null; cantidad: number };
+type Item = { id: number; codigo: string; detalle: string | null; imagenUrl: string | null; packing: number | null; cantidad: number };
 type Tipo = "bodega" | "modulo";
 type Page = { items: Item[]; nextCursor: number | null };
 
@@ -159,6 +160,7 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-gray-500">
+              <th className="py-2 w-8"></th>
               <th className="py-2">Código</th>
               <th className="py-2">Detalle</th>
               <th className="py-2 text-right">Packing</th>
@@ -168,6 +170,9 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
           <tbody>
             {items.map((item) => (
               <tr key={item.id} className="border-b hover:bg-gray-50">
+                <td className="py-1">
+                  <ProductoThumbnail src={item.imagenUrl} alt={item.codigo} size="sm" />
+                </td>
                 <td className="py-2 font-medium">{item.codigo}</td>
                 <td className="py-2 text-gray-600">{item.detalle ?? "—"}</td>
                 <td className="py-2 text-right text-gray-500">{item.packing ?? "—"}</td>
@@ -176,12 +181,12 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
             ))}
             {items.length === 0 && !loading && !error && (
               <tr>
-                <td colSpan={4} className="py-8 text-center text-gray-400">Sin productos</td>
+                <td colSpan={5} className="py-8 text-center text-gray-400">Sin productos</td>
               </tr>
             )}
             {loading && items.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-8 text-center text-gray-400">Cargando...</td>
+                <td colSpan={5} className="py-8 text-center text-gray-400">Cargando...</td>
               </tr>
             )}
           </tbody>
