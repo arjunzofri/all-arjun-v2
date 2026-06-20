@@ -36,6 +36,29 @@ export async function syncComprasAnil(corte: string): Promise<{
   watermark: string;
 }> {
   const sql = neon(process.env.DATABASE_URL!);
+
+  // Defensa: validar que BODEGA_ID coincida con las filas reales en bodegas/modulos.
+  // Si alguien recrea las tablas y los serials quedan desalineados, el sync
+  // para con error visible en vez de insertar stock en la ubicación equivocada.
+  const bodegasDb = await sql`SELECT id, nombre FROM bodegas ORDER BY id` as unknown as { id: number; nombre: string }[];
+  for (const [nombre, id] of Object.entries(BODEGA_ID)) {
+    const row = bodegasDb.find((r) => r.id === id);
+    if (!row) {
+      throw new Error(
+        `Sync abortado: BODEGA_ID dice que "${nombre}" tiene id=${id}, ` +
+        `pero la tabla bodegas no tiene ninguna fila con ese id. ` +
+        `IDs en bodegas: [${bodegasDb.map((r) => `${r.id}=${r.nombre}`).join(", ")}]`,
+      );
+    }
+    if (row.nombre !== nombre) {
+      throw new Error(
+        `Sync abortado: BODEGA_ID dice que id=${id} es "${nombre}", ` +
+        `pero la tabla bodegas tiene id=${id} → "${row.nombre}". ` +
+        `Las tablas pueden haberse recreado con IDs desalineados de constants.ts`,
+      );
+    }
+  }
+
   const compras = await getComprasAnilDesde(corte);
 
   let procesadas = 0;
