@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getMovimientos } from "@/lib/actions/movimientos";
 import type { MovimientoItem } from "@/lib/actions/movimientos";
+import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 
 const TIPOS = ["todas", "entrada", "salida", "retorno"] as const;
 
@@ -96,6 +97,7 @@ export default function MovimientosPage() {
             <tr className="border-b text-left text-gray-500">
               <th className="py-2">Fecha</th>
               <th className="py-2">Tipo</th>
+              <th className="py-2 w-8"></th>
               <th className="py-2">Código</th>
               <th className="py-2">Detalle</th>
               <th className="py-2 text-right">Cant</th>
@@ -120,6 +122,9 @@ export default function MovimientosPage() {
                     {m.tipo}
                   </span>
                 </td>
+                <td className="py-1">
+                  <ProductoThumbnail src={m.imagenUrl} alt={m.productoCodigo} size="sm" />
+                </td>
                 <td className="py-2 font-medium">{m.productoCodigo}</td>
                 <td className="py-2 text-gray-600">
                   {m.productoDetalle ?? "—"}
@@ -131,7 +136,7 @@ export default function MovimientosPage() {
             ))}
             {items.length === 0 && !loading && (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-gray-400">
+                <td colSpan={6} className="py-8 text-center text-gray-400">
                   Sin movimientos
                 </td>
               </tr>

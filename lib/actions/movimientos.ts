@@ -10,6 +10,7 @@ export type MovimientoItem = {
   cantidad: number;
   productoCodigo: string;
   productoDetalle: string | null;
+  imagenUrl: string | null;
   createdAt: Date;
 };
 
@@ -38,6 +39,7 @@ export async function getMovimientos(params: {
       cantidad: movimientos.cantidad,
       productoCodigo: productos.codigo,
       productoDetalle: productos.detalle,
+      imagenUrl: productos.imagenUrl,
       createdAt: movimientos.createdAt,
     })
     .from(movimientos)
