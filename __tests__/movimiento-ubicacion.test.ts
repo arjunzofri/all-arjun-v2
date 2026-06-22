@@ -3,6 +3,7 @@ import {
   resolverOrigenDestino,
   efectoSobreUbicacion,
   calcularCantidadNeta,
+  calcularCantidadAjuste,
 } from "@/lib/utils/movimiento-ubicacion";
 import type { Ubicacion } from "@/lib/utils/movimiento-ubicacion";
 
@@ -194,5 +195,64 @@ describe("calcularCantidadNeta", () => {
       BODEGA_5,
     );
     expect(neto).toBe(8);
+  });
+});
+
+// ── calcularCantidadAjuste ────────────────────────────────────────────────
+
+const DESTINO_MODULO: Ubicacion = { tipo: "modulo", id: 2 };
+const DESTINO_BODEGA: Ubicacion = { tipo: "bodega", id: 5 };
+
+describe("calcularCantidadAjuste", () => {
+  // ── Destino módulo (caso salida) ─────────────────────────────────
+
+  it("destino módulo, neta=20, real=18 → devuelve -2", () => {
+    const cantidad = calcularCantidadAjuste(DESTINO_MODULO, 20, 18);
+    expect(cantidad).toBe(-2);
+  });
+
+  it("destino módulo, neta=18, real=19 (segunda corrección) → devuelve +1", () => {
+    const cantidad = calcularCantidadAjuste(DESTINO_MODULO, 18, 19);
+    expect(cantidad).toBe(+1);
+  });
+
+  // ── Destino bodega (caso retorno, signo invertido) ───────────────
+
+  it("destino bodega, neta=10, real=8 → devuelve +2 (signo invertido)", () => {
+    const cantidad = calcularCantidadAjuste(DESTINO_BODEGA, 10, 8);
+    expect(cantidad).toBe(+2);
+  });
+
+  it("destino bodega, neta=8, real=8 → lanza error (sin diferencia)", () => {
+    expect(() =>
+      calcularCantidadAjuste(DESTINO_BODEGA, 8, 8)
+    ).toThrow(/diferencia|coincide/i);
+  });
+
+  // ── Círculo completo ─────────────────────────────────────────────
+
+  it("el ajuste producido por calcularCantidadAjuste, al aplicarse via calcularCantidadNeta, da la cantidad real", () => {
+    // Salida original 20 al módulo 2, llegaron 18.
+    const cantidadAjuste = calcularCantidadAjuste(
+      { tipo: "modulo", id: 2 },
+      20,
+      18,
+    );
+    expect(cantidadAjuste).toBe(-2);
+
+    const ajusteInput = {
+      tipo: "ajuste" as const,
+      bodegaOrigenId: 1,
+      moduloDestinoId: 2,
+      cantidad: cantidadAjuste,
+    };
+
+    const neto = calcularCantidadNeta(
+      { tipo: "salida", bodegaOrigenId: 1, moduloDestinoId: 2, cantidad: 20 },
+      [ajusteInput],
+      { tipo: "modulo", id: 2 },
+    );
+
+    expect(neto).toBe(18);
   });
 });

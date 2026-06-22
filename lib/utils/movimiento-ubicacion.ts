@@ -125,3 +125,39 @@ export function calcularCantidadNeta(
   );
   return efectoOriginal + efectoAjustes;
 }
+
+/**
+ * Calcula la cantidad del ajuste necesaria para corregir un movimiento
+ * contribuyente desde su cantidad neta actual hacia la cantidad real
+ * observada por el usuario.
+ *
+ * La asimetría de signo es consistente con el resto del módulo:
+ *   - Destino módulo (caso salida): delta se usa directo.
+ *     delta < 0 → ajuste con cantidad negativa → módulo es origen
+ *     (se devuelve stock al origen). Coincide con efectoSobreUbicacion.
+ *   - Destino bodega (caso retorno): delta se invierte.
+ *     delta < 0 (llegó menos de lo registrado) → ajuste con cantidad
+ *     positiva → bodega es origen (se devuelve stock al módulo).
+ *     Es la misma inversión que resolverOrigenDestino ya maneja para
+ *     retornos — ver BUGS.md #inversion-semantica-retornos.
+ *
+ * Lanza error si no hay diferencia (cantidadReal === cantidadNetaActual).
+ * La validación de que el delta no exceda lo disponible la hace
+ * crearAjuste() contra la DB, no esta función.
+ */
+export function calcularCantidadAjuste(
+  destinoOriginal: Ubicacion,
+  cantidadNetaActual: number,
+  cantidadReal: number,
+): number {
+  const delta = cantidadReal - cantidadNetaActual;
+
+  if (delta === 0) {
+    throw new Error(
+      "No hay diferencia que corregir: la cantidad ingresada coincide con la cantidad neta actual",
+    );
+  }
+
+  // Destino bodega → signo invertido (misma asimetría que resolverOrigenDestino)
+  return destinoOriginal.tipo === "bodega" ? -delta : delta;
+}
