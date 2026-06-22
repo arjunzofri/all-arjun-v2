@@ -8,6 +8,7 @@ import {
   pgEnum,
   jsonb,
   unique,
+  AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
 // ── Enums ────────────────────────────────────────────────────────────────
@@ -15,6 +16,7 @@ export const tipoMovimientoEnum = pgEnum("tipo_movimiento", [
   "entrada",
   "salida",
   "retorno",
+  "ajuste",
 ]);
 
 // ── Productos ────────────────────────────────────────────────────────────
@@ -80,6 +82,9 @@ export const movimientos = pgTable(
     moduloDestinoId: integer("modulo_destino_id").references(() => modulos.id),
     usuarioId: integer("usuario_id").notNull(),
     observaciones: text("observaciones"),
+    movimientoOriginalId: integer("movimiento_original_id").references(
+      (): AnyPgColumn => movimientos.id
+    ),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [
