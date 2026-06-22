@@ -76,6 +76,7 @@ describe("getMovimientos() — columnas", () => {
     expect(item).toHaveProperty("cantidad");
     expect(item).toHaveProperty("productoCodigo");
     expect(item).toHaveProperty("productoDetalle");
+    expect(item).toHaveProperty("observaciones");
     expect(item).toHaveProperty("createdAt");
   });
 });

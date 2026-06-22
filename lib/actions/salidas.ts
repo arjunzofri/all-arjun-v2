@@ -10,13 +10,14 @@ const salidaSchema = z.object({
   moduloDestinoId: z.number().int().positive("Módulo destino requerido"),
   idempotencyKey: z.string().min(1, "Idempotency key requerida"),
   usuarioId: z.number().int().positive("Usuario requerido"),
+  observaciones: z.string().max(500).optional(),
 });
 
 export type CrearSalidaInput = z.infer<typeof salidaSchema>;
 
 export async function crearSalida(input: CrearSalidaInput) {
   const parsed = salidaSchema.parse(input);
-  const { codigo, cantidad, bodegaOrigenId, moduloDestinoId, idempotencyKey, usuarioId } = parsed;
+  const { codigo, cantidad, bodegaOrigenId, moduloDestinoId, idempotencyKey, usuarioId, observaciones } = parsed;
 
   const sql = neon(process.env.DATABASE_URL!);
   const folio = `SAL-${idempotencyKey}`;
@@ -60,8 +61,8 @@ export async function crearSalida(input: CrearSalidaInput) {
       ON CONFLICT (producto_id, modulo_id)
       DO UPDATE SET cantidad = stock.cantidad + ${cantidad}, updated_at = NOW()
     )
-    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, modulo_destino_id, usuario_id)
-    SELECT ${folio}, (SELECT id FROM producto), 'salida', ${cantidad}, ${bodegaOrigenId}, ${moduloDestinoId}, ${usuarioId}
+    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, modulo_destino_id, usuario_id, observaciones)
+    SELECT ${folio}, (SELECT id FROM producto), 'salida', ${cantidad}, ${bodegaOrigenId}, ${moduloDestinoId}, ${usuarioId}, ${observaciones ?? null}
     WHERE EXISTS (SELECT 1 FROM stock_check)
     RETURNING id
   `;

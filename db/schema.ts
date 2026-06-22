@@ -79,6 +79,7 @@ export const movimientos = pgTable(
     bodegaOrigenId: integer("bodega_origen_id").references(() => bodegas.id),
     moduloDestinoId: integer("modulo_destino_id").references(() => modulos.id),
     usuarioId: integer("usuario_id").notNull(),
+    observaciones: text("observaciones"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [

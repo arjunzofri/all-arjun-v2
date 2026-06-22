@@ -139,6 +139,29 @@ describe("crearSalida() — idempotencia y atomicidad", () => {
   });
 });
 
+// ── R-obs-3: Observaciones en salida ────────────────────────────────────
+describe("crearSalida() — observaciones", () => {
+  it("guarda observaciones en el movimiento", async () => {
+    const key = `SAL-OBS-${Date.now()}`;
+    await crearSalida({
+      codigo: TEST_CODIGO,
+      cantidad: 1,
+      bodegaOrigenId: 1,
+      moduloDestinoId: 1,
+      idempotencyKey: key,
+      usuarioId: 1,
+      observaciones: "Despachado sin verificar",
+    });
+
+    const rows = await sql`
+      SELECT observaciones FROM movimientos
+      WHERE folio = ${`SAL-${key}`}
+    `;
+    const r = rows as unknown as { observaciones: string | null }[];
+    expect(r[0]?.observaciones).toBe("Despachado sin verificar");
+  });
+});
+
 // ── R5: Producto sin stock no aparece ──────────────────────────────────
 describe("GET /api/productos/por-bodega", () => {
   beforeEach(() => {

@@ -35,6 +35,7 @@ export default function EntradasPage() {
   const [imagenError, setImagenError] = useState(false);
   const [cantidad, setCantidad] = useState("");
   const [bodegaId, setBodegaId] = useState("");
+  const [observaciones, setObservaciones] = useState("");
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
@@ -91,12 +92,14 @@ export default function EntradasPage() {
         idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         imagenUrl: imagenUrl ?? undefined,
         packing: packing ?? undefined,
+        observaciones: observaciones.trim() || undefined,
       });
       setOk("Entrada registrada");
       setCodigo("");
       setDetalle("");
       setImagenUrl(null);
       setPacking(null);
+      setObservaciones("");
       setImagenError(false);
       setCantidad("");
       setBodegaId("");
@@ -196,6 +199,19 @@ export default function EntradasPage() {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Observaciones */}
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">Observaciones</label>
+          <textarea
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+            maxLength={500}
+            rows={2}
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm resize-y"
+            placeholder="Opcional"
+          />
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

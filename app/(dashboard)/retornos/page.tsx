@@ -11,6 +11,7 @@ export default function RetornosPage() {
   const [bodegaId, setBodegaId] = useState("");
   const [codigo, setCodigo] = useState("");
   const [cantidad, setCantidad] = useState("");
+  const [observaciones, setObservaciones] = useState("");
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
@@ -69,6 +70,7 @@ export default function RetornosPage() {
         bodegaDestinoId: parseInt(bodegaId, 10),
         idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         usuarioId: 1,
+        observaciones: observaciones.trim() || undefined,
       });
 
       if (result.ok === false) {
@@ -77,6 +79,7 @@ export default function RetornosPage() {
         setOk("Retorno registrado");
         setCodigo("");
         setCantidad("");
+        setObservaciones("");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar");
@@ -175,6 +178,19 @@ export default function RetornosPage() {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Observaciones */}
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">Observaciones</label>
+          <textarea
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+            maxLength={500}
+            rows={2}
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm resize-y"
+            placeholder="Opcional"
+          />
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

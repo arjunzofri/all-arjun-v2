@@ -132,3 +132,26 @@ describe("crearRetorno() — idempotencia y atomicidad", () => {
     expect((movs as unknown as { n: number }[])[0].n).toBe(1);
   });
 });
+
+// ── R-obs-4: Observaciones en retorno ──────────────────────────────────
+describe("crearRetorno() — observaciones", () => {
+  it("guarda observaciones en el movimiento", async () => {
+    const key = `RET-OBS-${Date.now()}`;
+    await crearRetorno({
+      codigo: TEST_CODIGO,
+      cantidad: 1,
+      moduloOrigenId: 1,
+      bodegaDestinoId: 1,
+      idempotencyKey: key,
+      usuarioId: 1,
+      observaciones: "Cliente insatisfecho",
+    });
+
+    const rows = await sql`
+      SELECT observaciones FROM movimientos
+      WHERE folio = ${`RET-${key}`}
+    `;
+    const r = rows as unknown as { observaciones: string | null }[];
+    expect(r[0]?.observaciones).toBe("Cliente insatisfecho");
+  });
+});

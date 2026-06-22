@@ -19,7 +19,7 @@ beforeAll(async () => {
     await sql`INSERT INTO bodegas (nombre) VALUES (${nombre}) ON CONFLICT (nombre) DO NOTHING`;
   }
   // Limpiar datos de tests anteriores
-  await sql`DELETE FROM movimientos WHERE folio LIKE 'MAN-ENT-TEST-%' OR folio LIKE 'MAN-TEST-%'`;
+  await sql`DELETE FROM movimientos WHERE folio LIKE 'MAN-ENT-TEST-%' OR folio LIKE 'MAN-TEST-%' OR folio LIKE 'MAN-ENT-OBS-%'`;
   await sql`DELETE FROM stock WHERE producto_id IN (SELECT id FROM productos WHERE codigo LIKE 'TEST-ENT-%')`;
   await sql`DELETE FROM productos WHERE codigo LIKE 'TEST-ENT-%'`;
 });
@@ -141,5 +141,42 @@ describe("crearEntrada() — idempotencia y upsert", () => {
     const rows = p as unknown as { id: number; codigo: string; detalle: string | null }[];
     expect(rows.length).toBe(1);
     expect(rows[0].codigo).toBe("TEST-ENT-003");
+  });
+});
+
+// ── R-obs-1 + R-obs-2: Observaciones ────────────────────────────────────
+describe("crearEntrada() — observaciones", () => {
+  const key = `ENT-OBS-${Date.now()}`;
+
+  it("guarda observaciones en el movimiento", async () => {
+    await crearEntrada({
+      codigo: "TEST-ENT-004",
+      detalle: "Con observacion",
+      cantidad: 3,
+      bodegaId: 1,
+      idempotencyKey: key,
+      observaciones: "Llegó con caja abierta",
+    });
+
+    const rows = await sql`
+      SELECT observaciones FROM movimientos
+      WHERE folio = ${`MAN-${key}`}
+    `;
+    const r = rows as unknown as { observaciones: string | null }[];
+    expect(r[0]?.observaciones).toBe("Llegó con caja abierta");
+  });
+
+  it("rechaza observaciones > 500 caracteres", async () => {
+    const larga = "x".repeat(501);
+    await expect(
+      crearEntrada({
+        codigo: "TEST-ENT-005",
+        detalle: "Observacion larga",
+        cantidad: 1,
+        bodegaId: 1,
+        idempotencyKey: `ENT-OBS-LONG-${Date.now()}`,
+        observaciones: larga,
+      })
+    ).rejects.toThrow(/observaciones|500/);
   });
 });

@@ -12,13 +12,14 @@ const entradaSchema = z.object({
   idempotencyKey: z.string().min(1, "Idempotency key requerida"),
   imagenUrl: z.string().url().nullable().optional(),
   packing: z.number().int().nonnegative().nullable().optional(),
+  observaciones: z.string().max(500).optional(),
 });
 
 export type CrearEntradaInput = z.infer<typeof entradaSchema>;
 
 export async function crearEntrada(input: CrearEntradaInput) {
   const parsed = entradaSchema.parse(input);
-  const { codigo, detalle, cantidad, bodegaId, idempotencyKey, imagenUrl, packing } = parsed;
+  const { codigo, detalle, cantidad, bodegaId, idempotencyKey, imagenUrl, packing, observaciones } = parsed;
 
   const sql = neon(process.env.DATABASE_URL!);
 
@@ -53,8 +54,8 @@ export async function crearEntrada(input: CrearEntradaInput) {
       ON CONFLICT (producto_id, bodega_id)
       DO UPDATE SET cantidad = stock.cantidad + ${cantidad}
     )
-    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id)
-    SELECT ${folio}, p.id, 'entrada', ${cantidad}, ${bodegaId}, 1
+    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id, observaciones)
+    SELECT ${folio}, p.id, 'entrada', ${cantidad}, ${bodegaId}, 1, ${observaciones ?? null}
     FROM productos p
     WHERE p.codigo = ${codigo}
       AND NOT EXISTS (SELECT 1 FROM existing)
