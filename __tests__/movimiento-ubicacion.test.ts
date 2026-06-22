@@ -9,6 +9,7 @@ describe("resolverOrigenDestino — entrada", () => {
       tipo: "entrada",
       bodegaOrigenId: 7,
       moduloDestinoId: null,
+      cantidad: 5, // no usada por entrada, solo para firma nueva
     });
 
     expect(r.origen).toBeNull();
@@ -19,7 +20,8 @@ describe("resolverOrigenDestino — entrada", () => {
     const r = resolverOrigenDestino({
       tipo: "entrada",
       bodegaOrigenId: 3,
-      moduloDestinoId: 99, // no debería venir, pero si viene se ignora
+      moduloDestinoId: 99,
+      cantidad: 1,
     });
 
     expect(r.origen).toBeNull();
@@ -35,6 +37,7 @@ describe("resolverOrigenDestino — salida", () => {
       tipo: "salida",
       bodegaOrigenId: 1,
       moduloDestinoId: 2,
+      cantidad: 10,
     });
 
     expect(r.origen).toEqual({ tipo: "bodega", id: 1 });
@@ -53,6 +56,7 @@ describe("resolverOrigenDestino — retorno", () => {
       tipo: "retorno",
       bodegaOrigenId: 5, // en la fila de retorno, esto es realmente el destino
       moduloDestinoId: 3, // en la fila de retorno, esto es realmente el origen
+      cantidad: 3,
     });
 
     expect(r.origen).toEqual({ tipo: "modulo", id: 3 });
@@ -63,13 +67,58 @@ describe("resolverOrigenDestino — retorno", () => {
 // ── Tipo desconocido ──────────────────────────────────────────────────────
 
 describe("resolverOrigenDestino — tipo desconocido", () => {
-  it("lanza error para tipo no reconocido (defensa ante futuro 'ajuste')", () => {
+  it("lanza error para tipo no reconocido", () => {
     expect(() =>
       resolverOrigenDestino({
-        tipo: "ajuste" as any,
+        tipo: "transferencia" as any,
         bodegaOrigenId: 1,
         moduloDestinoId: 2,
+        cantidad: 1,
       })
     ).toThrow(/tipo.*desconocido/i);
+  });
+});
+
+// ── Ajuste (dirección por signo de cantidad) ──────────────────────────────
+
+describe("resolverOrigenDestino — ajuste", () => {
+  it("cantidad positiva → origen bodega, destino módulo (llegó más de lo registrado)", () => {
+    const r = resolverOrigenDestino({
+      tipo: "ajuste",
+      bodegaOrigenId: 2,
+      moduloDestinoId: 8,
+      cantidad: 4,
+    });
+
+    expect(r.origen).toEqual({ tipo: "bodega", id: 2 });
+    expect(r.destino).toEqual({ tipo: "modulo", id: 8 });
+  });
+
+  it("cantidad negativa → origen módulo, destino bodega (llegó menos, se devuelve la diferencia)", () => {
+    const r = resolverOrigenDestino({
+      tipo: "ajuste",
+      bodegaOrigenId: 2,
+      moduloDestinoId: 8,
+      cantidad: -3,
+    });
+
+    expect(r.origen).toEqual({ tipo: "modulo", id: 8 });
+    expect(r.destino).toEqual({ tipo: "bodega", id: 2 });
+  });
+
+  it("cantidad === 0 → origen y destino null (sin movimiento real; prevención en crearAjuste)", () => {
+    // Un ajuste de cantidad 0 no representa movimiento real. La responsabilidad
+    // de prevenir que esto ocurra es de crearAjuste (Zod), no de esta función.
+    // Si aun así llega, devolvemos null en ambas puntas — documentado, explícito,
+    // no un comportamiento accidental de caer en una rama equivocada.
+    const r = resolverOrigenDestino({
+      tipo: "ajuste",
+      bodegaOrigenId: 2,
+      moduloDestinoId: 8,
+      cantidad: 0,
+    });
+
+    expect(r.origen).toBeNull();
+    expect(r.destino).toBeNull();
   });
 });
