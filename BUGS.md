@@ -277,3 +277,51 @@ component**, verificar en el build output que aparezca como `ƒ Dynamic` y
 no como `○ Static`. Si aparece como `○ Static`, agregar
 `export const dynamic = "force-dynamic"`. Las páginas que son client
 components con shell vacío no necesitan esto (son estáticas sin datos).
+
+---
+
+## 2026-06-23 — Inversión semántica en columnas de movimientos para retornos {#inversion-semantica-retornos}
+
+**Síntoma:** ninguno visible en producción hoy. Riesgo latente detectado
+durante el diseño del mecanismo de "ajuste de stock" (corrección de
+saldos), al necesitar leer el origen/destino real de un movimiento.
+
+**Causa raíz:** crearRetorno() invierte los valores al insertar en
+movimientos. Para una fila de tipo 'retorno':
+- bodega_origen_id guarda el DESTINO real (la bodega a la que vuelve
+  el producto), no el origen
+- modulo_destino_id guarda el ORIGEN real (el módulo de donde sale
+  el producto), no el destino
+
+Los nombres de columna (bodega_origen_id, modulo_destino_id) describen
+correctamente la semántica de 'salida', pero quedan invertidos para
+'retorno'. El stock se mueve correctamente (la lógica de UPDATE/INSERT
+en la tabla stock usa los parámetros con sus nombres reales, no las
+columnas de movimientos), así que no hay bug funcional - es puramente
+un problema de interpretación si alguien lee movimientos.bodega_origen_id
+asumiendo que siempre significa "origen".
+
+**Por qué no se corrigió el schema:** renombrar las columnas requeriría
+una migración sobre una tabla con datos de producción reales, y tocar
+cada lugar que ya escribe en ellas (entradas, salidas, retornos, sync
+de Anil) - riesgo desproporcionado para un problema que hoy no tiene
+manifestación visible.
+
+**Fix:** lib/utils/movimiento-ubicacion.ts exporta resolverOrigenDestino(),
+que es el ÚNICO punto de verdad para interpretar estas columnas. Recibe
+tipo + las dos columnas crudas, devuelve { origen, destino } correctos
+sin importar la inversión. Cualquier código nuevo que necesite origen/
+destino de un movimiento debe usar esta función - nunca leer las
+columnas inline.
+
+**No tocar sin revisar:** si se agrega un nuevo tipo de movimiento
+(ej. "ajuste"), resolverOrigenDestino() debe actualizarse para manejarlo
+explícitamente. Hoy lanza error ante cualquier tipo no reconocido -
+es defensivo a propósito, para que un tipo nuevo sin actualizar la
+función falle ruidosamente en vez de devolver origen/destino incorrectos
+en silencio.
+
+**Verificación:** 5/5 tests (entrada, entrada defensivo, salida, retorno
+con inversión confirmada, tipo desconocido lanzando error). 28/29 files,
+197/198 suite completa (timeout intermitente preexistente en smoke-e2e,
+no relacionado). tsc y build limpios.
