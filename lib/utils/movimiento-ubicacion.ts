@@ -80,3 +80,48 @@ export function resolverOrigenDestino(input: ResolverInput): ResolverOutput {
 
   throw new Error(`Tipo de movimiento desconocido: "${tipo}"`);
 }
+
+/**
+ * Devuelve el efecto neto de un movimiento sobre una ubicación:
+ *   +|cantidad| si la ubicación es el destino (entra stock)
+ *   −|cantidad| si la ubicación es el origen (sale stock)
+ *   0 en cualquier otro caso
+ *
+ * Delega en resolverOrigenDestino() — no duplica lógica de interpretación.
+ */
+export function efectoSobreUbicacion(
+  movimiento: ResolverInput,
+  ubicacion: Ubicacion,
+): number {
+  const { origen, destino } = resolverOrigenDestino(movimiento);
+  const cantidadAbs = Math.abs(movimiento.cantidad);
+
+  if (destino && destino.tipo === ubicacion.tipo && destino.id === ubicacion.id) {
+    return cantidadAbs;
+  }
+  if (origen && origen.tipo === ubicacion.tipo && origen.id === ubicacion.id) {
+    return -cantidadAbs;
+  }
+  return 0;
+}
+
+/**
+ * Cantidad neta de un movimiento original + sus ajustes, desde la
+ * perspectiva de una ubicación específica.
+ *
+ * Usa efectoSobreUbicacion() para cada movimiento — la dirección del
+ * flujo (origen/destino) ya viene resuelta correctamente sin importar
+ * si es salida, retorno o ajuste.
+ */
+export function calcularCantidadNeta(
+  original: ResolverInput,
+  ajustes: ResolverInput[],
+  ubicacion: Ubicacion,
+): number {
+  const efectoOriginal = efectoSobreUbicacion(original, ubicacion);
+  const efectoAjustes = ajustes.reduce(
+    (sum, a) => sum + efectoSobreUbicacion(a, ubicacion),
+    0,
+  );
+  return efectoOriginal + efectoAjustes;
+}

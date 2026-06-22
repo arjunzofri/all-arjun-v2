@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { resolverOrigenDestino } from "@/lib/utils/movimiento-ubicacion";
+import {
+  resolverOrigenDestino,
+  efectoSobreUbicacion,
+  calcularCantidadNeta,
+} from "@/lib/utils/movimiento-ubicacion";
+import type { Ubicacion } from "@/lib/utils/movimiento-ubicacion";
 
 // ── Entrada ───────────────────────────────────────────────────────────────
 
@@ -120,5 +125,74 @@ describe("resolverOrigenDestino — ajuste", () => {
 
     expect(r.origen).toBeNull();
     expect(r.destino).toBeNull();
+  });
+});
+
+// ── efectoSobreUbicacion + calcularCantidadNeta ───────────────────────────
+
+const BODEGA_1: Ubicacion = { tipo: "bodega", id: 1 };
+const MODULO_2: Ubicacion = { tipo: "modulo", id: 2 };
+const BODEGA_5: Ubicacion = { tipo: "bodega", id: 5 };
+const MODULO_3: Ubicacion = { tipo: "modulo", id: 3 };
+
+describe("calcularCantidadNeta", () => {
+  // ── Salida (bodega 1 → módulo 2), perspectiva del módulo destino ──────
+
+  it("salida original 20, sin ajustes → neto 20 para el módulo", () => {
+    const neto = calcularCantidadNeta(
+      { tipo: "salida", bodegaOrigenId: 1, moduloDestinoId: 2, cantidad: 20 },
+      [],
+      MODULO_2,
+    );
+    expect(neto).toBe(20);
+  });
+
+  it("salida original 20, ajuste -2 (llegó menos) → neto 18 para el módulo", () => {
+    // cantidad=-2: módulo→bodega, se devuelve la diferencia al origen
+    const neto = calcularCantidadNeta(
+      { tipo: "salida", bodegaOrigenId: 1, moduloDestinoId: 2, cantidad: 20 },
+      [
+        { tipo: "ajuste", bodegaOrigenId: 1, moduloDestinoId: 2, cantidad: -2 },
+      ],
+      MODULO_2,
+    );
+    expect(neto).toBe(18);
+  });
+
+  it("salida original 20, ajustes -2 y +1 → neto 19 para el módulo", () => {
+    const neto = calcularCantidadNeta(
+      { tipo: "salida", bodegaOrigenId: 1, moduloDestinoId: 2, cantidad: 20 },
+      [
+        { tipo: "ajuste", bodegaOrigenId: 1, moduloDestinoId: 2, cantidad: -2 },
+        { tipo: "ajuste", bodegaOrigenId: 1, moduloDestinoId: 2, cantidad: +1 },
+      ],
+      MODULO_2,
+    );
+    expect(neto).toBe(19);
+  });
+
+  // ── Retorno (módulo 3 → bodega 5), perspectiva de la bodega destino ───
+
+  it("retorno original 10, sin ajustes → neto 10 para la bodega", () => {
+    const neto = calcularCantidadNeta(
+      { tipo: "retorno", bodegaOrigenId: 5, moduloDestinoId: 3, cantidad: 10 },
+      [],
+      BODEGA_5,
+    );
+    expect(neto).toBe(10);
+  });
+
+  it("retorno original 10, ajuste +2 (llegaron 8, se devuelven 2 de bodega a módulo) → neto 8 para la bodega", () => {
+    // cantidad=+2: bodega→módulo. El signo es positivo porque el ajuste
+    // mueve stock de bodega a módulo según la convención de signo.
+    // Para la bodega, este ajuste es una salida → efecto negativo.
+    const neto = calcularCantidadNeta(
+      { tipo: "retorno", bodegaOrigenId: 5, moduloDestinoId: 3, cantidad: 10 },
+      [
+        { tipo: "ajuste", bodegaOrigenId: 5, moduloDestinoId: 3, cantidad: +2 },
+      ],
+      BODEGA_5,
+    );
+    expect(neto).toBe(8);
   });
 });
