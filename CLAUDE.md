@@ -57,7 +57,7 @@ Ver sección 10 de PRD.md — estructura completa documentada ahí. Resumen:
 - Tests en `__tests__/<nombre-feature>.test.ts`, espejando el nombre del
   archivo o feature que cubren.
 
-## Reglas no negociables heredadas del historial de la v1
+## Reglas no negociables
 
 1. **Toda mutación de stock usa CTE atómica con `FOR UPDATE` y aritmética
    server-side.** Nunca leer-calcular-escribir en pasos separados desde la
@@ -85,6 +85,17 @@ Ver sección 10 de PRD.md — estructura completa documentada ahí. Resumen:
    tiene su propio PK (ej. `stock.id`), no usarlo intercambiablemente con
    el PK de otra tabla (ej. `productos.id`) en cursores o joins sin
    verificar explícitamente la relación.
+7. **Páginas server component que muestran datos de DB → `force-dynamic`.**
+   Toda página nueva que sea server component y renderice datos agregados
+   o numéricos de la DB debe incluir `export const dynamic = "force-dynamic"`.
+   Verificar en el output de `npm run build`: si la ruta aparece como
+   `○ Static` y muestra datos de DB, está congelada al momento del build
+   y nunca se actualizará hasta el próximo deploy. Client components con
+   shell vacío que fetchean datos al montar (`"use client"` + `fetch` o
+   server action en `useEffect`) no necesitan esto — su HTML estático es
+   solo el esqueleto, sin datos. Si un solo INSERT de productos escribe
+   su propio SQL en vez de reusar `upsertProducto`, es el mismo patrón
+   que ya causó dos bugs (sync y entrada manual).
 
 ## Referencia
 
