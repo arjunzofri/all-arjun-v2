@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getBodegas } from "@/lib/actions/vistas";
 
+export const dynamic = "force-dynamic";
+
 export default async function BodegasPage() {
   const bodegas = await getBodegas();
 

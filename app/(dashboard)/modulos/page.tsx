@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getModulos } from "@/lib/actions/vistas";
 
+export const dynamic = "force-dynamic";
+
 export default async function ModulosPage() {
   const modulos = await getModulos();
 

@@ -222,3 +222,58 @@ el upsert de productos.
 **Verificación:** 10/10 tests verde (7 entradas-imagen incluyendo 3 nuevos de
 packing R4-R6, 3 sync-imagen-merge con el rename). 27/28 files, 188/189 suite
 completa. Build limpio.
+
+---
+
+## 2026-06-22 — Dashboards /bodegas y /modulos no reflejaban stock nuevo
+
+**Síntoma:** `/bodegas` y `/modulos` mostraban stock solo para la primera
+bodega/módulo. Bodega 2 tenía stock visible en `/bodegas/2` (detalle), pero
+la card en el listado `/bodegas` decía 0. Las demás bodegas/módulos siempre
+en 0 aunque después se crearan productos en ellas.
+
+**Causa raíz:** Next.js pre-renderizaba ambas páginas como contenido estático
+(`○ Static`) en el build. El HTML se congelaba con los datos de la DB en el
+momento exacto del build. En ese momento, solo Bodega 1 tenía stock — las
+entradas posteriores a Bodega 2 nunca se reflejaron porque la página estática
+nunca se revalidó.
+
+`getBodegas()` y `getModulos()` funcionaban correctamente (verificado con
+query SQL cruda y con test diagnóstico directo). El bug era 100% de
+estrategia de renderizado, no de lógica de negocio.
+
+El build output mostraba:
+```
+○ /bodegas    ← Static (prerendered at build time, frozen forever)
+○ /modulos     ← Static
+```
+
+Mientras que las páginas de detalle eran dinámicas (`ƒ`) por usar
+`useParams()` en un client component, y por eso `/bodegas/2` sí mostraba
+datos frescos. Esto creaba el espejismo de que "solo el primero funciona"
+— en realidad era que solo Bodega 1 tenía datos en el momento del build.
+
+`/productos` y `/movimientos` también eran `○ Static`, pero no sufrieron
+el mismo síntoma: son client components con shell vacío que fetchean datos
+al montar (vía `fetch()` o server action). El HTML pre-renderizado no
+contiene datos — solo el esqueleto de la UI. El bug solo afectó a server
+components que renderizan datos de DB en el servidor.
+
+**Fix:**
+1. `export const dynamic = "force-dynamic"` en `bodegas/page.tsx`
+2. `export const dynamic = "force-dynamic"` en `modulos/page.tsx`
+
+Build output pos-fix:
+```
+ƒ /bodegas     ← Dynamic (server-rendered on each request)
+ƒ /modulos      ← Dynamic
+```
+
+**Costo en Vercel:** irrelevante para esta escala (~30 invocaciones/día,
+3 usuarios). No amerita ISR ni estrategias de caché más complejas.
+
+**Nota — al agregar una página nueva que muestre datos de DB como server
+component**, verificar en el build output que aparezca como `ƒ Dynamic` y
+no como `○ Static`. Si aparece como `○ Static`, agregar
+`export const dynamic = "force-dynamic"`. Las páginas que son client
+components con shell vacío no necesitan esto (son estáticas sin datos).
