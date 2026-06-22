@@ -2,6 +2,7 @@
 
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
+import { upsertProducto } from "@/lib/sync/compras-anil";
 
 const entradaSchema = z.object({
   codigo: z.string().min(1, "Código requerido"),
@@ -9,13 +10,15 @@ const entradaSchema = z.object({
   cantidad: z.number().int().positive("Cantidad debe ser > 0"),
   bodegaId: z.number().int().positive("Bodega requerida"),
   idempotencyKey: z.string().min(1, "Idempotency key requerida"),
+  imagenUrl: z.string().url().nullable().optional(),
+  packing: z.number().int().nonnegative().nullable().optional(),
 });
 
 export type CrearEntradaInput = z.infer<typeof entradaSchema>;
 
 export async function crearEntrada(input: CrearEntradaInput) {
   const parsed = entradaSchema.parse(input);
-  const { codigo, detalle, cantidad, bodegaId, idempotencyKey } = parsed;
+  const { codigo, detalle, cantidad, bodegaId, idempotencyKey, imagenUrl, packing } = parsed;
 
   const sql = neon(process.env.DATABASE_URL!);
 
@@ -25,14 +28,14 @@ export async function crearEntrada(input: CrearEntradaInput) {
     throw new Error("Bodega no encontrada");
   }
 
-  // Paso 1: upsert producto (idempotente). Hereda ubicación si ya existe.
-  await sql`
-    INSERT INTO productos (codigo, detalle)
-    VALUES (${codigo}, ${detalle ?? null})
-    ON CONFLICT (codigo) DO NOTHING
-  `;
-  // ponytail: herencia de ubicación — la obtiene el front si la necesita.
-  // El upsert ya preserva todo con ON CONFLICT DO NOTHING.
+  // Paso 1: upsert producto (idempotente). Comparte upsertProducto con el sync de Anil.
+  // imagen_url usa COALESCE: si el usuario ya subió una imagen manual, no se pisa.
+  await upsertProducto(sql, {
+    codigo,
+    detalle: detalle ?? null,
+    cantcaja: packing ?? null,
+    imagenUrl: imagenUrl ?? null,
+  });
 
   // Paso 2: CTE atómica — stock + movimiento en un solo statement
   const folio = `MAN-${idempotencyKey}`;

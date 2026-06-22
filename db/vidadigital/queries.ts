@@ -18,6 +18,7 @@ export interface ProductoHistorico {
   codigo: string;
   detalle: string | null;
   imagenUrl: string | null;
+  packing: number | null;
 }
 
 // ── Compras Anil desde fecha ─────────────────────────────────────────────
@@ -110,10 +111,10 @@ export async function buscarProductoHistorico(
 
   const result = await db.execute(
     sql`
-      SELECT codigo, detalle, imagen
+      SELECT codigo, detalle, imagen, cantcaja
       FROM (
         SELECT DISTINCT ON (codigo)
-               codigo, detalle, imagen_url AS imagen
+               codigo, detalle, imagen_url AS imagen, cantcaja
         FROM public.productos
         WHERE codigo ILIKE '%' || ${query} || '%'
            OR detalle ILIKE '%' || ${query} || '%'
@@ -128,12 +129,13 @@ export async function buscarProductoHistorico(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { rows } = result as any as {
-    rows: { codigo: string; detalle: string | null; imagen: string | null }[];
+    rows: { codigo: string; detalle: string | null; imagen: string | null; cantcaja: number | null }[];
   };
 
   return rows.map((r) => ({
     codigo: r.codigo,
     detalle: r.detalle,
     imagenUrl: r.imagen,
+    packing: r.cantcaja,
   }));
 }

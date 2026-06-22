@@ -169,3 +169,56 @@ de aplicar — falló como se esperaba, confirmando la necesidad del subquery.
 debe verificar compatibilidad con ORDER BY de expresiones calculadas —
 Postgres exige que coincidan salvo que se use DISTINCT ON o un subquery
 intermedio.
+
+---
+
+## 2026-06-22 — Entradas manuales no guardaban imagen ni packing del producto
+
+**Síntoma:** al crear una entrada manual desde `/entradas` seleccionando
+un producto del catálogo de Vida Digital, el producto se insertaba en la
+base local pero sin `imagen_url` ni `packing`. En `/productos` y `/bodegas`
+no se veía ni la miniatura ni el empaque.
+
+**Causa raíz:** mismo patrón de bug que el del sync de Anil (2026-06-19),
+pero en un segundo punto de entrada de datos que no se revisó en su momento.
+
+`lib/actions/entradas.ts` tenía su propio INSERT:
+```sql
+INSERT INTO productos (codigo, detalle)
+VALUES (...)
+ON CONFLICT (codigo) DO NOTHING
+```
+— sin `imagen_url`, sin `packing`. El `ON CONFLICT DO NOTHING` preservaba
+los NULLs para productos que ya existían (ej. porque entraron antes por el
+sync de Anil antes del fix de imagen_url de ayer). Para productos genuinamente
+nuevos, el INSERT inicial los creaba sin esos dos campos desde el principio.
+
+La cadena completa de 5 eslabones rotos:
+1. `buscarProductoHistorico()` no seleccionaba `cantcaja` desde Vida Digital
+2. El tipo `Sugerencia` en `/entradas` no tenía campo `packing`
+3. `applyProductoSugerencia()` no propagaba `packing`
+4. `crearEntrada` no recibía `imagenUrl` ni `packing` en su input
+5. `crearEntrada` escribía su propio INSERT incompleto, sin reusar `upsertProducto`
+
+**Fix:**
+1. `buscarProductoHistorico()` ahora trae `cantcaja` (mapeado a `packing`) además
+   de `imagen_url`. `ProductoHistorico` incluye `packing: number | null`.
+2. `applyProductoSugerencia()` propaga `packing` con `?? null` — mismo patrón que
+   `imagenUrl`. Null = "desconocido", 0 = "sin empaque" (estados distintos).
+3. `crearEntrada` reemplaza su INSERT propio por `upsertProducto()` — la misma
+   función que usa `syncComprasAnil`, renombrada de `upsertProductoDesdeSync` a
+   `upsertProducto` porque ahora la comparten dos contextos distintos (sync
+   automático + entrada manual). Cero SQL duplicado.
+4. Schema Zod de `packing` usa `.nonnegative()` en vez de `.positive()` — acepta
+   `packing=0` (producto suelto, sin caja), que `.positive()` rechazaba.
+
+**Nota — si aparece un tercer punto de entrada de productos en el futuro** (ej.
+otro formulario manual, un import CSV, una API externa), debe usar `upsertProducto`
+también — no escribir su propio INSERT. La función vive en `lib/sync/compras-anil.ts`
+pero su nombre ya es genérico; si el acoplamiento de import molesta, moverla a
+`lib/actions/productos.ts` o similar, pero siempre un solo punto de verdad para
+el upsert de productos.
+
+**Verificación:** 10/10 tests verde (7 entradas-imagen incluyendo 3 nuevos de
+packing R4-R6, 3 sync-imagen-merge con el rename). 27/28 files, 188/189 suite
+completa. Build limpio.

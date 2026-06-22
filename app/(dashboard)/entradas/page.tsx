@@ -10,6 +10,7 @@ type Sugerencia = {
   codigo: string;
   detalle: string | null;
   imagenUrl: string | null;
+  packing: number | null;
 };
 
 // ── Lógica pura de selección (exportada para test sin jsdom) ──────────
@@ -19,6 +20,7 @@ export function applyProductoSugerencia(item: Sugerencia) {
     codigo: item.codigo,
     detalle: item.detalle ?? "",
     imagenUrl: item.imagenUrl,
+    packing: item.packing ?? null, // null = "desconocido", 0 = "sin empaque" — no son intercambiables
     suggestions: [] as never[],
   };
 }
@@ -29,6 +31,7 @@ export default function EntradasPage() {
   const [codigo, setCodigo] = useState("");
   const [detalle, setDetalle] = useState("");
   const [imagenUrl, setImagenUrl] = useState<string | null>(null);
+  const [packing, setPacking] = useState<number | null>(null);
   const [imagenError, setImagenError] = useState(false);
   const [cantidad, setCantidad] = useState("");
   const [bodegaId, setBodegaId] = useState("");
@@ -63,6 +66,7 @@ export default function EntradasPage() {
     setCodigo(state.codigo);
     setDetalle(state.detalle);
     setImagenUrl(state.imagenUrl);
+    setPacking(state.packing);
     setImagenError(false);
     setSuggestions([]);
   };
@@ -85,11 +89,14 @@ export default function EntradasPage() {
         cantidad: parseInt(cantidad, 10),
         bodegaId: parseInt(bodegaId, 10),
         idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        imagenUrl: imagenUrl ?? undefined,
+        packing: packing ?? undefined,
       });
       setOk("Entrada registrada");
       setCodigo("");
       setDetalle("");
       setImagenUrl(null);
+      setPacking(null);
       setImagenError(false);
       setCantidad("");
       setBodegaId("");

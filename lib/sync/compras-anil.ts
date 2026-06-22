@@ -10,9 +10,9 @@ const BODEGA_ID: Record<string, number> = {
 
 const SYNC_KEY = "compras-anil";
 
-// ── Upsert de producto desde sync (exportado para test de integración) ──
+// ── Upsert de producto (compartido: sync Anil + entrada manual) ──
 
-export async function upsertProductoDesdeSync(
+export async function upsertProducto(
   sql: { (strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown> },
   compra: {
     codigo: string;
@@ -69,7 +69,7 @@ export async function syncComprasAnil(corte: string): Promise<{
     if (!bodegaId) continue; // R5: bodega desconocida → skip
 
     // Upsert de producto — idempotente, sin dependencia de existing
-    await upsertProductoDesdeSync(sql, compra);
+    await upsertProducto(sql, compra);
 
     // CTE atómica: stock + movimientos en un solo statement.
     // Si el folio ya fue procesado, WHERE NOT EXISTS bloquea ambos.

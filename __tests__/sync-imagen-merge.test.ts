@@ -6,13 +6,13 @@
  * 2. Producto sin imagen (NULL) SÍ recibe la de Vida Digital.
  * 3. Ambas NULL: el producto queda sin imagen, sin error.
  *
- * Usa la función real upsertProductoDesdeSync() exportada desde compras-anil.ts,
+ * Usa la función real upsertProducto() exportada desde compras-anil.ts,
  * NO una copia inline del SQL. El mismo código que corre en producción.
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { neon } from "@neondatabase/serverless";
-import { upsertProductoDesdeSync } from "@/lib/sync/compras-anil";
+import { upsertProducto } from "@/lib/sync/compras-anil";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -47,7 +47,7 @@ describe("sync — producto_ok con COALESCE (integración real)", () => {
     `;
 
     // Segunda sync: Vida Digital trae imagen distinta
-    await upsertProductoDesdeSync(sql, { codigo: TEST_CODIGO, detalle: "Test producto", cantcaja: null, imagenUrl: "https://vidadigital.com/catalog.jpg" });
+    await upsertProducto(sql, { codigo: TEST_CODIGO, detalle: "Test producto", cantcaja: null, imagenUrl: "https://vidadigital.com/catalog.jpg" });
 
     const url = await getImagenUrl(TEST_CODIGO);
     expect(url).toBe("https://cloudinary.com/user-upload.jpg");
@@ -66,7 +66,7 @@ describe("sync — producto_ok con COALESCE (integración real)", () => {
     `;
 
     // Sync con imagen desde VD
-    await upsertProductoDesdeSync(sql, { codigo: TEST_CODIGO, detalle: "Test producto", cantcaja: null, imagenUrl: "https://vidadigital.com/catalog.jpg" });
+    await upsertProducto(sql, { codigo: TEST_CODIGO, detalle: "Test producto", cantcaja: null, imagenUrl: "https://vidadigital.com/catalog.jpg" });
 
     const url = await getImagenUrl(TEST_CODIGO);
     expect(url).toBe("https://vidadigital.com/catalog.jpg");
@@ -83,7 +83,7 @@ describe("sync — producto_ok con COALESCE (integración real)", () => {
       ON CONFLICT (codigo) DO NOTHING
     `;
 
-    await upsertProductoDesdeSync(sql, { codigo: TEST_CODIGO, detalle: "Test producto", cantcaja: null, imagenUrl: null });
+    await upsertProducto(sql, { codigo: TEST_CODIGO, detalle: "Test producto", cantcaja: null, imagenUrl: null });
 
     const url = await getImagenUrl(TEST_CODIGO);
     expect(url).toBeNull();
