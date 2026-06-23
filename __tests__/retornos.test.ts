@@ -4,8 +4,16 @@
  * R3 CTE atómica, R4 módulo inválido.
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { neon } from "@neondatabase/serverless";
+
+vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
+import { auth } from "@/lib/auth";
+const mockAuth = auth as ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  mockAuth.mockResolvedValue({ user: { id: "62" } });
+});
 
 // Import real — si el módulo no existe (Fase B), MODULE_NOT_FOUND.
 import { crearRetorno } from "@/lib/actions/retornos";
@@ -49,7 +57,6 @@ describe("crearRetorno() — stock insuficiente", () => {
         moduloOrigenId: 1,
         bodegaDestinoId: 1,
         idempotencyKey: "test-r1-mod-stock",
-        usuarioId: 1,
       })
     ).rejects.toThrow(/stock|insuficiente|disponible/i);
   });
@@ -62,7 +69,6 @@ describe("crearRetorno() — stock insuficiente", () => {
         moduloOrigenId: 1,
         bodegaDestinoId: 1,
         idempotencyKey: "test-r1-zero",
-        usuarioId: 1,
       })
     ).rejects.toThrow(/cantidad/i);
   });
@@ -78,7 +84,6 @@ describe("crearRetorno() — módulo inválido", () => {
         moduloOrigenId: 9999,
         bodegaDestinoId: 1,
         idempotencyKey: "test-r4-mod",
-        usuarioId: 1,
       })
     ).rejects.toThrow(/módulo|modulo/i);
   });
@@ -95,7 +100,6 @@ describe("crearRetorno() — idempotencia y atomicidad", () => {
       moduloOrigenId: 1,
       bodegaDestinoId: 1,
       idempotencyKey: key,
-      usuarioId: 1,
     });
 
     expect(result).toHaveProperty("movimientoId");
@@ -118,7 +122,6 @@ describe("crearRetorno() — idempotencia y atomicidad", () => {
       moduloOrigenId: 1,
       bodegaDestinoId: 1,
       idempotencyKey: key,
-      usuarioId: 1,
     });
 
     // Stock módulo: sigue 7 (no 4)
@@ -143,7 +146,6 @@ describe("crearRetorno() — observaciones", () => {
       moduloOrigenId: 1,
       bodegaDestinoId: 1,
       idempotencyKey: key,
-      usuarioId: 1,
       observaciones: "Cliente insatisfecho",
     });
 
@@ -153,5 +155,21 @@ describe("crearRetorno() — observaciones", () => {
     `;
     const r = rows as unknown as { observaciones: string | null }[];
     expect(r[0]?.observaciones).toBe("Cliente insatisfecho");
+  });
+});
+
+// ── T-AUTH: auth() retorna null ──────────────────────────────────────
+describe("crearRetorno — auth", () => {
+  it("lanza 'No autenticado' si auth() retorna null", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(
+      crearRetorno({
+        codigo: "TEST-RET-001",
+        cantidad: 1,
+        moduloOrigenId: 1,
+        bodegaDestinoId: 1,
+        idempotencyKey: `AUTH-TEST-${Date.now()}`,
+      })
+    ).rejects.toThrow(/autenticad|auth/i);
   });
 });

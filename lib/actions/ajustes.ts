@@ -2,6 +2,7 @@
 
 import { neon, NeonQueryFunction } from "@neondatabase/serverless";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { movimientos } from "@/db/schema";
 import { eq, desc, and, inArray, or, like } from "drizzle-orm";
@@ -146,7 +147,6 @@ const ajusteSchema = z.object({
   cantidadReal: z.number().int().nonnegative(),
   observaciones: z.string().max(500).optional(),
   idempotencyKey: z.string().min(1),
-  usuarioId: z.number().int().positive(),
 });
 
 export type CrearAjusteInput = z.infer<typeof ajusteSchema>;
@@ -158,12 +158,15 @@ export type CrearAjusteResult =
 export async function crearAjuste(
   input: CrearAjusteInput,
 ): Promise<CrearAjusteResult> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("No autenticado");
+  const userId = Number(session.user.id);
+
   const parsed = ajusteSchema.parse(input);
   const {
     movimientoOriginalId,
     cantidadReal,
     idempotencyKey,
-    usuarioId,
     observaciones,
   } = parsed;
 
@@ -259,7 +262,7 @@ export async function crearAjuste(
       SELECT
         ${folio}, ${orig.producto_id}, 'ajuste', ${-delta},
         ${orig.bodega_origen_id},
-        ${movimientoOriginalId}, ${usuarioId}, ${observaciones ?? null}
+        ${movimientoOriginalId}, ${userId}, ${observaciones ?? null}
       WHERE EXISTS (SELECT 1 FROM stock_ok)
       RETURNING id
     `;
@@ -395,7 +398,7 @@ export async function crearAjuste(
       SELECT
         ${folio}, ${orig.producto_id}, 'ajuste', ${cantidadAjuste},
         ${bodegaId}, ${moduloId},
-        ${movimientoOriginalId}, ${usuarioId}, ${observaciones ?? null}
+        ${movimientoOriginalId}, ${userId}, ${observaciones ?? null}
       WHERE EXISTS (SELECT 1 FROM stock_check)
       RETURNING id
     `;
@@ -440,7 +443,7 @@ export async function crearAjuste(
     SELECT
       ${folio}, ${orig.producto_id}, 'ajuste', ${cantidadAjuste},
       ${bodegaId}, ${moduloId},
-      ${movimientoOriginalId}, ${usuarioId}, ${observaciones ?? null}
+      ${movimientoOriginalId}, ${userId}, ${observaciones ?? null}
     WHERE EXISTS (SELECT 1 FROM stock_check)
     RETURNING id
   `;

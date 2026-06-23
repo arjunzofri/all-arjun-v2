@@ -3,7 +3,15 @@
  * Riesgos: R1 doble submit duplica, R2 cantidad ≤ 0, R3 bodega null, R4 upsert producto.
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
+
+vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
+import { auth } from "@/lib/auth";
+const mockAuth = auth as ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  mockAuth.mockResolvedValue({ user: { id: "62" } });
+});
 
 // Imports reales — si el módulo no existe (Fase B), MODULE_NOT_FOUND.
 import { crearEntrada } from "@/lib/actions/entradas";

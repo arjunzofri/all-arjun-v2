@@ -73,7 +73,6 @@ export default function SalidasPage() {
         bodegaOrigenId: parseInt(bodegaId, 10),
         moduloDestinoId: parseInt(moduloId, 10),
         idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        usuarioId: 1, // ponytail: hardcode hasta que haya sesión real en client
         observaciones: observaciones.trim() || undefined,
       });
 

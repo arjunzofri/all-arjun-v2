@@ -69,7 +69,6 @@ export default function RetornosPage() {
         moduloOrigenId: parseInt(moduloId, 10),
         bodegaDestinoId: parseInt(bodegaId, 10),
         idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        usuarioId: 1,
         observaciones: observaciones.trim() || undefined,
       });
 

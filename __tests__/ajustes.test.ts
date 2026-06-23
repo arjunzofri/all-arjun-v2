@@ -9,8 +9,16 @@
  *      resolverOrigenDestino, no asume dirección de salida)
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
 import { neon } from "@neondatabase/serverless";
+
+vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
+import { auth } from "@/lib/auth";
+const mockAuth = auth as ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  mockAuth.mockResolvedValue({ user: { id: "62" } });
+});
 
 // ── Import de la función que NO existe todavía (Fase B) ──────────────
 import { getMovimientosContribuyentes, crearAjuste } from "@/lib/actions/ajustes";
@@ -256,7 +264,6 @@ describe("crearAjuste — validación", () => {
         movimientoOriginalId: 999999,
         cantidadReal: 18,
         idempotencyKey: `${TEST_PREFIX}-R1`,
-        usuarioId: 1,
       })
     ).rejects.toThrow(/no encontrado|exist|movimiento/i);
   });
@@ -273,7 +280,6 @@ describe("crearAjuste — validación", () => {
         movimientoOriginalId: entradaId,
         cantidadReal: 8,
         idempotencyKey: `${TEST_PREFIX}-R2`,
-        usuarioId: 1,
       })
     ).rejects.toThrow(/salida|retorno|solo se pueden ajustar/i);
   });
@@ -290,7 +296,6 @@ describe("crearAjuste — validación", () => {
         movimientoOriginalId: ajusteId,
         cantidadReal: 0,
         idempotencyKey: `${TEST_PREFIX}-R3`,
-        usuarioId: 1,
       })
     ).rejects.toThrow(/salida|retorno|solo se pueden ajustar/i);
   });
@@ -311,7 +316,6 @@ describe("crearAjuste — validación", () => {
         movimientoOriginalId: movId,
         cantidadReal: 20, // misma que la original, sin ajustes previos
         idempotencyKey: `${TEST_PREFIX}-R4-KEY`,
-        usuarioId: 1,
       })
     ).rejects.toThrow(/diferencia|coincide/i);
   });
@@ -335,7 +339,6 @@ describe("crearAjuste — integración real", () => {
       movimientoOriginalId: movId,
       cantidadReal: 18,
       idempotencyKey: `${TEST_PREFIX}-R5-KEY`,
-      usuarioId: 1,
     });
 
     expect(result.ok).toBe(true);
@@ -368,7 +371,6 @@ describe("crearAjuste — integración real", () => {
       movimientoOriginalId: movId,
       cantidadReal: 22,
       idempotencyKey: `${TEST_PREFIX}-R6-KEY`,
-      usuarioId: 1,
     });
 
     expect(result.ok).toBe(true);
@@ -395,7 +397,6 @@ describe("crearAjuste — integración real", () => {
       movimientoOriginalId: movId,
       cantidadReal: 8,
       idempotencyKey: `${TEST_PREFIX}-R7-KEY`,
-      usuarioId: 1,
     });
 
     expect(result.ok).toBe(true);
@@ -436,7 +437,6 @@ describe("crearAjuste — integración real", () => {
         movimientoOriginalId: movId,
         cantidadReal: 6,
         idempotencyKey: `${TEST_PREFIX}-R8-KEY`,
-        usuarioId: 1,
       })
     ).rejects.toThrow(/stock/i);
 
@@ -468,7 +468,6 @@ describe("crearAjuste — integración real", () => {
       movimientoOriginalId: movId,
       cantidadReal: 18,
       idempotencyKey: key,
-      usuarioId: 1,
     });
     expect(r1.ok).toBe(true);
 
@@ -476,7 +475,6 @@ describe("crearAjuste — integración real", () => {
       movimientoOriginalId: movId,
       cantidadReal: 18,
       idempotencyKey: key,
-      usuarioId: 1,
     });
     expect(r2.ok).toBe(false);
     expect(r2.reason).toBe("idempotente");
@@ -498,7 +496,6 @@ describe("crearAjuste — integración real", () => {
       movimientoOriginalId: movId,
       cantidadReal: 18,
       idempotencyKey: `${TEST_PREFIX}-R10-AJT1`,
-      usuarioId: 1,
     });
     expect(r1.ok).toBe(true);
 
@@ -507,7 +504,6 @@ describe("crearAjuste — integración real", () => {
       movimientoOriginalId: movId,
       cantidadReal: 19,
       idempotencyKey: `${TEST_PREFIX}-R10-AJT2`,
-      usuarioId: 1,
     });
     expect(r2.ok).toBe(true);
 
@@ -535,5 +531,19 @@ describe("crearAjuste — integración real", () => {
     const folioAjuste = `AJT-${TEST_PREFIX}-R10-AJT2`;
     const dups = await sql`SELECT id FROM movimientos WHERE folio = ${folioAjuste}`;
     expect((dups as unknown[]).length).toBeGreaterThan(0);
+  });
+});
+
+// ── T-AUTH: auth() retorna null ──────────────────────────────────────
+describe("crearAjuste — auth", () => {
+  it("lanza 'No autenticado' si auth() retorna null", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(
+      crearAjuste({
+        movimientoOriginalId: 999999,
+        cantidadReal: 1,
+        idempotencyKey: `AUTH-TEST-${Date.now()}`,
+      })
+    ).rejects.toThrow(/autenticad|auth/i);
   });
 });

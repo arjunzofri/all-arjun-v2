@@ -9,10 +9,16 @@
  *      calcularCorreccionEntrada: delta positivo
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
 import { neon } from "@neondatabase/serverless";
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
+import { auth } from "@/lib/auth";
+const mockAuth = auth as ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  mockAuth.mockResolvedValue({ user: { id: "62" } });
+});
 
 // ── Imports de funciones que NO existen todavía (Fase B) ──────────────
 import { crearAjuste } from "@/lib/actions/ajustes";
@@ -83,7 +89,6 @@ describe("crearAjuste — entrada manual", () => {
       movimientoOriginalId: movManualId,
       cantidadReal: 18, // original era 20 → delta=2
       idempotencyKey: key,
-      usuarioId: 1,
     });
 
     expect(r.ok).toBe(true);
@@ -108,7 +113,6 @@ describe("crearAjuste — idempotencia", () => {
       movimientoOriginalId: movManualId,
       cantidadReal: 17,
       idempotencyKey: key,
-      usuarioId: 1,
     });
     expect(r1.ok).toBe(true);
 
@@ -116,7 +120,6 @@ describe("crearAjuste — idempotencia", () => {
       movimientoOriginalId: movManualId,
       cantidadReal: 17,
       idempotencyKey: key,
-      usuarioId: 1,
     });
     expect(r2.ok).toBe(false);
     expect(r2.reason).toBe("idempotente");
@@ -141,7 +144,6 @@ describe("crearAjuste — race condition", () => {
       movimientoOriginalId: raceId,
       cantidadReal: 8,
       idempotencyKey: `${TEST_PREFIX}-RACE-1`,
-      usuarioId: 1,
     });
     expect(r1.ok).toBe(true);
 
@@ -152,7 +154,6 @@ describe("crearAjuste — race condition", () => {
       movimientoOriginalId: raceId,
       cantidadReal: 6,
       idempotencyKey: `${TEST_PREFIX}-RACE-2`,
-      usuarioId: 1,
     });
     expect(r2.ok).toBe(true);
 
@@ -174,7 +175,6 @@ describe("crearAjuste — validaciones entrada", () => {
         movimientoOriginalId: movSyncId,
         cantidadReal: 10,
         idempotencyKey: `${TEST_PREFIX}-SYNC-REJ`,
-        usuarioId: 1,
       })
     ).rejects.toThrow(/manual|MAN/i);
   });
@@ -185,8 +185,21 @@ describe("crearAjuste — validaciones entrada", () => {
         movimientoOriginalId: movManualId,
         cantidadReal: 20, // igual a la original
         idempotencyKey: `${TEST_PREFIX}-REJ-UP`,
-        usuarioId: 1,
       })
     ).rejects.toThrow(/abajo|mayor|superior|corregir/i);
+  });
+});
+
+// ── T-AUTH: auth() retorna null ──────────────────────────────────────
+describe("crearAjuste — auth", () => {
+  it("lanza 'No autenticado' si auth() retorna null", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(
+      crearAjuste({
+        movimientoOriginalId: 999999,
+        cantidadReal: 1,
+        idempotencyKey: `AUTH-TEST-${Date.now()}`,
+      })
+    ).rejects.toThrow(/autenticad|auth/i);
   });
 });

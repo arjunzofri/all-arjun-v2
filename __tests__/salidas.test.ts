@@ -12,6 +12,10 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 import { auth } from "@/lib/auth";
 const mockAuth = auth as ReturnType<typeof vi.fn>;
 
+beforeEach(() => {
+  mockAuth.mockResolvedValue({ user: { id: "62" } });
+});
+
 // Imports reales — si el módulo no existe (Fase B), MODULE_NOT_FOUND.
 import { crearSalida } from "@/lib/actions/salidas";
 import { GET as getPorBodega } from "@/app/api/productos/por-bodega/route";
@@ -55,7 +59,6 @@ describe("crearSalida() — stock insuficiente", () => {
         bodegaOrigenId: 1,
         moduloDestinoId: 1,
         idempotencyKey: "test-r1-stock",
-        usuarioId: 1,
       })
     ).rejects.toThrow(/stock|insuficiente|disponible/i);
   });
@@ -68,7 +71,6 @@ describe("crearSalida() — stock insuficiente", () => {
         bodegaOrigenId: 1,
         moduloDestinoId: 1,
         idempotencyKey: "test-r1-zero",
-        usuarioId: 1,
       })
     ).rejects.toThrow(/cantidad/i);
   });
@@ -84,7 +86,6 @@ describe("crearSalida() — módulo inválido", () => {
         bodegaOrigenId: 1,
         moduloDestinoId: 9999,
         idempotencyKey: "test-r4-mod",
-        usuarioId: 1,
       })
     ).rejects.toThrow(/módulo|modulo/i);
   });
@@ -101,7 +102,6 @@ describe("crearSalida() — idempotencia y atomicidad", () => {
       bodegaOrigenId: 1,
       moduloDestinoId: 1,
       idempotencyKey: key,
-      usuarioId: 1,
     });
 
     expect(result).toHaveProperty("movimientoId");
@@ -124,7 +124,6 @@ describe("crearSalida() — idempotencia y atomicidad", () => {
       bodegaOrigenId: 1,
       moduloDestinoId: 1,
       idempotencyKey: key,
-      usuarioId: 1,
     });
 
     // Stock bodega: sigue siendo 7 (no 4)
@@ -149,7 +148,6 @@ describe("crearSalida() — observaciones", () => {
       bodegaOrigenId: 1,
       moduloDestinoId: 1,
       idempotencyKey: key,
-      usuarioId: 1,
       observaciones: "Despachado sin verificar",
     });
 
@@ -186,5 +184,21 @@ describe("GET /api/productos/por-bodega", () => {
     const body = await res.json();
     const codes = body.items?.map((i: { codigo: string }) => i.codigo) ?? [];
     expect(codes).toContain(TEST_CODIGO);
+  });
+});
+
+// ── T-AUTH: auth() retorna null ──────────────────────────────────────
+describe("crearSalida — auth", () => {
+  it("lanza 'No autenticado' si auth() retorna null", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(
+      crearSalida({
+        codigo: "TEST-SAL-001",
+        cantidad: 1,
+        bodegaOrigenId: 1,
+        moduloDestinoId: 1,
+        idempotencyKey: `AUTH-TEST-${Date.now()}`,
+      })
+    ).rejects.toThrow(/autenticad|auth/i);
   });
 });

@@ -2,6 +2,7 @@
 
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
 
 const retornoSchema = z.object({
   codigo: z.string().min(1, "Código requerido"),
@@ -9,15 +10,18 @@ const retornoSchema = z.object({
   moduloOrigenId: z.number().int().positive("Módulo origen requerido"),
   bodegaDestinoId: z.number().int().positive("Bodega destino requerida"),
   idempotencyKey: z.string().min(1, "Idempotency key requerida"),
-  usuarioId: z.number().int().positive("Usuario requerido"),
   observaciones: z.string().max(500).optional(),
 });
 
 export type CrearRetornoInput = z.infer<typeof retornoSchema>;
 
 export async function crearRetorno(input: CrearRetornoInput) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("No autenticado");
+  const userId = Number(session.user.id);
+
   const parsed = retornoSchema.parse(input);
-  const { codigo, cantidad, moduloOrigenId, bodegaDestinoId, idempotencyKey, usuarioId, observaciones } = parsed;
+  const { codigo, cantidad, moduloOrigenId, bodegaDestinoId, idempotencyKey, observaciones } = parsed;
 
   const sql = neon(process.env.DATABASE_URL!);
   const folio = `RET-${idempotencyKey}`;
@@ -62,7 +66,7 @@ export async function crearRetorno(input: CrearRetornoInput) {
       DO UPDATE SET cantidad = stock.cantidad + ${cantidad}, updated_at = NOW()
     )
     INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, modulo_destino_id, usuario_id, observaciones)
-    SELECT ${folio}, (SELECT id FROM producto), 'retorno', ${cantidad}, ${bodegaDestinoId}, ${moduloOrigenId}, ${usuarioId}, ${observaciones ?? null}
+    SELECT ${folio}, (SELECT id FROM producto), 'retorno', ${cantidad}, ${bodegaDestinoId}, ${moduloOrigenId}, ${userId}, ${observaciones ?? null}
     WHERE EXISTS (SELECT 1 FROM stock_check)
     RETURNING id
   `;
