@@ -5,12 +5,15 @@
  * R3 sin CRON_SECRET, R4 atomicidad CTE, R5 bodega null.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { neon } from "@neondatabase/serverless";
+
+vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
 // Imports reales — si el módulo no existe (Fase B), MODULE_NOT_FOUND.
 import { syncComprasAnil } from "@/lib/sync/compras-anil";
-import { GET } from "@/app/api/sync/compras-anil/route";
+import { POST } from "@/app/api/sync/compras-anil/route";
+import { auth } from "@/lib/auth";
 
 // Cliente raw para verificar resultados en DB propia
 const sql = neon(process.env.DATABASE_URL!);
@@ -139,33 +142,24 @@ describe("syncComprasAnil() — watermark", () => {
   });
 });
 
-// ── R3: CRON_SECRET ────────────────────────────────────────────────────
-describe("GET /api/sync/compras-anil — seguridad", () => {
-  it("devuelve 401 sin header Authorization", async () => {
-    const req = new Request("https://app-arjun.local/api/sync/compras-anil");
-    const res = await GET(req);
+// ── R3: Auth via NextAuth session ────────────────────────────────────────
+describe("POST /api/sync/compras-anil — seguridad", () => {
+  it("devuelve 401 sin sesión", async () => {
+    (auth as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+    const res = await POST();
     expect(res.status).toBe(401);
   });
 
-  it("devuelve 401 con token inválido", async () => {
-    const req = new Request(
-      "https://app-arjun.local/api/sync/compras-anil",
-      { headers: { Authorization: "Bearer token-falso" } }
-    );
-    const res = await GET(req);
-    expect(res.status).toBe(401);
-  });
-
-  it("devuelve 200 con token válido", async () => {
-    process.env.CRON_SECRET = "test-secret";
-    const req = new Request(
-      "https://app-arjun.local/api/sync/compras-anil",
-      { headers: { Authorization: "Bearer test-secret" } }
-    );
-    const res = await GET(req);
+  // Punta a punta contra DB real + Vida Digital: ~35s, no se corre en
+  // cada suite. sync-manual.test.ts R2 cubre el mismo contrato con mocks.
+  // Para smoke-test manual: npx vitest run __tests__/sync-compras-anil.test.ts -t "puntapunta"
+  it.skip("punta a punta: devuelve 200 con sesión válida", async () => {
+    (auth as ReturnType<typeof vi.fn>).mockResolvedValue({
+      user: { id: "62", email: "admin@test.com" },
+    });
+    const res = await POST();
     expect(res.status).toBe(200);
-    delete process.env.CRON_SECRET;
-  });
+  }, 60000);
 });
 
 // ── R5: Bodega desconocida ──────────────────────────────────────────────
