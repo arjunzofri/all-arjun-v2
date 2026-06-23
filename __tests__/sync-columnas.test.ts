@@ -59,9 +59,8 @@ describe("getComprasAnilDesde — agrupación (GROUP BY folio, codigo, bodegaRes
     // Con GROUP BY debe haber exactamente 1 fila, no 20
     expect(filas.length).toBe(1);
 
-    // La cantidad debe ser la suma de las 20 líneas originales
-    // (cada una con cantsali = "450.00" → 20 × 450 = 9000)
-    expect(filas[0].cantidad).toBe(9000);
+    // 450 unidades (1 fila de itemdcto × cantsali=450, sin inflación del JOIN)
+    expect(filas[0].cantidad).toBe(450);
   });
 
   it("folio 001698 + codigo 1160 (2 knumezet distintos, misma bodega GL1) → una sola fila", async () => {
@@ -74,8 +73,8 @@ describe("getComprasAnilDesde — agrupación (GROUP BY folio, codigo, bodegaRes
     // Debe colapsar en 1 fila (ambos knumezet → GL1)
     expect(filas.length).toBe(1);
 
-    // 7 × 30 + 7 × 36 = 210 + 252 = 462
-    expect(filas[0].cantidad).toBe(462);
+    // 66 unidades (30 + 36 de las 2 filas de itemdcto, sin inflación del JOIN)
+    expect(filas[0].cantidad).toBe(66);
     expect(filas[0].bodega).toBe("Bodega 2 Vida Digital");
   });
 
@@ -106,5 +105,34 @@ describe("getComprasAnilDesde — agrupación (GROUP BY folio, codigo, bodegaRes
     );
     expect(filas.length).toBe(1);
     expect(filas[0].cantidad).toBeGreaterThan(0);
+  });
+});
+
+// ── Deduplicación de public.productos (GROUP BY codigo) ─────────────────
+
+describe("getComprasAnilDesde — JOIN con GROUP BY en public.productos", () => {
+  it("1055: 1 fila, cantidad=450 (no 9000 — public.productos tiene 20 filas)", async () => {
+    const compras = await getComprasAnilDesde("2026-05-01");
+    const filas = compras.filter((c) => c.codigo === "1055");
+    // Con GROUP BY + MAX() en el JOIN: 1 fila con cantidad=450.
+    // Sin el fix, el JOIN 1×20 duplica y la agrupación JS produce 9000.
+    expect(filas.length).toBe(1);
+    expect(filas[0].cantidad).toBe(450);
+  });
+
+  it("1160: 1 fila, cantidad=66 (no 462 — public.productos tiene 7 filas)", async () => {
+    const compras = await getComprasAnilDesde("2026-05-01");
+    const filas = compras.filter((c) => c.codigo === "1160");
+    expect(filas.length).toBe(1);
+    expect(filas[0].cantidad).toBe(66);
+  });
+
+  it("HJ-80092-8: 2 folios distintos, total=50 (no 250 — public.productos tiene 5 filas)", async () => {
+    const compras = await getComprasAnilDesde("2026-05-01");
+    const filas = compras.filter((c) => c.codigo === "HJ-80092-8");
+    // 2 compras distintas (folios 001653 y 001691)
+    expect(filas.length).toBe(2);
+    const total = filas.reduce((s, c) => s + c.cantidad, 0);
+    expect(total).toBe(50);
   });
 });

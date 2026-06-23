@@ -43,7 +43,11 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         i.knumezet AS nro_ingreso
       FROM vida.itemdcto i
       JOIN vida.movidcto m ON i.knumfoli = m.knumfoli
-      JOIN public.productos p ON i.codunico = p.codigo
+      JOIN (
+        SELECT codigo, MAX(detalle) AS detalle, MAX(imagen_url) AS imagen_url, MAX(cantcaja) AS cantcaja
+        FROM public.productos
+        GROUP BY codigo
+      ) p ON i.codunico = p.codigo
       WHERE m.tipomovi = 'V'
         AND m.kcodcli2 IN (2, 20, 218)
         AND m.fechanvt >= ${fecha}
@@ -61,7 +65,11 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         i.knumezet AS nro_ingreso
       FROM sanjh.itemdcto i
       JOIN sanjh.movidcto m ON i.knumfoli = m.knumfoli
-      JOIN public.productos p ON i.codunico = p.codigo
+      JOIN (
+        SELECT codigo, MAX(detalle) AS detalle, MAX(imagen_url) AS imagen_url, MAX(cantcaja) AS cantcaja
+        FROM public.productos
+        GROUP BY codigo
+      ) p ON i.codunico = p.codigo
       WHERE m.tipomovi = 'V'
         AND m.kcodcli2 IN (2, 20, 218)
         AND m.fechanvt >= ${fecha}
