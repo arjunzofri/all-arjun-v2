@@ -1,0 +1,25 @@
+{
+  "theme_color": "#7c3aed",
+  "display": "standalone",
+  "icons": [
+    {
+      "sizes": "192x192",
+      "purpose": "any maskable",
+      "src": "/icon-192.png",
+      "type": "image/png"
+    },
+    {
+      "sizes": "512x512",
+      "purpose": "any maskable",
+      "src": "/icon-512.png",
+      "type": "image/png"
+    }
+  ],
+  "description": "Sistema de control de inventario",
+  "background_color": "#ffffff",
+  "name": "App Arjun v2",
+  "start_url": "/",
+  "orientation": "portrait-primary",
+  "short_name": "Arjun",
+  "scope": "/"
+}
