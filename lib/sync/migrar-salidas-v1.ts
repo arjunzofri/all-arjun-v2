@@ -101,6 +101,12 @@ export async function migrarSalidasV1(): Promise<{
         ON CONFLICT (producto_id, modulo_id)
         DO UPDATE SET cantidad = stock.cantidad + ${s.cantidad}
       `;
+      await sqlV2`
+        UPDATE stock
+        SET cantidad = cantidad - ${s.cantidad}
+        WHERE producto_id = ${productoId} AND bodega_id = 1
+          AND cantidad >= ${s.cantidad}
+      `;
       filasInsertadas++;
     }
 

@@ -52,5 +52,5 @@ describe("migrarSalidasV1", () => {
 
     const sinMatch = r.sinMatchProducto as { codigo_v1: string }[];
     expect(sinMatch.some((s) => s.codigo_v1 === "SANITARY")).toBe(true);
-  }, 30000);
+  }, 60000);
 });
