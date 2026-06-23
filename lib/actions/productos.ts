@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { productos, movimientos, activityLog, stock, bodegas, modulos } from "@/db/schema";
+import { productos, movimientos, activityLog, stock, bodegas, modulos, movimientoVisaciones } from "@/db/schema";
 import { eq, and, lt, gt, desc, or, ilike, inArray, sql } from "drizzle-orm";
 import { mergeProductStock } from "@/lib/utils/merge-product-stock";
 
@@ -99,13 +99,19 @@ export async function getProducto(id: number) {
 
   if (!producto) return null;
 
-  const [historial, bodegaRows, moduloRows] = await Promise.all([
+  const [comprasRows, bodegaRows, moduloRows] = await Promise.all([
     db
-      .select()
+      .select({
+        id: movimientos.id,
+        folio: movimientos.folio,
+        fecha: movimientos.fechaCompra,
+        cantidad: movimientos.cantidad,
+        bodega: bodegas.nombre,
+      })
       .from(movimientos)
-      .where(eq(movimientos.productoId, id))
-      .orderBy(desc(movimientos.createdAt))
-      .limit(50),
+      .innerJoin(bodegas, eq(movimientos.bodegaOrigenId, bodegas.id))
+      .where(and(eq(movimientos.productoId, id), eq(movimientos.tipo, "entrada")))
+      .orderBy(desc(movimientos.id)),
     db
       .select({
         productoId: stock.productoId,
@@ -130,12 +136,42 @@ export async function getProducto(id: number) {
       .groupBy(stock.productoId, modulos.id, modulos.nombre),
   ]);
 
+  // Visaciones hijas para los movimientos de entrada
+  const comprasIds = comprasRows.map((c) => c.id);
+  const visRows =
+    comprasIds.length > 0
+      ? await db
+          .select({
+            movimientoId: movimientoVisaciones.movimientoId,
+            nroIngreso: movimientoVisaciones.nroIngreso,
+            cantidad: movimientoVisaciones.cantidad,
+          })
+          .from(movimientoVisaciones)
+          .where(inArray(movimientoVisaciones.movimientoId, comprasIds))
+      : [];
+
+  const visPorCompra = new Map<number, { nroIngreso: string; cantidad: number }[]>();
+  for (const v of visRows) {
+    const grupo = visPorCompra.get(v.movimientoId) ?? [];
+    grupo.push({ nroIngreso: v.nroIngreso, cantidad: v.cantidad });
+    visPorCompra.set(v.movimientoId, grupo);
+  }
+
+  const compras = comprasRows.map((c) => ({
+    id: c.id,
+    folio: c.folio,
+    fecha: c.fecha,
+    cantidad: c.cantidad,
+    bodega: c.bodega,
+    visaciones: visPorCompra.get(c.id) ?? [],
+  }));
+
   const stockMap = mergeProductStock([producto], bodegaRows, moduloRows);
   const s = stockMap.get(producto.id);
 
   return {
     ...producto,
-    movimientos: historial,
+    compras,
     bodegas: s?.bodegas ?? [],
     modulos: s?.modulos ?? [],
   };

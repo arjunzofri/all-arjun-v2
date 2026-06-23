@@ -99,6 +99,56 @@ export default async function ProductoDetallePage({
 
       <hr className="my-6" />
 
+      <h2 className="text-lg font-semibold text-gray-900 mb-3">Compras</h2>
+      {"compras" in producto && (producto as { compras: unknown[] }).compras.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left text-gray-500">
+                <th className="py-2">NV</th>
+                <th className="py-2">Fecha</th>
+                <th className="py-2">Bodega</th>
+                <th className="py-2 text-right">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              {((producto as { compras: { id: number; folio: string; fecha: string | null; cantidad: number; bodega: string; visaciones: { nroIngreso: string; cantidad: number }[] }[] }).compras).map((c) => {
+                const vis = c.visaciones;
+                return (
+                  <>
+                    <tr key={c.id} className="border-b">
+                      <td className="py-2 font-medium">{c.folio}</td>
+                      <td className="py-2 text-gray-600">
+                        {c.fecha
+                          ? new Date(c.fecha).toLocaleDateString("es-CL")
+                          : "—"}
+                      </td>
+                      <td className="py-2 text-gray-600">{c.bodega}</td>
+                      <td className="py-2 text-right font-semibold">{c.cantidad}</td>
+                    </tr>
+                    {vis.length > 0 && (
+                      <tr key={c.id + "-vis"} className="border-b">
+                        <td colSpan={4} className="pb-2 pt-0">
+                          {vis.map((v, i) => (
+                            <span key={i} className="text-xs text-gray-400 mr-3">
+                              {v.nroIngreso} ({v.cantidad})
+                            </span>
+                          ))}
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="text-gray-400 text-sm">Sin compras registradas</p>
+      )}
+
+      <hr className="my-6" />
+
       <EditarProductoForm producto={producto} />
     </div>
   );
