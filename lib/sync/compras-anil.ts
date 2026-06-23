@@ -38,11 +38,12 @@ export async function insertarMovimientoSync(
     codigo: string;
     cantidad: number;
     bodegaId: number;
-    nroIngreso: string | null;
+    visaciones: { nroIngreso: string; cantidad: number }[];
     fechanvt: string | null;
   },
 ) {
-  await sql`
+  // CTE atómica: stock + movimiento. RETURNING id para las visaciones hijas.
+  const result = await sql`
     WITH existing AS (
       SELECT id FROM movimientos
       WHERE folio = ${params.folio}
@@ -56,13 +57,40 @@ export async function insertarMovimientoSync(
       ON CONFLICT (producto_id, bodega_id)
       DO UPDATE SET cantidad = stock.cantidad + ${params.cantidad}
     )
-    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id, nro_ingreso, fecha_compra)
+    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id, fecha_compra)
     SELECT ${params.folio}, id, 'entrada', ${params.cantidad}, ${params.bodegaId}, 1,
-      ${params.nroIngreso ?? null},
       ${params.fechanvt ?? null}::date
     FROM productos WHERE codigo = ${params.codigo}
       AND NOT EXISTS (SELECT 1 FROM existing)
+    RETURNING id
   `;
+
+  // Resolver el id del movimiento (recién insertado o ya existente)
+  const rows = result as unknown as { id: number }[];
+  let movimientoId: number | null = rows[0]?.id ?? null;
+
+  if (movimientoId === null) {
+    // El movimiento ya existía (el CTE no insertó por idempotencia).
+    // Buscar el id existente para poder insertar las visaciones hijas.
+    const existing = await sql`
+      SELECT id FROM movimientos
+      WHERE folio = ${params.folio}
+        AND producto_id = (SELECT id FROM productos WHERE codigo = ${params.codigo})
+    `;
+    const eRows = existing as unknown as { id: number }[];
+    movimientoId = eRows[0]?.id ?? null;
+  }
+
+  // Insertar visaciones hijas (si hay id de movimiento y visaciones)
+  if (movimientoId !== null && params.visaciones.length > 0) {
+    for (const v of params.visaciones) {
+      await sql`
+        INSERT INTO movimiento_visaciones (movimiento_id, nro_ingreso, cantidad)
+        VALUES (${movimientoId}, ${v.nroIngreso}, ${v.cantidad})
+        ON CONFLICT (movimiento_id, nro_ingreso) DO NOTHING
+      `;
+    }
+  }
 }
 
 // ── Sync principal ────────────────────────────────────────────────────
@@ -114,7 +142,7 @@ export async function syncComprasAnil(corte: string): Promise<{
       codigo: compra.codigo,
       cantidad: compra.cantidad,
       bodegaId,
-      nroIngreso: compra.nroIngreso,
+      visaciones: compra.visaciones,
       fechanvt: compra.fechanvt,
     });
 

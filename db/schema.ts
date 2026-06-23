@@ -89,13 +89,29 @@ export const movimientos = pgTable(
     movimientoOriginalId: integer("movimiento_original_id").references(
       (): AnyPgColumn => movimientos.id
     ),
-    nroIngreso: text("nro_ingreso"),
     fechaCompra: date("fecha_compra"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [
     // Idempotencia: mismo folio + producto no puede moverse dos veces.
     unique("uq_movimientos_folio_producto").on(t.folio, t.productoId),
+  ]
+);
+
+// ── Visaciones de movimientos ────────────────────────────────────────────
+export const movimientoVisaciones = pgTable(
+  "movimiento_visaciones",
+  {
+    id: serial("id").primaryKey(),
+    movimientoId: integer("movimiento_id")
+      .notNull()
+      .references(() => movimientos.id),
+    nroIngreso: text("nro_ingreso").notNull(),
+    cantidad: integer("cantidad").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    unique("uq_movimiento_visacion").on(t.movimientoId, t.nroIngreso),
   ]
 );
 

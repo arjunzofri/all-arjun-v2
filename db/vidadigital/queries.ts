@@ -3,6 +3,11 @@ import { getBodegaPorCodigoIngreso } from "@/lib/utils/get-bodega-por-codigo-ing
 import { sql } from "drizzle-orm";
 
 // ── Tipos ────────────────────────────────────────────────────────────────
+export interface Visacion {
+  nroIngreso: string;
+  cantidad: number;
+}
+
 export interface CompraAnil {
   folio: string;
   fechanvt: string | null;
@@ -12,7 +17,7 @@ export interface CompraAnil {
   cantcaja: number | null;
   imagenUrl: string | null;
   bodega: string;
-  nroIngreso: string | null;
+  visaciones: Visacion[];
 }
 
 export interface ProductoHistorico {
@@ -93,39 +98,62 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
     }[];
   };
 
-  const compras = rows.map((r) => {
-    const codigoBodega = r.nro_ingreso?.split("-")[4] ?? null;
-    return {
-      folio: r.folio,
-      fechanvt: r.fechanvt,
-      codigo: r.codigo,
-      detalle: r.detalle,
-      cantidad: Number(r.cantidad),
-      cantcaja: r.cantcaja,
-      imagenUrl: r.imagen_url,
-      bodega: getBodegaPorCodigoIngreso(codigoBodega) ?? "Bodega desconocida",
-      nroIngreso: r.nro_ingreso,
-    };
-  });
+  // ── Agregación en dos niveles ──────────────────────────────────────
+  // Nivel 1: agrupar por (folio, codigo, bodega, knumezet) → visaciones.
+  //   Mismo knumezet en la misma compra = mismo lote → SUM(cantidad).
+  // Nivel 2: agrupar por (folio, codigo, bodega) → CompraAnil.
+  //   Distintos knumezet del mismo producto en la misma compra quedan
+  //   como visaciones separadas, cada una con su cantidad individual.
+  //   La cantidad total de la compra es la suma de sus visaciones.
 
-  // Agrupar por (folio, codigo, bodega) con SUM(cantidad).
-  // Necesario porque itemdcto puede tener múltiples líneas del mismo
-  // producto en la misma compra (ej. 20 lotes distintos de "1055" en
-  // el folio "001653"), y la idempotencia del sync descarta la
-  // segunda y siguientes — perdiendo stock silenciosamente si no
-  // consolidamos antes.
-  const agrupado = new Map<string, CompraAnil>();
-  for (const c of compras) {
-    const key = `${c.folio}|${c.codigo}|${c.bodega}`;
-    const existente = agrupado.get(key);
+  // Nivel 1: visaciones por knumezet
+  const visMap = new Map<string, { nroIngreso: string; cantidad: number }>();
+  for (const r of rows) {
+    const nro = r.nro_ingreso;
+    const key = `${r.folio}|${r.codigo}|${nro}`;
+    const existente = visMap.get(key);
     if (existente) {
-      existente.cantidad += c.cantidad;
+      existente.cantidad += Number(r.cantidad);
     } else {
-      agrupado.set(key, { ...c });
+      visMap.set(key, { nroIngreso: nro ?? "", cantidad: Number(r.cantidad) });
     }
   }
 
-  return [...agrupado.values()];
+  // Nivel 2: compras por (folio, codigo, bodega) con visaciones[]
+  const compraMap = new Map<string, CompraAnil & { _visMap: Map<string, Visacion> }>();
+  for (const r of rows) {
+    const codigoBodega = r.nro_ingreso?.split("-")[4] ?? null;
+    const bodega = getBodegaPorCodigoIngreso(codigoBodega) ?? "Bodega desconocida";
+    const key = `${r.folio}|${r.codigo}|${bodega}`;
+
+    let entry = compraMap.get(key);
+    if (!entry) {
+      entry = {
+        folio: r.folio,
+        fechanvt: r.fechanvt,
+        codigo: r.codigo,
+        detalle: r.detalle,
+        cantidad: 0,
+        cantcaja: r.cantcaja,
+        imagenUrl: r.imagen_url,
+        bodega,
+        visaciones: [],
+        _visMap: new Map(),
+      };
+      compraMap.set(key, entry);
+    }
+
+    const nro = r.nro_ingreso ?? "";
+    const vKey = `${key}|${nro}`;
+    if (!entry._visMap.has(vKey)) {
+      const vis = visMap.get(`${r.folio}|${r.codigo}|${nro}`)!;
+      entry._visMap.set(vKey, vis);
+      entry.cantidad += vis.cantidad;
+      entry.visaciones.push({ nroIngreso: vis.nroIngreso, cantidad: vis.cantidad });
+    }
+  }
+
+  return [...compraMap.values()].map(({ _visMap, ...c }) => c);
 }
 
 // ── Buscador histórico ───────────────────────────────────────────────────
