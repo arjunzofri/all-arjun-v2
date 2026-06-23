@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getStockPorUbicacion } from "@/lib/actions/vistas";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
+import { AjusteModal } from "@/components/AjusteModal";
 
 type Item = { id: number; codigo: string; detalle: string | null; imagenUrl: string | null; packing: number | null; cantidad: number };
 type Tipo = "bodega" | "modulo";
@@ -62,6 +63,7 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
   const [soloConStock, setSoloConStock] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [productoParaAjustar, setProductoParaAjustar] = useState<{ id: number; codigo: string } | null>(null);
 
   const cargar = useCallback(
     async (reset?: boolean) => {
@@ -165,6 +167,7 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
               <th className="py-2">Detalle</th>
               <th className="py-2 text-right">Packing</th>
               <th className="py-2 text-right">Stock</th>
+              <th className="py-2 w-8"></th>
             </tr>
           </thead>
           <tbody>
@@ -177,16 +180,24 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
                 <td className="py-2 text-gray-600">{item.detalle ?? "—"}</td>
                 <td className="py-2 text-right text-gray-500">{item.packing ?? "—"}</td>
                 <td className="py-2 text-right font-semibold">{item.cantidad}</td>
+                <td className="py-2 text-center">
+                  <button
+                    onClick={() => setProductoParaAjustar({ id: item.id, codigo: item.codigo })}
+                    className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700"
+                  >
+                    Corregir
+                  </button>
+                </td>
               </tr>
             ))}
             {items.length === 0 && !loading && !error && (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-gray-400">Sin productos</td>
+                <td colSpan={6} className="py-8 text-center text-gray-400">Sin productos</td>
               </tr>
             )}
             {loading && items.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-gray-400">Cargando...</td>
+                <td colSpan={6} className="py-8 text-center text-gray-400">Cargando...</td>
               </tr>
             )}
           </tbody>
@@ -201,6 +212,20 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
         >
           {loading ? "Cargando..." : "Cargar más"}
         </button>
+      )}
+
+      {productoParaAjustar && (
+        <AjusteModal
+          productoId={productoParaAjustar.id}
+          productoCodigo={productoParaAjustar.codigo}
+          ubicacion={{ tipo, id: ubicacionId }}
+          usuarioId={1}
+          onClose={() => setProductoParaAjustar(null)}
+          onSuccess={() => {
+            setProductoParaAjustar(null);
+            cargar(true);
+          }}
+        />
       )}
     </div>
   );
