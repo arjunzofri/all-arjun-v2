@@ -5,6 +5,7 @@ import {
   integer,
   text,
   timestamp,
+  date,
   pgEnum,
   jsonb,
   unique,
@@ -88,6 +89,8 @@ export const movimientos = pgTable(
     movimientoOriginalId: integer("movimiento_original_id").references(
       (): AnyPgColumn => movimientos.id
     ),
+    nroIngreso: text("nro_ingreso"),
+    fechaCompra: date("fecha_compra"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [

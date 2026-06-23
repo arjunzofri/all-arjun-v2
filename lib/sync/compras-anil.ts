@@ -29,6 +29,42 @@ export async function upsertProducto(
   `;
 }
 
+// ── CTE de inserción de stock + movimiento (exportada para test) ─────
+
+export async function insertarMovimientoSync(
+  sql: { (strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown> },
+  params: {
+    folio: string;
+    codigo: string;
+    cantidad: number;
+    bodegaId: number;
+    nroIngreso: string | null;
+    fechanvt: string | null;
+  },
+) {
+  await sql`
+    WITH existing AS (
+      SELECT id FROM movimientos
+      WHERE folio = ${params.folio}
+        AND producto_id = (SELECT id FROM productos WHERE codigo = ${params.codigo})
+    ),
+    stock_ok AS (
+      INSERT INTO stock (producto_id, bodega_id, cantidad)
+      SELECT id, ${params.bodegaId}, ${params.cantidad}
+      FROM productos WHERE codigo = ${params.codigo}
+        AND NOT EXISTS (SELECT 1 FROM existing)
+      ON CONFLICT (producto_id, bodega_id)
+      DO UPDATE SET cantidad = stock.cantidad + ${params.cantidad}
+    )
+    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id, nro_ingreso, fecha_compra)
+    SELECT ${params.folio}, id, 'entrada', ${params.cantidad}, ${params.bodegaId}, 1,
+      ${params.nroIngreso ?? null},
+      ${params.fechanvt ?? null}::date
+    FROM productos WHERE codigo = ${params.codigo}
+      AND NOT EXISTS (SELECT 1 FROM existing)
+  `;
+}
+
 // ── Sync principal ────────────────────────────────────────────────────
 
 export async function syncComprasAnil(corte: string): Promise<{
@@ -73,25 +109,14 @@ export async function syncComprasAnil(corte: string): Promise<{
 
     // CTE atómica: stock + movimientos en un solo statement.
     // Si el folio ya fue procesado, WHERE NOT EXISTS bloquea ambos.
-    await sql`
-      WITH existing AS (
-        SELECT id FROM movimientos
-        WHERE folio = ${compra.folio}
-          AND producto_id = (SELECT id FROM productos WHERE codigo = ${compra.codigo})
-      ),
-      stock_ok AS (
-        INSERT INTO stock (producto_id, bodega_id, cantidad)
-        SELECT id, ${bodegaId}, ${compra.cantidad}
-        FROM productos WHERE codigo = ${compra.codigo}
-          AND NOT EXISTS (SELECT 1 FROM existing)
-        ON CONFLICT (producto_id, bodega_id)
-        DO UPDATE SET cantidad = stock.cantidad + ${compra.cantidad}
-      )
-      INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id)
-      SELECT ${compra.folio}, id, 'entrada', ${compra.cantidad}, ${bodegaId}, 1
-      FROM productos WHERE codigo = ${compra.codigo}
-        AND NOT EXISTS (SELECT 1 FROM existing)
-    `;
+    await insertarMovimientoSync(sql, {
+      folio: compra.folio,
+      codigo: compra.codigo,
+      cantidad: compra.cantidad,
+      bodegaId,
+      nroIngreso: compra.nroIngreso,
+      fechanvt: compra.fechanvt,
+    });
 
     procesadas++;
     if (compra.fechanvt && compra.fechanvt > maxFecha) {

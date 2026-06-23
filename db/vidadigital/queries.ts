@@ -12,6 +12,7 @@ export interface CompraAnil {
   cantcaja: number | null;
   imagenUrl: string | null;
   bodega: string;
+  nroIngreso: string | null;
 }
 
 export interface ProductoHistorico {
@@ -103,6 +104,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
       cantcaja: r.cantcaja,
       imagenUrl: r.imagen_url,
       bodega: getBodegaPorCodigoIngreso(codigoBodega) ?? "Bodega desconocida",
+      nroIngreso: r.nro_ingreso,
     };
   });
 
