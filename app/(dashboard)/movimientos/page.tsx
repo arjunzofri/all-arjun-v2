@@ -101,6 +101,7 @@ export default function MovimientosPage() {
               <th className="py-2">Código</th>
               <th className="py-2">Detalle</th>
               <th className="py-2">Obs.</th>
+              <th className="py-2">Usuario</th>
               <th className="py-2 text-right">Cant</th>
             </tr>
           </thead>
@@ -133,6 +134,7 @@ export default function MovimientosPage() {
                 <td className="py-2 text-gray-500 max-w-48 truncate" title={m.observaciones ?? undefined}>
                   {m.observaciones ?? "—"}
                 </td>
+                <td className="py-2 text-gray-600">{m.usuario}</td>
                 <td className="py-2 text-right font-semibold">
                   {m.cantidad}
                 </td>
@@ -140,7 +142,7 @@ export default function MovimientosPage() {
             ))}
             {items.length === 0 && !loading && (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-gray-400">
+                <td colSpan={8} className="py-8 text-center text-gray-400">
                   Sin movimientos
                 </td>
               </tr>

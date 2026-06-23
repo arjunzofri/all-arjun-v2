@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { movimientos, productos } from "@/db/schema";
+import { movimientos, productos, users } from "@/db/schema";
 import { eq, lt, desc, and, gte, lte, sql } from "drizzle-orm";
 
 export type MovimientoItem = {
@@ -12,6 +12,7 @@ export type MovimientoItem = {
   productoDetalle: string | null;
   imagenUrl: string | null;
   observaciones: string | null;
+  usuario: string;
   createdAt: Date;
 };
 
@@ -42,10 +43,12 @@ export async function getMovimientos(params: {
       productoDetalle: productos.detalle,
       imagenUrl: productos.imagenUrl,
       observaciones: movimientos.observaciones,
+      usuario: users.username,
       createdAt: movimientos.createdAt,
     })
     .from(movimientos)
     .innerJoin(productos, eq(movimientos.productoId, productos.id))
+    .innerJoin(users, eq(movimientos.usuarioId, users.id))
     .where(where)
     .orderBy(desc(movimientos.id))
     .limit(limit + 1);
