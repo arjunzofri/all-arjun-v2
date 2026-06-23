@@ -71,8 +71,9 @@ Ver sección 10 de PRD.md — estructura completa documentada ahí. Resumen:
    cursor, con `ORDER BY id DESC` consistente entre la condición del cursor
    y el `ORDER BY`. La v1 tuvo dos bugs de paginación distintos por mezclar
    estos criterios.
-4. **El sync de compras Anil tiene fecha de corte fija: `>= 2026-06-01`.**
-   No se sincroniza automáticamente nada anterior. Mercadería más antigua
+4. **El sync de compras Anil usa fecha de corte dinámica, determinada por
+   `sync_watermark.value` para la key `compras-anil`.** No se sincroniza
+   automáticamente nada anterior a ese valor. Mercadería más antigua
    se regulariza solo vía ingreso manual con el buscador histórico (que sí
    consulta todo el histórico, sin filtro de fecha, pero solo para traer
    metadata — nunca cantidades).

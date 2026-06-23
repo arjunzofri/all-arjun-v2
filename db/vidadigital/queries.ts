@@ -23,7 +23,7 @@ export interface ProductoHistorico {
 
 // ── Compras Anil desde fecha ─────────────────────────────────────────────
 /**
- * Compra de Anil desde fecha de corte (>= 2026-06-01).
+ * Compra de Anil desde la fecha de corte (sync_watermark.value para compras-anil).
  * UNION ALL entre vida y sanjh — sin riesgo de duplicados porque
  * son sistemas distintos con folios independientes.
  */
