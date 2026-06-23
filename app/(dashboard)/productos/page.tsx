@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 
 // ── Tipos ──────────────────────────────────────────────────────────────
@@ -128,6 +128,29 @@ async function fetchProductos(
 
 // ── URL builder (exportado para test sin jsdom) ───────────────────────
 
+// ── Sync handler (mismo patrón que createLogoutHandler) ──────────────────
+
+export function createSyncHandler(config: {
+  syncFn: () => Promise<{ procesadas: number; watermark: string }>;
+  isPending: () => boolean;
+  setPending: (v: boolean) => void;
+  onResult: (result: { procesadas: number; watermark: string }) => void;
+  onError: (mensaje: string) => void;
+}) {
+  return async () => {
+    if (config.isPending()) return;
+    config.setPending(true);
+    try {
+      const result = await config.syncFn();
+      config.onResult(result);
+    } catch (err) {
+      config.onError(err instanceof Error ? err.message : String(err));
+    } finally {
+      config.setPending(false);
+    }
+  };
+}
+
 export function buildProductosUrl(q: string): string {
   if (!q) return "/productos";
   return `/productos?q=${encodeURIComponent(q)}`;
@@ -157,6 +180,9 @@ export default function ProductosPage() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [syncPending, setSyncPending] = useState(false);
+  const [syncResultado, setSyncResultado] = useState<{ procesadas: number; watermark: string } | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const searchRef = useRef<ReturnType<typeof createProductSearch> | undefined>(undefined);
   const initialDone = useRef(false);
 
@@ -256,11 +282,60 @@ export default function ProductosPage() {
     return () => searchRef.current?.dispose();
   }, []);
 
+  // ── Sync handler ───────────────────────────────────────────────────
+
+  const handleSync = useCallback(
+    createSyncHandler({
+      syncFn: async () => {
+        const res = await fetch("/api/sync/compras-anil", { method: "POST" });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error ?? `Error ${res.status}`);
+        }
+        return res.json();
+      },
+      isPending: () => syncPending,
+      setPending: setSyncPending,
+      onResult: (result) => {
+        setSyncResultado(result);
+        setSyncError(null);
+        searchRef.current?.search(q);
+      },
+      onError: (msg) => {
+        setSyncError(msg);
+        setSyncResultado(null);
+      },
+    }),
+    [syncPending, q],
+  );
+
   // ── JSX ────────────────────────────────────────────────────────────
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold text-gray-900">Productos</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Productos</h1>
+        <button
+          onClick={handleSync}
+          disabled={syncPending}
+          className="px-4 py-2 text-sm rounded bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
+        >
+          {syncPending ? "Sincronizando..." : "Sincronizar"}
+        </button>
+      </div>
+
+      {syncResultado && (
+        <div className="mb-4 rounded border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-700">
+          {syncResultado.procesadas} compras procesadas. Watermark:{" "}
+          {syncResultado.watermark}
+        </div>
+      )}
+
+      {syncError && (
+        <div className="mb-4 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {syncError}
+        </div>
+      )}
 
       <div className="mb-4">
         <input
