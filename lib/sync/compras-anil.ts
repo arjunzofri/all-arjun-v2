@@ -83,14 +83,14 @@ export async function syncComprasAnil(corte: string): Promise<{
         INSERT INTO stock (producto_id, bodega_id, cantidad)
         SELECT id, ${bodegaId}, ${compra.cantidad}
         FROM productos WHERE codigo = ${compra.codigo}
-        WHERE NOT EXISTS (SELECT 1 FROM existing)
+          AND NOT EXISTS (SELECT 1 FROM existing)
         ON CONFLICT (producto_id, bodega_id)
         DO UPDATE SET cantidad = stock.cantidad + ${compra.cantidad}
       )
       INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id)
       SELECT ${compra.folio}, id, 'entrada', ${compra.cantidad}, ${bodegaId}, 1
       FROM productos WHERE codigo = ${compra.codigo}
-      WHERE NOT EXISTS (SELECT 1 FROM existing)
+        AND NOT EXISTS (SELECT 1 FROM existing)
     `;
 
     procesadas++;

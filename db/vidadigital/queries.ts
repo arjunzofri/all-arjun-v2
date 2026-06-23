@@ -37,13 +37,13 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         m.fechanvt,
         p.codigo,
         p.detalle,
-        i.cantidad  AS cantidad,
+        i.cantsali  AS cantidad,
         p.cantcaja,
         p.imagen_url AS imagen_url,
         i.knumezet AS nro_ingreso
       FROM vida.itemdcto i
       JOIN vida.movidcto m ON i.knumfoli = m.knumfoli
-      JOIN public.productos p ON i.codigo = p.codigo
+      JOIN public.productos p ON i.codunico = p.codigo
       WHERE m.tipomovi = 'V'
         AND m.kcodcli2 IN (2, 20, 218)
         AND m.fechanvt >= ${fecha}
@@ -55,13 +55,13 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         m.fechanvt,
         p.codigo,
         p.detalle,
-        i.cantidad  AS cantidad,
+        i.cantsali  AS cantidad,
         p.cantcaja,
         p.imagen_url AS imagen_url,
         i.knumezet AS nro_ingreso
       FROM sanjh.itemdcto i
       JOIN sanjh.movidcto m ON i.knumfoli = m.knumfoli
-      JOIN public.productos p ON i.codigo = p.codigo
+      JOIN public.productos p ON i.codunico = p.codigo
       WHERE m.tipomovi = 'V'
         AND m.kcodcli2 IN (2, 20, 218)
         AND m.fechanvt >= ${fecha}
@@ -84,19 +84,38 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
     }[];
   };
 
-  return rows.map((r) => {
+  const compras = rows.map((r) => {
     const codigoBodega = r.nro_ingreso?.split("-")[4] ?? null;
     return {
       folio: r.folio,
       fechanvt: r.fechanvt,
       codigo: r.codigo,
       detalle: r.detalle,
-      cantidad: r.cantidad,
+      cantidad: Number(r.cantidad),
       cantcaja: r.cantcaja,
       imagenUrl: r.imagen_url,
       bodega: getBodegaPorCodigoIngreso(codigoBodega) ?? "Bodega desconocida",
     };
   });
+
+  // Agrupar por (folio, codigo, bodega) con SUM(cantidad).
+  // Necesario porque itemdcto puede tener múltiples líneas del mismo
+  // producto en la misma compra (ej. 20 lotes distintos de "1055" en
+  // el folio "001653"), y la idempotencia del sync descarta la
+  // segunda y siguientes — perdiendo stock silenciosamente si no
+  // consolidamos antes.
+  const agrupado = new Map<string, CompraAnil>();
+  for (const c of compras) {
+    const key = `${c.folio}|${c.codigo}|${c.bodega}`;
+    const existente = agrupado.get(key);
+    if (existente) {
+      existente.cantidad += c.cantidad;
+    } else {
+      agrupado.set(key, { ...c });
+    }
+  }
+
+  return [...agrupado.values()];
 }
 
 // ── Buscador histórico ───────────────────────────────────────────────────
