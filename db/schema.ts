@@ -82,6 +82,9 @@ export const movimientos = pgTable(
     moduloDestinoId: integer("modulo_destino_id").references(() => modulos.id),
     usuarioId: integer("usuario_id").notNull(),
     observaciones: text("observaciones"),
+    // AnyPgColumn requerido: FK a la misma tabla causa error circular de
+    // tipos en Drizzle sin referencia lazy (ver TS7022 si se simplifica
+    // a () => movimientos.id directo).
     movimientoOriginalId: integer("movimiento_original_id").references(
       (): AnyPgColumn => movimientos.id
     ),
