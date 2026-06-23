@@ -19,7 +19,6 @@ type AjusteModalProps = {
   productoId: number;
   productoCodigo: string;
   ubicacion: Ubicacion;
-  usuarioId: number;
   onClose: () => void;
   onSuccess: () => void;
 };
@@ -87,7 +86,6 @@ export function AjusteModal({
   productoId,
   productoCodigo,
   ubicacion,
-  usuarioId,
   onClose,
   onSuccess,
 }: AjusteModalProps) {
@@ -142,14 +140,13 @@ export function AjusteModal({
         cantidadReal: Number(cantidadReal),
         observaciones: observaciones.trim() || undefined,
         idempotencyKey,
-        usuarioId,
       }),
       isPending: () => enviando,
       setPending: setEnviando,
       onExito: () => { onSuccess(); onClose(); },
       onError: (msg) => setError(msg),
     }),
-    [seleccionado, cantidadReal, observaciones, idempotencyKey, usuarioId, enviando, onSuccess, onClose],
+    [seleccionado, cantidadReal, observaciones, idempotencyKey, enviando, onSuccess, onClose],
   );
 
   // Validación local del input

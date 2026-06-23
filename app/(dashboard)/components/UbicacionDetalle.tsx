@@ -219,7 +219,6 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
           productoId={productoParaAjustar.id}
           productoCodigo={productoParaAjustar.codigo}
           ubicacion={{ tipo, id: ubicacionId }}
-          usuarioId={1}
           onClose={() => setProductoParaAjustar(null)}
           onSuccess={() => {
             setProductoParaAjustar(null);
