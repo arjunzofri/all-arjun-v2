@@ -4,17 +4,18 @@ import { neon, NeonQueryFunction } from "@neondatabase/serverless";
 import { z } from "zod";
 import { db } from "@/db";
 import { movimientos } from "@/db/schema";
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray, or, like } from "drizzle-orm";
 import {
   resolverOrigenDestino,
   calcularCantidadNeta,
   calcularCantidadAjuste,
+  calcularCorreccionEntrada,
 } from "@/lib/utils/movimiento-ubicacion";
 import type { Ubicacion, ResolverInput } from "@/lib/utils/movimiento-ubicacion";
 
 type MovimientoContribuyente = {
   movimientoId: number;
-  tipo: "salida" | "retorno";
+  tipo: "salida" | "retorno" | "entrada";
   cantidadOriginal: number;
   cantidadNeta: number;
   createdAt: Date;
@@ -63,8 +64,14 @@ export async function getMovimientosContribuyentes(
     .where(
       and(
         eq(movimientos.productoId, productoId),
-        inArray(movimientos.tipo, ["salida", "retorno"]),
-      )
+        or(
+          inArray(movimientos.tipo, ["salida", "retorno"]),
+          and(
+            eq(movimientos.tipo, "entrada"),
+            like(movimientos.folio, "MAN-%"),
+          ),
+        ),
+      ),
     )
     .orderBy(desc(movimientos.id));
 
@@ -171,7 +178,7 @@ export async function crearAjuste(
 
   // ── 1. Fetch del movimiento original ──────────────────────────────
   const originalRows = await sql`
-    SELECT id, producto_id, tipo, cantidad, bodega_origen_id, modulo_destino_id
+    SELECT id, producto_id, tipo, cantidad, bodega_origen_id, modulo_destino_id, folio
     FROM movimientos WHERE id = ${movimientoOriginalId}
   `;
   const origRaw = originalRows as unknown as {
@@ -181,6 +188,7 @@ export async function crearAjuste(
     cantidad: number;
     bodega_origen_id: number | null;
     modulo_destino_id: number | null;
+    folio: string | null;
   }[];
 
   if (origRaw.length === 0) {
@@ -188,6 +196,84 @@ export async function crearAjuste(
   }
 
   const orig = origRaw[0]!;
+
+  // ── Validación de tipo ────────────────────────────────────────────
+  const esEntrada = orig.tipo === "entrada";
+
+  if (esEntrada) {
+    // Solo entradas manuales (MAN-*), nunca sync
+    if (!orig.folio?.startsWith("MAN-")) {
+      throw new Error(
+        "Solo se pueden ajustar entradas manuales (no sync automático)",
+      );
+    }
+
+    // Validar stock en la bodega
+    const stockRow = await sql`
+      SELECT cantidad FROM stock
+      WHERE producto_id = ${orig.producto_id}
+        AND bodega_id = ${orig.bodega_origen_id}
+    `;
+    const stockActual =
+      ((stockRow as unknown as { cantidad: number }[])[0]?.cantidad) ?? 0;
+
+    // Calcular delta con ajustes previos
+    const ajustesPreviosRows = await sql`
+      SELECT cantidad FROM movimientos
+      WHERE movimiento_original_id = ${movimientoOriginalId} AND tipo = 'ajuste'
+    `;
+    const ajustesPrevios = (ajustesPreviosRows as unknown as { cantidad: number }[])
+      .map((a) => a.cantidad);
+
+    const delta = calcularCorreccionEntrada(
+      orig.cantidad,
+      cantidadReal,
+      ajustesPrevios,
+    );
+
+    if (delta > stockActual) {
+      throw new Error("Stock insuficiente");
+    }
+
+    // CTE de una sola punta: descuento de bodega + inserción de ajuste
+    const cteResult = await sql`
+      WITH existing AS (
+        SELECT id FROM movimientos
+        WHERE folio = ${folio}
+          AND producto_id = ${orig.producto_id}
+      ),
+      stock_ok AS (
+        UPDATE stock
+        SET cantidad = cantidad - ${delta}, updated_at = NOW()
+        WHERE producto_id = ${orig.producto_id}
+          AND bodega_id = ${orig.bodega_origen_id}
+          AND cantidad >= ${delta}
+          AND NOT EXISTS (SELECT 1 FROM existing)
+        RETURNING 1
+      )
+      INSERT INTO movimientos (
+        folio, producto_id, tipo, cantidad,
+        bodega_origen_id,
+        movimiento_original_id, usuario_id, observaciones
+      )
+      SELECT
+        ${folio}, ${orig.producto_id}, 'ajuste', ${-delta},
+        ${orig.bodega_origen_id},
+        ${movimientoOriginalId}, ${usuarioId}, ${observaciones ?? null}
+      WHERE EXISTS (SELECT 1 FROM stock_ok)
+      RETURNING id
+    `;
+
+    const ids = cteResult as unknown as { id: number }[];
+    if (ids[0]?.id) {
+      return { movimientoId: ids[0].id, ok: true };
+    }
+    const dup = await sql`SELECT id FROM movimientos WHERE folio = ${folio}`;
+    if ((dup as unknown[]).length > 0) {
+      return { movimientoId: null, ok: false, reason: "idempotente" };
+    }
+    throw new Error("Stock insuficiente");
+  }
 
   if (orig.tipo !== "salida" && orig.tipo !== "retorno") {
     throw new Error(

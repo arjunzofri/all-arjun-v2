@@ -161,3 +161,34 @@ export function calcularCantidadAjuste(
   // Destino bodega → signo invertido (misma asimetría que resolverOrigenDestino)
   return destinoOriginal.tipo === "bodega" ? -delta : delta;
 }
+
+/**
+ * Calcula la corrección necesaria para una entrada manual (1 sola punta,
+ * solo bodega, sin módulo involucrado). Solo se permite hacia abajo.
+ *
+ * No delega en calcularCantidadNeta ni efectoSobreUbicacion — esas funciones
+ * modelan el flujo bodega↔módulo de 2 puntas que no aplica a entradas.
+ *
+ * @param cantidadOriginal  cantidad registrada originalmente en la entrada
+ * @param cantidadReal      cantidad que realmente llegó (debe ser menor)
+ * @param ajustesPrevios    cantidades de ajustes anteriores (negativas)
+ * @returns delta positivo = stock a descontar de la bodega
+ * @throws si cantidadReal >= cantidad neta actual (sin diferencia o hacia arriba)
+ */
+export function calcularCorreccionEntrada(
+  cantidadOriginal: number,
+  cantidadReal: number,
+  ajustesPrevios: number[] = [],
+): number {
+  const netaActual =
+    cantidadOriginal + ajustesPrevios.reduce((sum, a) => sum + a, 0);
+  const delta = netaActual - cantidadReal;
+
+  if (delta <= 0) {
+    throw new Error(
+      "Solo se permite corregir hacia abajo: cantidadReal debe ser menor que la cantidad neta actual",
+    );
+  }
+
+  return delta;
+}

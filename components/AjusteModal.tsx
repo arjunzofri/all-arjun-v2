@@ -9,7 +9,7 @@ import type { Ubicacion } from "@/lib/utils/movimiento-ubicacion";
 
 type MovimientoItem = {
   movimientoId: number;
-  tipo: "salida" | "retorno";
+  tipo: "salida" | "retorno" | "entrada";
   cantidadOriginal: number;
   cantidadNeta: number;
   createdAt: Date;
