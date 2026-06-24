@@ -71,9 +71,6 @@ export default async function DashboardPage() {
   const user = session.user as { username?: string } | undefined;
   const [bodegas, modulos] = await Promise.all([getBodegas(), getModulos()]);
 
-  const totalBodegas = bodegas.reduce((s, b) => s + b.totalStock, 0);
-  const totalModulos = modulos.reduce((s, m) => s + m.totalStock, 0);
-
   return (
     <div className="space-y-8 max-w-5xl">
 
@@ -83,24 +80,6 @@ export default async function DashboardPage() {
         <p className="mt-1 text-sm text-slate-500">
           Bienvenido, <span className="font-medium text-slate-700">{user?.username ?? "---"}</span>
         </p>
-      </div>
-
-      {/* KPIs globales */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {[
-          { label: "Total en bodegas", value: totalBodegas, href: "/bodegas" },
-          { label: "Total en modulos", value: totalModulos, href: "/modulos" },
-          { label: "Bodegas", value: bodegas.length, href: "/bodegas", unit: "" },
-          { label: "Modulos", value: modulos.length, href: "/modulos", unit: "" },
-        ].map(({ label, value, href, unit }) => (
-          <Link key={label} href={href}
-            className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:border-violet-300 hover:shadow-md transition-all">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">{label}</p>
-            <p className="text-2xl font-bold text-slate-900 tabular-nums">
-              {value.toLocaleString("es-CL")}{unit !== undefined ? "" : " uds"}
-            </p>
-          </Link>
-        ))}
       </div>
 
       {/* Bodegas */}
