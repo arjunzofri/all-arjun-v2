@@ -55,7 +55,7 @@ function SubFilasMovimientos({ mov }: { mov: MovDetalle }) {
             {/* col2: imagen — vacio */}
             <td className="py-2 px-2"></td>
             {/* col3: codigo — NV folio */}
-            <td className="py-2 px-3 text-xs font-semibold text-slate-700 tabular-nums whitespace-nowrap">{e.folio ?? "---"}</td>
+            <td className="py-2 px-3 text-xs font-semibold text-slate-700 tabular-nums whitespace-nowrap">{e.folio && !e.folio.startsWith("V1-SAL") && !e.folio.startsWith("MAN-") ? e.folio : "---"}</td>
             {/* col4: detalle — fecha */}
             <td className="py-2 px-3 text-xs text-slate-500 tabular-nums whitespace-nowrap">{formatFecha(e.fecha)}</td>
             {/* col5: packing — costo */}
