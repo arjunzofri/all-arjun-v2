@@ -47,6 +47,7 @@ export default function EntradasPage() {
   const [imagenError, setImagenError] = useState(false);
   const [cantidad, setCantidad] = useState("");
   const [bodegaId, setBodegaId] = useState("");
+  const [ubicacion, setUbicacion] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
@@ -95,6 +96,14 @@ export default function EntradasPage() {
     if (fotoLocalRef.current) { URL.revokeObjectURL(fotoLocalRef.current); fotoLocalRef.current = null; }
     setFotoLocal(null);
     setFotoFile(null);
+    // Pre-llenar ubicacion desde la DB propia
+    fetch(`/api/productos?q=${encodeURIComponent(item.codigo)}&limit=1`)
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { items: { codigo: string; ubicacion?: string | null }[] } | null) => {
+        const match = data?.items?.find(p => p.codigo.toUpperCase() === item.codigo.toUpperCase());
+        if (match?.ubicacion) setUbicacion(match.ubicacion);
+      })
+      .catch(() => {});
   };
 
   const handleFoto = async (file: File) => {
@@ -152,11 +161,12 @@ export default function EntradasPage() {
         idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         imagenUrl: imagenUrl ?? undefined,
         packing: packing ?? undefined,
+        ubicacion: ubicacion.trim() || undefined,
         observaciones: observaciones.trim() || undefined,
       });
       setOk("Entrada registrada");
       setCodigo(""); setDetalle(""); setImagenUrl(null); setPacking(null);
-      setObservaciones(""); setImagenError(false); setCantidad(""); setBodegaId("");
+      setObservaciones(""); setImagenError(false); setCantidad(""); setBodegaId(""); setUbicacion("");
       setEsDeCatalogo(false); limpiarFoto();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar");
@@ -243,6 +253,12 @@ export default function EntradasPage() {
             <option value="">Seleccionar bodega</option>
             {BODEGAS.map((b) => <option key={b.id} value={b.id}>{b.nombre}</option>)}
           </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Ubicacion <span className="text-slate-400 font-normal">(opcional)</span></label>
+          <input type="text" value={ubicacion} onChange={(e) => setUbicacion(e.target.value)}
+            placeholder="Ej: Pasillo 3, estante B"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Observaciones</label>

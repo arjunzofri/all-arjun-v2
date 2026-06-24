@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
@@ -13,6 +13,7 @@ const entradaSchema = z.object({
   idempotencyKey: z.string().min(1, "Idempotency key requerida"),
   imagenUrl: z.string().url().nullable().optional(),
   packing: z.number().int().nonnegative().nullable().optional(),
+  ubicacion: z.string().max(100).optional(),
   observaciones: z.string().max(500).optional(),
 });
 
@@ -24,7 +25,7 @@ export async function crearEntrada(input: CrearEntradaInput) {
   const userId = Number(session.user.id);
 
   const parsed = entradaSchema.parse(input);
-  const { codigo, detalle, cantidad, bodegaId, idempotencyKey, imagenUrl, packing, observaciones } = parsed;
+  const { codigo, detalle, cantidad, bodegaId, idempotencyKey, imagenUrl, packing, ubicacion, observaciones } = parsed;
 
   const sql = neon(process.env.DATABASE_URL!);
 
@@ -41,6 +42,7 @@ export async function crearEntrada(input: CrearEntradaInput) {
     detalle: detalle ?? null,
     cantcaja: packing ?? null,
     imagenUrl: imagenUrl ?? null,
+    ubicacion: ubicacion ?? null,
   });
 
   // Paso 2: CTE atómica — stock + movimiento en un solo statement

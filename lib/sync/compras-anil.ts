@@ -1,4 +1,4 @@
-import { neon } from "@neondatabase/serverless";
+﻿import { neon } from "@neondatabase/serverless";
 import { getComprasAnilDesde } from "@/db/vidadigital/queries";
 
 // ponytail: pre-seed manual de bodegas. Si se agregan más, migrar a tabla.
@@ -19,13 +19,15 @@ export async function upsertProducto(
     detalle: string | null;
     cantcaja: number | null;
     imagenUrl: string | null;
+    ubicacion?: string | null;
   },
 ) {
   await sql`
-    INSERT INTO productos (codigo, detalle, packing, imagen_url)
-    VALUES (${compra.codigo}, ${compra.detalle}, ${compra.cantcaja}, ${compra.imagenUrl})
+    INSERT INTO productos (codigo, detalle, packing, imagen_url, ubicacion)
+    VALUES (${compra.codigo}, ${compra.detalle}, ${compra.cantcaja}, ${compra.imagenUrl}, ${compra.ubicacion ?? null})
     ON CONFLICT (codigo) DO UPDATE
-      SET imagen_url = COALESCE(productos.imagen_url, EXCLUDED.imagen_url)
+      SET imagen_url = COALESCE(productos.imagen_url, EXCLUDED.imagen_url),
+          ubicacion  = COALESCE(EXCLUDED.ubicacion, productos.ubicacion)
   `;
 }
 
