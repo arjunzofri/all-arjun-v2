@@ -9,7 +9,7 @@ import { AjusteModal } from "@/components/AjusteModal";
 type Item = { id: number; codigo: string; detalle: string | null; imagenUrl: string | null; packing: number | null; cantidad: number; totalEntradas: number; totalSalidas: number };
 type Tipo = "bodega" | "modulo";
 type Page = { items: Item[]; nextCursor: number | null };
-type Entrada = { id: number; folio: string | null; fecha: string | null; cantidad: number; precioUnitario: number | null };
+type Entrada = { id: number; folio: string | null; fecha: string | null; cantidad: number; precioUnitario: number | null; usuario: string };
 type Salida  = { id: number; tipo: string; fecha: string; cantidad: number; destino: string | null; usuario: string };
 type MovDetalle = { entradas: Entrada[]; salidas: Salida[] };
 
@@ -66,8 +66,8 @@ function SubFilasMovimientos({ mov }: { mov: MovDetalle }) {
             <td className="py-2 px-3"></td>
             {/* col8: saldo — vacio */}
             <td className="py-2 px-3"></td>
-            {/* col9: accion — vacio */}
-            <td className="py-2 pl-3 pr-4"></td>
+            {/* col9: accion — usuario */}
+            <td className="py-2 pl-3 pr-4 text-xs text-slate-400 text-right whitespace-nowrap">{e.usuario}</td>
           </tr>
         ))}
       </>)}

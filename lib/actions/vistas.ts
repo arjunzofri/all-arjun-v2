@@ -204,6 +204,7 @@ export async function getMovimientosPorProductoUbicacion(params: {
       fecha:          r.fechaCompra ?? r.createdAt.toISOString().split("T")[0],
       cantidad:       r.cantidad,
       precioUnitario: r.precioUnitario !== null ? Number(r.precioUnitario) : null,
+      usuario:        r.usuario,
     }));
 
   const salidas = rows
