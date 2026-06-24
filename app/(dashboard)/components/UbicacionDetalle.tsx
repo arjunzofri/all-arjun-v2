@@ -30,34 +30,75 @@ function formatFecha(iso: string | null): string {
 function ChevronIcon({ open }: { open: boolean }) {
   return (<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={"transition-transform duration-200 " + (open ? "rotate-90" : "")}><path d="M9 18l6-6-6-6"/></svg>);
 }
-function SubFilasMovimientos({ mov, colSpan }: { mov: MovDetalle; colSpan: number }) {
+function SubFilasMovimientos({ mov }: { mov: MovDetalle }) {
+  // 9 columnas: chevron | imagen | codigo | detalle | packing | entro | salida | saldo | accion
   const hayEntradas = mov.entradas.length > 0;
   const haySalidas  = mov.salidas.length > 0;
-  if (!hayEntradas && !haySalidas) return (<tr className="bg-slate-50"><td colSpan={colSpan} className="py-3 pl-12 pr-4 text-xs text-slate-400 italic">Sin movimientos registrados</td></tr>);
+  const COLS = 9;
+  if (!hayEntradas && !haySalidas) return (
+    <tr className="bg-slate-50">
+      <td colSpan={COLS} className="py-3 pl-12 pr-4 text-xs text-slate-400 italic">Sin movimientos registrados</td>
+    </tr>
+  );
   return (
     <>
       {hayEntradas && (<>
-        <tr className="bg-violet-50"><td colSpan={colSpan} className="py-1.5 pl-12 pr-4"><span className="text-xs font-semibold text-violet-600 uppercase tracking-wide">Entradas</span></td></tr>
+        <tr className="bg-violet-50">
+          <td colSpan={COLS} className="py-1.5 pl-12 pr-4">
+            <span className="text-xs font-semibold text-violet-600 uppercase tracking-wide">Entradas</span>
+          </td>
+        </tr>
         {mov.entradas.map(e => (
           <tr key={"e-" + e.id} className="bg-violet-50 border-t border-violet-100">
-            <td colSpan={2} className="py-2 pl-12 pr-3 text-xs font-medium text-slate-700 tabular-nums whitespace-nowrap">{e.folio ?? "---"}</td>
+            {/* col1: chevron — indent */}
+            <td className="py-2 pl-4 pr-2"></td>
+            {/* col2: imagen — vacio */}
+            <td className="py-2 px-2"></td>
+            {/* col3: codigo — NV folio */}
+            <td className="py-2 px-3 text-xs font-semibold text-slate-700 tabular-nums whitespace-nowrap">{e.folio ?? "---"}</td>
+            {/* col4: detalle — fecha */}
             <td className="py-2 px-3 text-xs text-slate-500 tabular-nums whitespace-nowrap">{formatFecha(e.fecha)}</td>
-            <td className="py-2 px-3 text-xs text-slate-500 tabular-nums">{e.precioUnitario !== null ? "USD " + e.precioUnitario.toFixed(2) : "---"}</td>
-            <td className="py-2 px-3 text-right text-xs font-semibold text-green-700 tabular-nums">+{e.cantidad}</td>
-            <td colSpan={2}></td>
+            {/* col5: packing — costo */}
+            <td className="py-2 px-3 text-right text-xs text-slate-500 tabular-nums">{e.precioUnitario !== null ? "USD " + e.precioUnitario.toFixed(2) : "---"}</td>
+            {/* col6: entro — +cantidad */}
+            <td className="py-2 px-3 text-right text-xs font-bold text-green-600 tabular-nums">+{e.cantidad}</td>
+            {/* col7: salida — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col8: saldo — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col9: accion — vacio */}
+            <td className="py-2 pl-3 pr-4"></td>
           </tr>
         ))}
       </>)}
       {haySalidas && (<>
-        <tr className="bg-red-50"><td colSpan={colSpan} className="py-1.5 pl-12 pr-4"><span className="text-xs font-semibold text-red-500 uppercase tracking-wide">Salidas</span></td></tr>
+        <tr className="bg-red-50">
+          <td colSpan={COLS} className="py-1.5 pl-12 pr-4">
+            <span className="text-xs font-semibold text-red-500 uppercase tracking-wide">Salidas</span>
+          </td>
+        </tr>
         {mov.salidas.map(s => (
           <tr key={"s-" + s.id} className="bg-red-50 border-t border-red-100">
-            <td colSpan={2} className="py-2 pl-12 pr-3"><span className={"inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium " + (s.tipo === "retorno" ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700")}>{s.tipo}</span></td>
+            {/* col1: chevron — indent */}
+            <td className="py-2 pl-4 pr-2"></td>
+            {/* col2: imagen — badge tipo */}
+            <td className="py-2 px-2">
+              <span className={"inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium " + (s.tipo === "retorno" ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700")}>{s.tipo}</span>
+            </td>
+            {/* col3: codigo — fecha */}
             <td className="py-2 px-3 text-xs text-slate-500 tabular-nums whitespace-nowrap">{formatFecha(s.fecha)}</td>
-            <td className="py-2 px-3 text-xs text-slate-500 truncate max-w-32">{s.destino ?? "---"}</td>
-            <td className="py-2 px-3 text-right text-xs font-semibold text-red-600 tabular-nums">{s.cantidad}</td>
-            <td className="py-2 pl-3 pr-4 text-xs text-slate-400 text-right">{s.usuario}</td>
-            <td></td>
+            {/* col4: detalle — destino */}
+            <td className="py-2 px-3 text-xs text-slate-500 truncate max-w-xs">{s.destino ?? "---"}</td>
+            {/* col5: packing — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col6: entro — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col7: salida — cantidad */}
+            <td className="py-2 px-3 text-right text-xs font-bold text-red-500 tabular-nums">{s.cantidad}</td>
+            {/* col8: saldo — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col9: accion — usuario */}
+            <td className="py-2 pl-3 pr-4 text-xs text-slate-400 text-right whitespace-nowrap">{s.usuario}</td>
           </tr>
         ))}
       </>)}
@@ -161,7 +202,7 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
                   </tr>
                   {isExpanded && (isLoadingMov
                     ? <tr key={item.id + "-loading"} className="bg-slate-50 border-t border-slate-100"><td colSpan={9} className="py-3 pl-12 pr-4 text-xs text-slate-400 animate-pulse">Cargando movimientos...</td></tr>
-                    : mov ? <SubFilasMovimientos key={item.id + "-mov"} mov={mov} colSpan={9} /> : null
+                    : mov ? <SubFilasMovimientos key={item.id + "-mov"} mov={mov} /> : null
                   )}
                 </>
               );
