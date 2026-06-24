@@ -92,13 +92,13 @@ export default function SalidasPage() {
   };
 
   return (
-    <div className="max-w-lg">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Nueva salida</h1>
+    <div className="max-w-lg bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Nueva salida</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Bodega origen */}
         <div>
-          <label className="block text-sm text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Bodega origen
           </label>
           <select
@@ -108,7 +108,7 @@ export default function SalidasPage() {
               setCodigo("");
               setSuggestions([]);
             }}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
           >
             <option value="">Seleccionar bodega</option>
             {BODEGAS.map((b) => (
@@ -121,12 +121,12 @@ export default function SalidasPage() {
 
         {/* Producto */}
         <div className="relative">
-          <label className="block text-sm text-gray-700 mb-1">Producto</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Producto</label>
           <input
             type="text"
             value={codigo}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
             placeholder="Buscar producto..."
             disabled={!bodegaId}
           />
@@ -136,7 +136,7 @@ export default function SalidasPage() {
                 <li
                   key={s.codigo}
                   onClick={() => selectProducto(s)}
-                  className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer flex justify-between items-center"
+                  className="px-3 py-2.5 text-sm hover:bg-violet-50 cursor-pointer flex justify-between items-center transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <ProductoThumbnail src={s.imagenUrl} alt="" size="sm" />
@@ -154,25 +154,25 @@ export default function SalidasPage() {
 
         {/* Cantidad */}
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Cantidad</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Cantidad</label>
           <input
             type="number"
             min="1"
             value={cantidad}
             onChange={(e) => setCantidad(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
           />
         </div>
 
         {/* Módulo destino */}
         <div>
-          <label className="block text-sm text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Módulo destino
           </label>
           <select
             value={moduloId}
             onChange={(e) => setModuloId(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
           >
             <option value="">Seleccionar módulo</option>
             {MODULOS.map((m) => (
@@ -185,13 +185,13 @@ export default function SalidasPage() {
 
         {/* Observaciones */}
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Observaciones</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Observaciones</label>
           <textarea
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
             maxLength={500}
             rows={2}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm resize-y"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm resize-y outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
             placeholder="Opcional"
           />
         </div>
@@ -202,7 +202,7 @@ export default function SalidasPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+          className="w-full rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 transition-colors disabled:opacity-50"
         >
           {loading ? "Registrando..." : "Registrar salida"}
         </button>
@@ -210,3 +210,4 @@ export default function SalidasPage() {
     </div>
   );
 }
+

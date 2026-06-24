@@ -45,7 +45,7 @@ export default function MovimientosPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">
+      <h1 className="text-2xl font-bold text-slate-900 mb-4">
         Historial de movimientos
       </h1>
 
@@ -54,7 +54,7 @@ export default function MovimientosPage() {
         <select
           value={tipo}
           onChange={(e) => setTipo(e.target.value)}
-          className="rounded border border-gray-300 px-3 py-2 text-sm"
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition bg-white"
         >
           {TIPOS.map((t) => (
             <option key={t} value={t}>
@@ -66,14 +66,14 @@ export default function MovimientosPage() {
           type="date"
           value={desde}
           onChange={(e) => setDesde(e.target.value)}
-          className="rounded border border-gray-300 px-3 py-2 text-sm"
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition bg-white"
           title="Desde"
         />
         <input
           type="date"
           value={hasta}
           onChange={(e) => setHasta(e.target.value)}
-          className="rounded border border-gray-300 px-3 py-2 text-sm"
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition bg-white"
           title="Hasta"
         />
         {(desde || hasta || tipo !== "todas") && (
@@ -83,7 +83,7 @@ export default function MovimientosPage() {
               setDesde("");
               setHasta("");
             }}
-            className="text-sm text-gray-500 hover:text-gray-700"
+            className="text-sm text-slate-500 hover:text-violet-600 transition-colors"
           >
             Limpiar filtros
           </button>
@@ -94,7 +94,7 @@ export default function MovimientosPage() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b text-left text-gray-500">
+            <tr className="border-b border-slate-200 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
               <th className="py-2">Fecha</th>
               <th className="py-2">Tipo</th>
               <th className="py-2 w-8"></th>
@@ -107,8 +107,8 @@ export default function MovimientosPage() {
           </thead>
           <tbody>
             {items.map((m) => (
-              <tr key={m.id} className="border-b hover:bg-gray-50">
-                <td className="py-2 text-gray-500">
+              <tr key={m.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                <td className="py-3 text-sm text-slate-500">
                   {new Date(m.createdAt).toLocaleString()}
                 </td>
                 <td className="py-2">
@@ -127,22 +127,22 @@ export default function MovimientosPage() {
                 <td className="py-1">
                   <ProductoThumbnail src={m.imagenUrl} alt={m.productoCodigo} size="sm" />
                 </td>
-                <td className="py-2 font-medium">{m.productoCodigo}</td>
-                <td className="py-2 text-gray-600">
+                <td className="py-3 text-sm font-medium text-slate-800">{m.productoCodigo}</td>
+                <td className="py-3 text-sm text-slate-600">
                   {m.productoDetalle ?? "—"}
                 </td>
-                <td className="py-2 text-gray-500 max-w-48 truncate" title={m.observaciones ?? undefined}>
+                <td className="py-3 text-sm text-slate-500 max-w-48 truncate" title={m.observaciones ?? undefined}>
                   {m.observaciones ?? "—"}
                 </td>
-                <td className="py-2 text-gray-600">{m.usuario}</td>
-                <td className="py-2 text-right font-semibold">
+                <td className="py-3 text-sm text-slate-600">{m.usuario}</td>
+                <td className="py-3 text-sm text-right font-semibold text-slate-800">
                   {m.cantidad}
                 </td>
               </tr>
             ))}
             {items.length === 0 && !loading && (
               <tr>
-                <td colSpan={8} className="py-8 text-center text-gray-400">
+                <td colSpan={8} className="py-12 text-center text-slate-400 text-sm">
                   Sin movimientos
                 </td>
               </tr>
@@ -158,7 +158,7 @@ export default function MovimientosPage() {
             cargar();
           }}
           disabled={loading}
-          className="mt-4 w-full rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          className="mt-4 w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:border-violet-300 transition-colors disabled:opacity-50"
         >
           {loading ? "Cargando..." : "Cargar más"}
         </button>
@@ -166,3 +166,4 @@ export default function MovimientosPage() {
     </div>
   );
 }
+

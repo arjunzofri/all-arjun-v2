@@ -313,26 +313,26 @@ export default function ProductosPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Productos</h1>
+      <div className="flex items-center justify-between mb-5">
+        <h1 className="text-2xl font-bold text-slate-900">Productos</h1>
         <button
           onClick={handleSync}
           disabled={syncPending}
-          className="px-4 py-2 text-sm rounded bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
+          className="px-4 py-2 text-sm rounded-lg bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50"
         >
           {syncPending ? "Sincronizando..." : "Sincronizar"}
         </button>
       </div>
 
       {syncResultado && (
-        <div className="mb-4 rounded border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           {syncResultado.procesadas} compras procesadas. Watermark:{" "}
           {syncResultado.watermark}
         </div>
       )}
 
       {syncError && (
-        <div className="mb-4 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {syncError}
         </div>
       )}
@@ -343,12 +343,12 @@ export default function ProductosPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar código o descripción..."
-          className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
         />
       </div>
 
       {error && (
-        <div className="mb-4 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -356,7 +356,7 @@ export default function ProductosPage() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b text-left text-gray-500">
+            <tr className="border-b border-slate-200 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
               <th className="py-2 w-8"></th>
               <th className="py-2">Código</th>
               <th className="py-2">Detalle</th>
@@ -368,25 +368,25 @@ export default function ProductosPage() {
           </thead>
           <tbody>
             {items.map((p) => (
-              <tr key={p.id} className="border-b hover:bg-gray-50">
+              <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                 <td className="py-1">
                   <ProductoThumbnail src={p.imagenUrl} alt={p.codigo} size="sm" />
                 </td>
                 <td className="py-2">
                   <Link
                     href={buildProductoDetailHref(p.id, q)}
-                    className="font-medium text-gray-900 hover:underline"
+                    className="font-medium text-violet-600 hover:text-violet-800 hover:underline"
                   >
                     {p.codigo}
                   </Link>
                 </td>
-                <td className="py-2 text-gray-600">
+                <td className="py-3 text-sm text-slate-600">
                   {p.detalle ?? "—"}
                 </td>
-                <td className="py-2 text-gray-500">
+                <td className="py-3 text-sm text-slate-500">
                   {p.packing ?? "—"}
                 </td>
-                <td className="py-2 text-gray-700">
+                <td className="py-3 text-sm text-slate-700">
                   {p.stockBodegas.length === 0
                     ? "—"
                     : p.stockBodegas.map((s) => (
@@ -395,7 +395,7 @@ export default function ProductosPage() {
                         </div>
                       ))}
                 </td>
-                <td className="py-2 text-gray-700">
+                <td className="py-3 text-sm text-slate-700">
                   {p.stockModulos.length === 0
                     ? "—"
                     : p.stockModulos.map((s) => (
@@ -404,7 +404,7 @@ export default function ProductosPage() {
                         </div>
                       ))}
                 </td>
-                <td className="py-2 text-gray-500">
+                <td className="py-3 text-sm text-slate-500">
                   {p.ubicacion ?? "—"}
                 </td>
               </tr>
@@ -413,7 +413,7 @@ export default function ProductosPage() {
               <tr>
                 <td
                   colSpan={7}
-                  className="py-8 text-center text-gray-400"
+                  className="py-12 text-center text-slate-400 text-sm"
                 >
                   Sin productos
                 </td>
@@ -423,7 +423,7 @@ export default function ProductosPage() {
               <tr>
                 <td
                   colSpan={7}
-                  className="py-8 text-center text-gray-400"
+                  className="py-12 text-center text-slate-400 text-sm"
                 >
                   Cargando...
                 </td>
@@ -438,7 +438,7 @@ export default function ProductosPage() {
           <button
             onClick={handleLoadMore}
             disabled={loadingMore}
-            className="w-full rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:border-violet-300 transition-colors disabled:opacity-50"
           >
             {loadingMore ? "Cargando..." : "Cargar más"}
           </button>
@@ -447,3 +447,4 @@ export default function ProductosPage() {
     </div>
   );
 }
+

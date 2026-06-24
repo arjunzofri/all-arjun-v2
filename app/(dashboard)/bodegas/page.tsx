@@ -8,19 +8,19 @@ export default async function BodegasPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Bodegas</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Bodegas</h1>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {bodegas.map((b) => (
           <Link
             key={b.id}
             href={`/bodegas/${b.id}`}
-            className="rounded-lg border p-4 hover:bg-gray-50 transition"
+            className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-violet-300 transition-all"
           >
-            <h2 className="font-semibold text-gray-900">{b.nombre}</h2>
-            <p className="text-2xl font-bold text-gray-700 mt-2">
-              {b.totalStock}
+            <h2 className="font-semibold text-slate-700 text-sm mb-3">{b.nombre}</h2>
+            <p className="text-3xl font-bold text-violet-600">
+              {b.totalStock.toLocaleString()}
             </p>
-            <p className="text-sm text-gray-500">unidades en stock</p>
+            <p className="text-xs text-slate-400 mt-1">unidades en stock</p>
           </Link>
         ))}
       </div>

@@ -1,0 +1,146 @@
+<mxfile host="Electron">
+  <diagram name="Arquitectura app-arjun-v2" id="bXysQelIH70wPveWtt0B">
+    <mxGraphModel dx="1178" dy="701" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="user" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Operador / Admin&#xa;(Navegador)" vertex="1">
+          <mxGeometry height="50" width="160" x="320" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="vercel" parent="1" style="swimlane;startSize=25;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" value="Vercel" vertex="1">
+          <mxGeometry height="500" width="670" x="60" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="nextjs" parent="vercel" style="swimlane;startSize=22;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" value="Next.js 16 (App Router)" vertex="1">
+          <mxGeometry height="450" width="640" x="15" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="proxy" parent="nextjs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" value="proxy.ts&#xa;(NextAuth v5 / JWT)" vertex="1">
+          <mxGeometry height="45" width="130" x="20" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="pages" parent="nextjs" style="swimlane;startSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="Páginas Dashboard" vertex="1">
+          <mxGeometry height="95" width="450" x="170" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p1" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Login" vertex="1">
+          <mxGeometry height="28" width="60" x="10" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Dashboard" vertex="1">
+          <mxGeometry height="28" width="65" x="75" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Productos" vertex="1">
+          <mxGeometry height="28" width="65" x="145" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="p4" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Entradas" vertex="1">
+          <mxGeometry height="28" width="60" x="215" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="p5" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Salidas" vertex="1">
+          <mxGeometry height="28" width="55" x="280" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="p6" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Retornos" vertex="1">
+          <mxGeometry height="28" width="60" x="340" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="p7" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Bodegas" vertex="1">
+          <mxGeometry height="25" width="55" x="10" y="62" as="geometry" />
+        </mxCell>
+        <mxCell id="p8" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Módulos" vertex="1">
+          <mxGeometry height="25" width="55" x="70" y="62" as="geometry" />
+        </mxCell>
+        <mxCell id="p9" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Movimientos" vertex="1">
+          <mxGeometry height="25" width="70" x="130" y="62" as="geometry" />
+        </mxCell>
+        <mxCell id="p10" parent="pages" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="Usuarios" vertex="1">
+          <mxGeometry height="25" width="60" x="205" y="62" as="geometry" />
+        </mxCell>
+        <mxCell id="actions" parent="nextjs" style="swimlane;startSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Server Actions" vertex="1">
+          <mxGeometry height="65" width="600" x="20" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="sa1" parent="actions" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="crearEntrada" vertex="1">
+          <mxGeometry height="25" width="80" x="10" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="sa2" parent="actions" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="crearSalida" vertex="1">
+          <mxGeometry height="25" width="80" x="100" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="sa3" parent="actions" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="crearRetorno" vertex="1">
+          <mxGeometry height="25" width="80" x="190" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="sa4" parent="actions" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="syncComprasAnil" vertex="1">
+          <mxGeometry height="25" width="105" x="280" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="sa5" parent="actions" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;" value="updateProducto" vertex="1">
+          <mxGeometry height="25" width="95" x="395" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="sa6" parent="actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;" value="CTE atómica&#xa;(neon raw)" vertex="1">
+          <mxGeometry height="35" width="65" x="500" y="24" as="geometry" />
+        </mxCell>
+        <mxCell id="api" parent="nextjs" style="swimlane;startSize=20;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1;" value="API Routes" vertex="1">
+          <mxGeometry height="55" width="600" x="20" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="api1" parent="api" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;" value="/api/productos/*" vertex="1">
+          <mxGeometry height="25" width="95" x="10" y="22" as="geometry" />
+        </mxCell>
+        <mxCell id="api2" parent="api" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;" value="/api/sync/compras-anil" vertex="1">
+          <mxGeometry height="25" width="115" x="115" y="22" as="geometry" />
+        </mxCell>
+        <mxCell id="api3" parent="api" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;" value="/api/seed-admin" vertex="1">
+          <mxGeometry height="25" width="100" x="285" y="22" as="geometry" />
+        </mxCell>
+        <mxCell id="api4" parent="api" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;" value="/api/auth/[...nextauth]" vertex="1">
+          <mxGeometry height="25" width="125" x="395" y="22" as="geometry" />
+        </mxCell>
+        <mxCell id="drizzle" parent="nextjs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" value="Drizzle ORM" vertex="1">
+          <mxGeometry height="40" width="120" x="20" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="neon-own" parent="nextjs" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1;" value="Neon PostgreSQL&#xa;(base propia)" vertex="1">
+          <mxGeometry height="60" width="130" x="170" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="neon-vd" parent="nextjs" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;fontStyle=1;" value="Vida Digital&#xa;(solo lectura)" vertex="1">
+          <mxGeometry height="60" width="130" x="330" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="cloudinary" parent="nextjs" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" value="Cloudinary&#xa;(dbl8yxnjy)" vertex="1">
+          <mxGeometry height="60" width="100" x="490" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="nextjs" source="drizzle" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0.038;entryY=0.417;entryDx=0;entryDy=0;entryPerimeter=0;" target="neon-own" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="140" y="355" />
+            </Array>
+            <mxPoint x="165" y="355" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cron" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" value="cron-job.org&#xa;(dispara sync)" vertex="1">
+          <mxGeometry height="50" width="120" x="860" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="vd-source" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;fontStyle=1;" value="Vida Digital&#xa;(WinFac replicas)" vertex="1">
+          <mxGeometry height="65" width="120" x="860" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="vercel" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="proxy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="pages" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="drizzle" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.75;fontSize=9;fontColor=#666666;" target="neon-vd" value="read-only">
+          <mxGeometry relative="1" x="0.0526" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="215" y="550" />
+              <mxPoint x="405" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="cron" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;fontSize=9;fontColor=#666666;" target="api2" value="GET /api/sync&#xa;(CRON_SECRET)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="355" />
+              <mxPoint x="360" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="neon-vd" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;entryX=0.5;entryY=0;fontSize=9;fontColor=#666666;" target="vd-source" value="UNION vida+sanjh">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="cloudinary" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;fontSize=9;fontColor=#666666;" target="api1" value="imagenes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

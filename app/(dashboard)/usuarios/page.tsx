@@ -46,12 +46,12 @@ export default function UsuariosPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Usuarios</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Usuarios</h1>
 
       <div className="mb-8">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b text-left text-gray-500">
+            <tr className="border-b border-slate-200 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
               <th className="py-2">Usuario</th>
               <th className="py-2">Rol</th>
               <th className="py-2">Creado</th>
@@ -59,20 +59,20 @@ export default function UsuariosPage() {
           </thead>
           <tbody>
             {usuarios.map((u) => (
-              <tr key={u.id} className="border-b">
+              <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                 <td className="py-2">{u.username}</td>
                 <td className="py-2">
                   <span
                     className={`text-xs px-2 py-0.5 rounded ${
                       u.role === "admin"
-                        ? "bg-gray-900 text-white"
-                        : "bg-gray-200 text-gray-700"
+                        ? "bg-violet-600 text-white"
+                        : "bg-slate-100 text-slate-600"
                     }`}
                   >
                     {u.role}
                   </span>
                 </td>
-                <td className="py-2 text-gray-500">
+                <td className="py-3 text-slate-500 text-sm">
                   {new Date(u.createdAt).toLocaleDateString()}
                 </td>
               </tr>
@@ -81,7 +81,7 @@ export default function UsuariosPage() {
         </table>
       </div>
 
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <h2 className="text-lg font-semibold text-slate-900 mb-4">
         Nuevo usuario
       </h2>
       <form onSubmit={handleSubmit} className="space-y-3 max-w-sm">
@@ -90,7 +90,7 @@ export default function UsuariosPage() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Username"
-          className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
           required
         />
         <input
@@ -98,13 +98,13 @@ export default function UsuariosPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
-          className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
           required
         />
         <select
           value={role}
           onChange={(e) => setRole(e.target.value as "admin" | "operador")}
-          className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
         >
           <option value="operador">Operador</option>
           <option value="admin">Admin</option>
@@ -115,7 +115,7 @@ export default function UsuariosPage() {
 
         <button
           type="submit"
-          className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+          className="rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 transition-colors"
         >
           Crear usuario
         </button>
@@ -123,3 +123,4 @@ export default function UsuariosPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+﻿import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
@@ -9,9 +9,9 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p className="mt-2 text-sm text-gray-500">
-        Sesión activa: {user?.username ?? "—"}
+      <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+      <p className="mt-1 text-sm text-slate-500">
+        Bienvenido, <span className="font-medium text-slate-700">{user?.username ?? "---"}</span>
       </p>
     </div>
   );
