@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { updateProducto } from "@/lib/actions/productos";
@@ -23,8 +23,7 @@ export function EditarProductoForm({ producto }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setOk("");
+    setError(""); setOk("");
     try {
       await updateProducto(producto.id, {
         codigoPersonal: codigoPersonal || undefined,
@@ -38,43 +37,47 @@ export function EditarProductoForm({ producto }: Props) {
     }
   };
 
+  const inputClass = "w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition";
+
   return (
     <form onSubmit={handleSubmit} className="space-y-3 max-w-sm">
-      <h2 className="text-lg font-semibold text-gray-900">Editar</h2>
-
       <input
         value={codigoPersonal}
         onChange={(e) => setCp(e.target.value)}
-        placeholder="Código personal"
-        className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+        placeholder="Codigo personal"
+        className={inputClass}
       />
       <input
         type="number"
         value={packing}
         onChange={(e) => setPacking(e.target.value)}
         placeholder="Packing (unids/caja)"
-        className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+        className={inputClass}
       />
       <input
         value={ubicacion}
         onChange={(e) => setUbicacion(e.target.value)}
-        placeholder="Ubicación"
-        className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+        placeholder="Ubicacion"
+        className={inputClass}
       />
       <textarea
         value={observaciones}
         onChange={(e) => setObs(e.target.value)}
         placeholder="Observaciones"
         rows={3}
-        className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+        className={`${inputClass} resize-y`}
       />
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {ok && <p className="text-sm text-green-600">{ok}</p>}
+      {error && (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 text-sm text-red-600">{error}</div>
+      )}
+      {ok && (
+        <div className="rounded-lg bg-green-50 border border-green-200 px-3 py-2.5 text-sm text-green-700">Cambios guardados correctamente</div>
+      )}
 
       <button
         type="submit"
-        className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+        className="rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 transition-colors"
       >
         Guardar cambios
       </button>
