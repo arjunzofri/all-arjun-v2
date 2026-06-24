@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { getProducto } from "@/lib/actions/productos";
 import { notFound } from "next/navigation";
 import { EditarProductoForm } from "./form";
@@ -120,7 +120,7 @@ export default async function ProductoDetallePage({
                   <th className="py-3 pl-5 pr-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">NV</th>
                   <th className="py-3 px-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Fecha</th>
                   <th className="py-3 px-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Bodega</th>
-                  <th className="py-3 px-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wide">Precio unit.</th>
+                  <th className="py-3 px-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wide">Costo</th>
                   <th className="py-3 px-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wide">Total USD</th>
                   <th className="py-3 pl-3 pr-5 text-right text-xs font-semibold text-slate-400 uppercase tracking-wide">Cant.</th>
                 </tr>
