@@ -121,10 +121,10 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [movDetalle, setMovDetalle] = useState<Map<number, MovDetalle>>(new Map());
   const [loadingMov, setLoadingMov] = useState<Set<number>>(new Set());
-  const cargar = useCallback(async (reset?: boolean) => {
+  const cargar = useCallback(async (reset?: boolean, cursorOverride?: number) => {
     setLoading(true);
     await executeLoad({
-      load: () => getStockPorUbicacion({ tipo, ubicacionId, limit: 20, cursor: reset ? undefined : (cursor ?? undefined), q: q || undefined, soloConStock }),
+      load: () => getStockPorUbicacion({ tipo, ubicacionId, limit: 20, cursor: reset ? undefined : (cursorOverride ?? cursor ?? undefined), q: q || undefined, soloConStock }),
       reset,
       onSuccess: (page, isReset) => { if (isReset) { setItems(page.items); } else { setItems(prev => [...prev, ...page.items]); } setNextCursor(page.nextCursor); setError(null); },
       onError: (err) => setError(err.message),
@@ -212,7 +212,7 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
           </tbody>
         </table>
       </div>
-      {nextCursor && (<button onClick={() => { setCursor(nextCursor); cargar(); }} disabled={loading} className="mt-4 w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:border-violet-300 transition-colors disabled:opacity-50">{loading ? "Cargando..." : "Cargar mas"}</button>)}
+      {nextCursor && (<button onClick={() => { setCursor(nextCursor); cargar(false, nextCursor ?? undefined); }} disabled={loading} className="mt-4 w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:border-violet-300 transition-colors disabled:opacity-50">{loading ? "Cargando..." : "Cargar mas"}</button>)}
       {productoParaAjustar && (<AjusteModal productoId={productoParaAjustar.id} productoCodigo={productoParaAjustar.codigo} ubicacion={{ tipo, id: ubicacionId }} onClose={() => setProductoParaAjustar(null)} onSuccess={() => { setProductoParaAjustar(null); cargar(true); }} />)}
     </div>
   );
