@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { db } from "@/db";
 import { bodegas, modulos, stock, productos } from "@/db/schema";
@@ -82,4 +82,26 @@ export async function getStockPorUbicacion(params: {
     items,
     nextCursor: hasMore ? items[items.length - 1].id : null,
   };
+}
+
+// ── Nombre de una ubicación por id ─────────────────────────────────────
+export async function getNombreUbicacion(
+  tipo: "bodega" | "modulo",
+  id: number
+): Promise<string> {
+  if (tipo === "bodega") {
+    const rows = await db
+      .select({ nombre: bodegas.nombre })
+      .from(bodegas)
+      .where(eq(bodegas.id, id))
+      .limit(1);
+    return rows[0]?.nombre ?? `Bodega ${id}`;
+  } else {
+    const rows = await db
+      .select({ nombre: modulos.nombre })
+      .from(modulos)
+      .where(eq(modulos.id, id))
+      .limit(1);
+    return rows[0]?.nombre ?? `Modulo ${id}`;
+  }
 }

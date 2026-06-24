@@ -37,10 +37,11 @@ export async function executeLoad(config: ExecuteLoadConfig) {
   }
 }
 
-export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
+export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nombre?: string }) {
   const params = useParams();
   const ubicacionId = Number(params[tipo === "bodega" ? "bodegaId" : "moduloId"]);
   const label = tipo === "bodega" ? "Bodega" : "Modulo";
+  const titulo = nombreProp ?? `${label} ${ubicacionId}`;
 
   const [items, setItems] = useState<Item[]>([]);
   const [cursor, setCursor] = useState<number | null>(null);
@@ -94,7 +95,7 @@ export function UbicacionDetalle({ tipo }: { tipo: Tipo }) {
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900 mb-5">
-        {label} {ubicacionId}
+        {titulo}
       </h1>
 
       {/* Filtros */}
