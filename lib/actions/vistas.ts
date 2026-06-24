@@ -1,8 +1,8 @@
-﻿"use server";
+"use server";
 
 import { db } from "@/db";
-import { bodegas, modulos, stock, productos } from "@/db/schema";
-import { eq, lt, desc, and, gt, or, ilike, sql } from "drizzle-orm";
+import { bodegas, modulos, stock, productos, movimientos, users } from "@/db/schema";
+import { eq, lt, desc, and, gt, or, ilike, sql, inArray } from "drizzle-orm";
 
 // ── Resumen de bodegas ──────────────────────────────────────────────────
 export async function getBodegas() {
@@ -104,4 +104,81 @@ export async function getNombreUbicacion(
       .limit(1);
     return rows[0]?.nombre ?? `Modulo ${id}`;
   }
+}
+
+
+// ── Movimientos de un producto en una ubicacion especifica ──────────────
+export async function getMovimientosPorProductoUbicacion(params: {
+  productoId: number;
+  tipo: "bodega" | "modulo";
+  ubicacionId: number;
+}) {
+  const { productoId, tipo, ubicacionId } = params;
+
+  const columnaUbicacion = tipo === "bodega"
+    ? movimientos.bodegaOrigenId
+    : movimientos.moduloDestinoId;
+
+  const rows = await db
+    .select({
+      id:             movimientos.id,
+      tipo:           movimientos.tipo,
+      folio:          movimientos.folio,
+      cantidad:       movimientos.cantidad,
+      fechaCompra:    movimientos.fechaCompra,
+      createdAt:      movimientos.createdAt,
+      precioUnitario: movimientos.precioUnitario,
+      bodegaId:       movimientos.bodegaOrigenId,
+      moduloId:       movimientos.moduloDestinoId,
+      usuario:        users.username,
+    })
+    .from(movimientos)
+    .innerJoin(users, eq(users.id, movimientos.usuarioId))
+    .where(
+      and(
+        eq(movimientos.productoId, productoId),
+        eq(columnaUbicacion, ubicacionId),
+      )
+    )
+    .orderBy(desc(movimientos.createdAt));
+
+  // Traer nombres de bodegas y modulos referenciados
+  const bodegaIds = [...new Set(rows.map(r => r.bodegaId).filter(Boolean))] as number[];
+  const moduloIds  = [...new Set(rows.map(r => r.moduloId).filter(Boolean))] as number[];
+
+  const [bodegaRows, moduloRows] = await Promise.all([
+    bodegaIds.length > 0
+      ? db.select({ id: bodegas.id, nombre: bodegas.nombre }).from(bodegas).where(inArray(bodegas.id, bodegaIds))
+      : Promise.resolve([]),
+    moduloIds.length > 0
+      ? db.select({ id: modulos.id, nombre: modulos.nombre }).from(modulos).where(inArray(modulos.id, moduloIds))
+      : Promise.resolve([]),
+  ]);
+
+  const bodegaMap = new Map(bodegaRows.map(b => [b.id, b.nombre]));
+  const moduloMap = new Map(moduloRows.map(m => [m.id, m.nombre]));
+
+  const entradas = rows
+    .filter(r => r.tipo === "entrada")
+    .map(r => ({
+      id:             r.id,
+      folio:          r.folio,
+      fecha:          r.fechaCompra ?? r.createdAt.toISOString().split("T")[0],
+      cantidad:       r.cantidad,
+      precioUnitario: r.precioUnitario !== null ? Number(r.precioUnitario) : null,
+    }));
+
+  const salidas = rows
+    .filter(r => r.tipo === "salida" || r.tipo === "retorno")
+    .map(r => ({
+      id:       r.id,
+      tipo:     r.tipo as string,
+      fecha:    r.createdAt.toISOString().split("T")[0],
+      cantidad: r.cantidad,
+      destino:  r.moduloId ? (moduloMap.get(r.moduloId) ?? null)
+                           : r.bodegaId ? (bodegaMap.get(r.bodegaId) ?? null) : null,
+      usuario:  r.usuario,
+    }));
+
+  return { entradas, salidas };
 }
