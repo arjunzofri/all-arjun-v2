@@ -6,7 +6,7 @@ import { getStockPorUbicacion, getMovimientosPorProductoUbicacion } from "@/lib/
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { AjusteModal } from "@/components/AjusteModal";
 
-type Item = { id: number; codigo: string; detalle: string | null; imagenUrl: string | null; packing: number | null; cantidad: number };
+type Item = { id: number; codigo: string; detalle: string | null; imagenUrl: string | null; packing: number | null; cantidad: number; totalEntradas: number; totalSalidas: number };
 type Tipo = "bodega" | "modulo";
 type Page = { items: Item[]; nextCursor: number | null };
 type Entrada = { id: number; folio: string | null; fecha: string | null; cantidad: number; precioUnitario: number | null };
@@ -55,7 +55,7 @@ function SubFilasMovimientos({ mov, colSpan }: { mov: MovDetalle; colSpan: numbe
             <td colSpan={2} className="py-2 pl-12 pr-3"><span className={"inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium " + (s.tipo === "retorno" ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700")}>{s.tipo}</span></td>
             <td className="py-2 px-3 text-xs text-slate-500 tabular-nums whitespace-nowrap">{formatFecha(s.fecha)}</td>
             <td className="py-2 px-3 text-xs text-slate-500 truncate max-w-32">{s.destino ?? "---"}</td>
-            <td className="py-2 px-3 text-right text-xs font-semibold text-red-600 tabular-nums">-{s.cantidad}</td>
+            <td className="py-2 px-3 text-right text-xs font-semibold text-red-600 tabular-nums">{s.cantidad}</td>
             <td className="py-2 pl-3 pr-4 text-xs text-slate-400 text-right">{s.usuario}</td>
             <td></td>
           </tr>
@@ -133,7 +133,9 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
               <th className="py-3 px-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide w-28">Codigo</th>
               <th className="py-3 px-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Detalle</th>
               <th className="py-3 px-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide w-20">Packing</th>
-              <th className="py-3 px-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide w-20">Stock</th>
+              <th className="py-3 px-3 text-right text-xs font-semibold text-green-600 uppercase tracking-wide w-20">Entro</th>
+              <th className="py-3 px-3 text-right text-xs font-semibold text-red-500 uppercase tracking-wide w-20">Salida</th>
+              <th className="py-3 px-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide w-20">Saldo</th>
               <th className="py-3 pl-3 pr-4 w-24"></th>
             </tr>
           </thead>
@@ -150,20 +152,22 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
                     <td className="py-2.5 px-3"><span className="font-semibold text-xs text-violet-600">{item.codigo}</span></td>
                     <td className="py-2.5 px-3 text-slate-600 max-w-xs"><span className="line-clamp-2 leading-snug text-xs">{item.detalle ?? "---"}</span></td>
                     <td className="py-2.5 px-3 text-right text-slate-500 tabular-nums text-xs">{item.packing ?? "---"}</td>
+                    <td className="py-2.5 px-3 text-right tabular-nums text-xs font-semibold text-green-600">{item.totalEntradas > 0 ? item.totalEntradas : "---"}</td>
+                    <td className="py-2.5 px-3 text-right tabular-nums text-xs font-semibold text-red-500">{item.totalSalidas > 0 ? item.totalSalidas : "---"}</td>
                     <td className="py-2.5 px-3 text-right font-bold text-slate-800 tabular-nums">{item.cantidad}</td>
                     <td className="py-2.5 pl-3 pr-4 text-center" onClick={e => e.stopPropagation()}>
                       <button onClick={() => setProductoParaAjustar({ id: item.id, codigo: item.codigo })} className="text-xs px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-violet-100 hover:text-violet-700 transition-colors font-medium">Corregir</button>
                     </td>
                   </tr>
                   {isExpanded && (isLoadingMov
-                    ? <tr key={item.id + "-loading"} className="bg-slate-50 border-t border-slate-100"><td colSpan={7} className="py-3 pl-12 pr-4 text-xs text-slate-400 animate-pulse">Cargando movimientos...</td></tr>
-                    : mov ? <SubFilasMovimientos key={item.id + "-mov"} mov={mov} colSpan={7} /> : null
+                    ? <tr key={item.id + "-loading"} className="bg-slate-50 border-t border-slate-100"><td colSpan={9} className="py-3 pl-12 pr-4 text-xs text-slate-400 animate-pulse">Cargando movimientos...</td></tr>
+                    : mov ? <SubFilasMovimientos key={item.id + "-mov"} mov={mov} colSpan={9} /> : null
                   )}
                 </>
               );
             })}
-            {items.length === 0 && !loading && !error && <tr><td colSpan={7} className="py-12 text-center text-slate-400 text-sm">Sin productos</td></tr>}
-            {loading && items.length === 0 && <tr><td colSpan={7} className="py-12 text-center text-slate-400 text-sm">Cargando...</td></tr>}
+            {items.length === 0 && !loading && !error && <tr><td colSpan={9} className="py-12 text-center text-slate-400 text-sm">Sin productos</td></tr>}
+            {loading && items.length === 0 && <tr><td colSpan={9} className="py-12 text-center text-slate-400 text-sm">Cargando...</td></tr>}
           </tbody>
         </table>
       </div>

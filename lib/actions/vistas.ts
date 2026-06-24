@@ -78,8 +78,41 @@ export async function getStockPorUbicacion(params: {
   const hasMore = rows.length > limit;
   const items = rows.slice(0, limit);
 
+  // Second query: totales de entradas y salidas para los items de esta pagina
+  const columnaMovimiento = tipo === "bodega" ? movimientos.bodegaOrigenId : movimientos.moduloDestinoId;
+  const productoIds = items.map(i => i.id);
+
+  const totalesRows = productoIds.length > 0
+    ? await db
+        .select({
+          productoId: movimientos.productoId,
+          tipo:       movimientos.tipo,
+          total:      sql<number>`SUM(${movimientos.cantidad})`.mapWith(Number),
+        })
+        .from(movimientos)
+        .where(
+          and(
+            inArray(movimientos.productoId, productoIds),
+            eq(columnaMovimiento, ubicacionId),
+          )
+        )
+        .groupBy(movimientos.productoId, movimientos.tipo)
+    : [];
+
+  const totalesMap = new Map<number, { entradas: number; salidas: number }>();
+  for (const r of totalesRows) {
+    const entry = totalesMap.get(r.productoId) ?? { entradas: 0, salidas: 0 };
+    if (r.tipo === "entrada") entry.entradas += r.total;
+    if (r.tipo === "salida" || r.tipo === "retorno") entry.salidas += r.total;
+    totalesMap.set(r.productoId, entry);
+  }
+
   return {
-    items,
+    items: items.map(i => ({
+      ...i,
+      totalEntradas: totalesMap.get(i.id)?.entradas ?? 0,
+      totalSalidas:  totalesMap.get(i.id)?.salidas  ?? 0,
+    })),
     nextCursor: hasMore ? items[items.length - 1].id : null,
   };
 }
