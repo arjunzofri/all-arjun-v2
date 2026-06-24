@@ -18,6 +18,7 @@ export interface CompraAnil {
   imagenUrl: string | null;
   bodega: string;
   visaciones: Visacion[];
+  precioUnitario: number | null;
 }
 
 export interface ProductoHistorico {
@@ -46,6 +47,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         i.cantsali  AS cantidad,
         p.cantcaja,
         p.imagen_url AS imagen_url,
+        i.precdocd  AS precdocd,
         i.knumezet AS nro_ingreso
       FROM vida.itemdcto i
       JOIN vida.movidcto m ON i.knumfoli = m.knumfoli
@@ -68,6 +70,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         i.cantsali  AS cantidad,
         p.cantcaja,
         p.imagen_url AS imagen_url,
+        i.precdocd  AS precdocd,
         i.knumezet AS nro_ingreso
       FROM sanjh.itemdcto i
       JOIN sanjh.movidcto m ON i.knumfoli = m.knumfoli
@@ -95,6 +98,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
       cantcaja: number | null;
       imagen_url: string | null;
       nro_ingreso: string | null;
+      precdocd: string | null;
     }[];
   };
 
@@ -138,6 +142,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         imagenUrl: r.imagen_url,
         bodega,
         visaciones: [],
+        precioUnitario: r.precdocd !== null ? Number(r.precdocd) : null,
         _visMap: new Map(),
       };
       compraMap.set(key, entry);

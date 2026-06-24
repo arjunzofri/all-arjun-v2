@@ -1,4 +1,4 @@
-﻿import { neon } from "@neondatabase/serverless";
+import { neon } from "@neondatabase/serverless";
 import { getComprasAnilDesde } from "@/db/vidadigital/queries";
 
 // ponytail: pre-seed manual de bodegas. Si se agregan más, migrar a tabla.
@@ -42,6 +42,7 @@ export async function insertarMovimientoSync(
     bodegaId: number;
     visaciones: { nroIngreso: string; cantidad: number }[];
     fechanvt: string | null;
+    precioUnitario?: number | null;
   },
 ) {
   // CTE atómica: stock + movimiento. RETURNING id para las visaciones hijas.
@@ -59,9 +60,9 @@ export async function insertarMovimientoSync(
       ON CONFLICT (producto_id, bodega_id)
       DO UPDATE SET cantidad = stock.cantidad + ${params.cantidad}
     )
-    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id, fecha_compra)
+    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id, fecha_compra, precio_unitario)
     SELECT ${params.folio}, id, 'entrada', ${params.cantidad}, ${params.bodegaId}, 1,
-      ${params.fechanvt ?? null}::date
+      ${params.fechanvt ?? null}::date, ${params.precioUnitario ?? null}
     FROM productos WHERE codigo = ${params.codigo}
       AND NOT EXISTS (SELECT 1 FROM existing)
     RETURNING id
@@ -146,6 +147,7 @@ export async function syncComprasAnil(corte: string): Promise<{
       bodegaId,
       visaciones: compra.visaciones,
       fechanvt: compra.fechanvt,
+      precioUnitario: compra.precioUnitario ?? null,
     });
 
     procesadas++;

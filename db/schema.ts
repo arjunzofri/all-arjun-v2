@@ -1,4 +1,4 @@
-import {
+﻿import {
   pgTable,
   serial,
   varchar,
@@ -10,6 +10,7 @@ import {
   jsonb,
   unique,
   AnyPgColumn,
+  numeric,
 } from "drizzle-orm/pg-core";
 
 // ── Enums ────────────────────────────────────────────────────────────────
@@ -90,6 +91,7 @@ export const movimientos = pgTable(
       (): AnyPgColumn => movimientos.id
     ),
     fechaCompra: date("fecha_compra"),
+    precioUnitario: numeric("precio_unitario", { precision: 10, scale: 4 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [

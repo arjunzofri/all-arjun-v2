@@ -21,7 +21,7 @@ export default async function ProductoDetallePage({
   if (!producto) notFound();
 
   const compras = ("compras" in producto)
-    ? (producto as { compras: { id: number; folio: string; fecha: string | null; cantidad: number; bodega: string; visaciones: { nroIngreso: string; cantidad: number }[] }[] }).compras
+    ? (producto as { compras: { id: number; folio: string; fecha: string | null; cantidad: number; precioUnitario: number | null; bodega: string; visaciones: { nroIngreso: string; cantidad: number }[] }[] }).compras
     : [];
 
   return (
@@ -120,7 +120,9 @@ export default async function ProductoDetallePage({
                   <th className="py-3 pl-5 pr-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">NV</th>
                   <th className="py-3 px-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Fecha</th>
                   <th className="py-3 px-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Bodega</th>
-                  <th className="py-3 pl-3 pr-5 text-right text-xs font-semibold text-slate-400 uppercase tracking-wide">Cantidad</th>
+                  <th className="py-3 px-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wide">Precio unit.</th>
+                  <th className="py-3 px-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wide">Total USD</th>
+                  <th className="py-3 pl-3 pr-5 text-right text-xs font-semibold text-slate-400 uppercase tracking-wide">Cant.</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -132,11 +134,17 @@ export default async function ProductoDetallePage({
                         {c.fecha ? new Date(c.fecha).toLocaleDateString("es-CL") : "---"}
                       </td>
                       <td className="py-3 px-3 text-slate-600">{c.bodega}</td>
+                      <td className="py-3 px-3 text-right tabular-nums text-slate-700">
+                        {c.precioUnitario !== null ? `USD ${c.precioUnitario.toFixed(2)}` : "---"}
+                      </td>
+                      <td className="py-3 px-3 text-right tabular-nums font-medium text-slate-800">
+                        {c.precioUnitario !== null ? `USD ${(c.precioUnitario * c.cantidad).toFixed(2)}` : "---"}
+                      </td>
                       <td className="py-3 pl-3 pr-5 text-right font-bold text-slate-800 tabular-nums">{c.cantidad}</td>
                     </tr>
                     {c.visaciones.length > 0 && (
                       <tr key={`${c.id}-vis`} className="bg-slate-50">
-                        <td colSpan={4} className="py-2 pl-5 pr-5">
+                        <td colSpan={6} className="py-2 pl-5 pr-5">
                           <div className="flex flex-wrap gap-2">
                             {c.visaciones.map((v, i) => (
                               <span key={i} className="inline-flex items-center gap-1 text-xs text-slate-500 bg-white border border-slate-200 rounded-full px-2 py-0.5">

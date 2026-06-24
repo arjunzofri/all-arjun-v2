@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { db } from "@/db";
 import { productos, movimientos, activityLog, stock, bodegas, modulos, movimientoVisaciones } from "@/db/schema";
@@ -106,6 +106,7 @@ export async function getProducto(id: number) {
         folio: movimientos.folio,
         fecha: movimientos.fechaCompra,
         cantidad: movimientos.cantidad,
+        precioUnitario: movimientos.precioUnitario,
         bodega: bodegas.nombre,
       })
       .from(movimientos)
@@ -162,6 +163,7 @@ export async function getProducto(id: number) {
     folio: c.folio,
     fecha: c.fecha,
     cantidad: c.cantidad,
+    precioUnitario: c.precioUnitario !== null ? Number(c.precioUnitario) : null,
     bodega: c.bodega,
     visaciones: visPorCompra.get(c.id) ?? [],
   }));
