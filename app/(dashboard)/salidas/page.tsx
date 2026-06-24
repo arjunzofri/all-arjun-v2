@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { crearSalida } from "@/lib/actions/salidas";
@@ -93,7 +93,7 @@ export default function SalidasPage() {
 
   return (
     <div className="max-w-lg bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Nueva salida</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Salida de bodega</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Bodega origen */}
