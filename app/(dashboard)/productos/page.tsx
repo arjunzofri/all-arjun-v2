@@ -353,58 +353,68 @@ export default function ProductosPage() {
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-slate-200 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              <th className="py-2 w-8"></th>
-              <th className="py-2">Código</th>
-              <th className="py-2">Detalle</th>
-              <th className="py-2">Pack</th>
-              <th className="py-2">Bodegas</th>
-              <th className="py-2">Módulos</th>
-              <th className="py-2">Ubicación</th>
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th className="py-3 pl-4 pr-2 w-10"></th>
+              <th className="py-3 px-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide w-28">Código</th>
+              <th className="py-3 px-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Detalle</th>
+              <th className="py-3 px-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide w-14">Pack</th>
+              <th className="py-3 px-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide w-44">Bodegas</th>
+              <th className="py-3 px-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide w-36">Módulos</th>
+              <th className="py-3 pl-3 pr-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide w-24">Ubic.</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {items.map((p) => (
-              <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                <td className="py-1">
+              <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                <td className="py-2 pl-4 pr-2">
                   <ProductoThumbnail src={p.imagenUrl} alt={p.codigo} size="sm" />
                 </td>
-                <td className="py-2">
+                <td className="py-2 px-3">
                   <Link
                     href={buildProductoDetailHref(p.id, q)}
-                    className="font-medium text-violet-600 hover:text-violet-800 hover:underline"
+                    className="font-semibold text-violet-600 hover:text-violet-800 hover:underline text-xs"
                   >
                     {p.codigo}
                   </Link>
                 </td>
-                <td className="py-3 text-sm text-slate-600">
-                  {p.detalle ?? "—"}
+                <td className="py-2 px-3 text-slate-600 max-w-xs">
+                  <span className="line-clamp-2 leading-snug">{p.detalle ?? "—"}</span>
                 </td>
-                <td className="py-3 text-sm text-slate-500">
+                <td className="py-2 px-3 text-center text-slate-500 tabular-nums">
                   {p.packing ?? "—"}
                 </td>
-                <td className="py-3 text-sm text-slate-700">
-                  {p.stockBodegas.length === 0
-                    ? "—"
-                    : p.stockBodegas.map((s) => (
-                        <div key={s.id}>
-                          {s.nombre}: {s.cantidad} uds
-                        </div>
+                <td className="py-2 px-3">
+                  {p.stockBodegas.length === 0 ? (
+                    <span className="text-slate-400">—</span>
+                  ) : (
+                    <div className="flex flex-col gap-0.5">
+                      {p.stockBodegas.map((s) => (
+                        <span key={s.id} className="text-xs text-slate-600 whitespace-nowrap">
+                          <span className="font-medium text-slate-700">{s.cantidad}</span>
+                          <span className="text-slate-400"> uds</span>
+                        </span>
                       ))}
+                    </div>
+                  )}
                 </td>
-                <td className="py-3 text-sm text-slate-700">
-                  {p.stockModulos.length === 0
-                    ? "—"
-                    : p.stockModulos.map((s) => (
-                        <div key={s.id}>
-                          {s.nombre}: {s.cantidad} uds
-                        </div>
+                <td className="py-2 px-3">
+                  {p.stockModulos.length === 0 ? (
+                    <span className="text-slate-400">—</span>
+                  ) : (
+                    <div className="flex flex-col gap-0.5">
+                      {p.stockModulos.map((s) => (
+                        <span key={s.id} className="text-xs text-slate-600 whitespace-nowrap">
+                          <span className="font-medium text-slate-700">{s.cantidad}</span>
+                          <span className="text-slate-400"> uds · {s.nombre}</span>
+                        </span>
                       ))}
+                    </div>
+                  )}
                 </td>
-                <td className="py-3 text-sm text-slate-500">
+                <td className="py-2 pl-3 pr-4 text-slate-500 text-xs">
                   {p.ubicacion ?? "—"}
                 </td>
               </tr>
@@ -447,4 +457,5 @@ export default function ProductosPage() {
     </div>
   );
 }
+
 

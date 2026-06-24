@@ -48,8 +48,7 @@ export default function UsuariosPage() {
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Usuarios</h1>
 
-      <div className="mb-8">
-        <table className="w-full text-sm">
+      <div className="mb-8">        <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
               <th className="py-2">Usuario</th>
@@ -123,4 +122,5 @@ export default function UsuariosPage() {
     </div>
   );
 }
+
 
