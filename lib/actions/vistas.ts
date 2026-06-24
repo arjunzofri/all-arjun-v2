@@ -102,8 +102,13 @@ export async function getStockPorUbicacion(params: {
   const totalesMap = new Map<number, { entradas: number; salidas: number }>();
   for (const r of totalesRows) {
     const entry = totalesMap.get(r.productoId) ?? { entradas: 0, salidas: 0 };
-    if (r.tipo === "entrada") entry.entradas += r.total;
-    if (r.tipo === "salida" || r.tipo === "retorno") entry.salidas += r.total;
+    if (tipo === "modulo") {
+      if (r.tipo === "salida")  entry.entradas += r.total;
+      if (r.tipo === "retorno") entry.salidas  += r.total;
+    } else {
+      if (r.tipo === "entrada") entry.entradas += r.total;
+      if (r.tipo === "salida" || r.tipo === "retorno") entry.salidas += r.total;
+    }
     totalesMap.set(r.productoId, entry);
   }
 
@@ -192,7 +197,7 @@ export async function getMovimientosPorProductoUbicacion(params: {
   const moduloMap = new Map(moduloRows.map(m => [m.id, m.nombre]));
 
   const entradas = rows
-    .filter(r => r.tipo === "entrada")
+    .filter(r => tipo === "modulo" ? (r.tipo === "salida") : (r.tipo === "entrada"))
     .map(r => ({
       id:             r.id,
       folio:          r.folio,
@@ -202,7 +207,7 @@ export async function getMovimientosPorProductoUbicacion(params: {
     }));
 
   const salidas = rows
-    .filter(r => r.tipo === "salida" || r.tipo === "retorno")
+    .filter(r => tipo === "modulo" ? (r.tipo === "retorno") : (r.tipo === "salida" || r.tipo === "retorno"))
     .map(r => ({
       id:       r.id,
       tipo:     r.tipo as string,
