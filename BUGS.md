@@ -325,3 +325,86 @@ en silencio.
 con inversión confirmada, tipo desconocido lanzando error). 28/29 files,
 197/198 suite completa (timeout intermitente preexistente en smoke-e2e,
 no relacionado). tsc y build limpios.
+
+
+---
+
+## 2026-06-25 — Stock de Bodega 1 desincronizado respecto a movimientos registrados
+
+**Síntoma:** en `/bodegas/1` y `/productos`, la columna SALDO mostraba
+valores incorrectos para 18 productos. Ejemplo visible: V-640S4 con 60
+entradas y 3 salidas mostraba saldo 33 en vez de 57.
+
+**Causa raíz:** al inicializar la app, las salidas hacia módulos que ya
+existían en la versión 1 se importaron en dos pasos separados:
+1. Los movimientos se insertaron directamente en la tabla `movimientos`
+   via DDL en Neon (INSERT SQL manual), correctamente como `tipo = 'salida'`
+   con `bodega_origen_id = 1` y `modulo_destino_id` correspondiente.
+2. El stock de Bodega 1 **no fue decrementado** en ese mismo paso,
+   porque el DDL no ejecutó el CTE atomico que usa `crearSalida()`
+   (que hace `UPDATE stock SET cantidad = cantidad - N WHERE bodega_id = 1`).
+
+Resultado: la tabla `movimientos` refleja correctamente las salidas,
+pero `stock.cantidad` para Bodega 1 quedo inflado en exactamente
+`SUM(salidas_importadas_por_DDL)` para cada producto afectado.
+Todos los modulos estaban correctos (el DDL si inserto stock en modulos).
+
+**Productos afectados:** 18 filas de `stock` con `bodega_id = 1`.
+Diferencias de entre -6 y -330 unidades (todas negativas: stock actual
+menor al esperado por movimientos).
+
+**Fix:** UPDATE directo en produccion recalculando `stock.cantidad` desde
+los movimientos (entradas - salidas + retornos por bodega). 18 filas
+actualizadas. Verificacion post-update: 0 discrepancias restantes.
+Spot checks: V-640S4 B1 = 57, A2 B1 = 340, modulos intactos.
+
+**No tocar sin revisar:** cualquier importacion futura de movimientos
+historicos via DDL directo debe incluir tambien la actualizacion
+correspondiente en la tabla `stock`, o ejecutar el query de reconciliacion
+inmediatamente despues. El CTE atomico de `crearSalida()` es el unico
+mecanismo que garantiza consistencia automatica entre `movimientos` y
+`stock` -- cualquier insercion que lo bypasee deja el stock desincronizado.
+
+---
+
+## 2026-06-25 — "No autenticado" en todas las server actions en producción
+
+**Síntoma:** cualquier server action (`crearEntrada`, `crearSalida`, 
+`transferirEntreBodegas`, `crearRetorno`, `crearAjuste`) lanzaba 
+"An error occurred in the Server Components render" en producción. Los 
+logs de Vercel mostraban `Error: No autenticado`. El dashboard y el 
+proxy funcionaban correctamente (el usuario podía navegar). En dev 
+local y en tests todo verde (los tests mockean `auth()`).
+
+**Causa raíz:** NextAuth v5 con JWT strategy **no mapea `token.sub` 
+→ `session.user.id` automáticamente** (cambio de comportamiento vs v4). 
+El token JWT almacena el user ID en `sub`, pero el `session()` callback 
+solo populaba `session.user.role` y `session.user.username` — nunca 
+`session.user.id`. Las server actions chequeaban `!session?.user?.id` 
+→ siempre `true` → throw "No autenticado".
+
+El dashboard (`page.tsx`) y el proxy (`proxy.ts`) usaban 
+`!session?.user` (sin `.id`), por eso no fallaban.
+
+**Por qué no se detectó antes:** el commit `fcd3d85` (2026-06-23) fue 
+el que agregó las llamadas a `auth()` en las 4 server actions originales. 
+En dev local, `auth()` funciona correctamente porque el request context 
+es distinto. Los tests mockean `auth()` → `{ user: { id: "62" } }` que 
+sí incluye `id`. El bug solo era visible en server actions en producción 
+(Vercel), donde el wrapper `getSession()` de `next-auth/lib/index.js` 
+construye el objeto `session.user` desde el token JWT (que usa `sub`, 
+no `id`).
+
+**Fix:** una línea en `lib/auth.ts` — `session.user.id = token.sub ?? "";` 
+en el `session()` callback. Esto restaura el comportamiento esperado: 
+todas las server actions, el dashboard y el proxy reciben 
+`session.user.id` poblado.
+
+**Verificación post-deploy:** crear una entrada o salida real en 
+producción y confirmar que no lanza error. No basta con build verde — 
+este bug no era visible en build ni en tests por el mock de `auth()`.
+
+**No tocar sin revisar:** cualquier callback de NextAuth que manipule 
+`session.user` debe incluir explícitamente `session.user.id = token.sub`. 
+No asumir que NextAuth v5 lo hace automáticamente — lo hacía en v4, lo 
+quitó en v5.
