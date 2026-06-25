@@ -15,6 +15,7 @@ export default function TransferenciasPage() {
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stockDisponible, setStockDisponible] = useState<number | null>(null);
   const [suggestions, setSuggestions] = useState<
     { codigo: string; detalle: string | null; imagenUrl: string | null; cantidad: number }[]
   >([]);
@@ -39,6 +40,7 @@ export default function TransferenciasPage() {
 
   const handleSearch = (q: string) => {
     setCodigo(q);
+    setStockDisponible(null);
     searchRef.current?.search(q);
   };
 
@@ -52,6 +54,7 @@ export default function TransferenciasPage() {
     cantidad: number;
   }) => {
     setCodigo(item.codigo);
+    setStockDisponible(item.cantidad);
     setSuggestions([]);
   };
 
@@ -82,6 +85,7 @@ export default function TransferenciasPage() {
         setOk("Transferencia registrada — stock actualizado");
         setCodigo("");
         setCantidad("");
+        setStockDisponible(null);
         setObservaciones("");
       }
     } catch (err) {
@@ -111,6 +115,7 @@ export default function TransferenciasPage() {
               setBodegaOrigen(e.target.value);
               setBodegaDestino("");
               setCodigo("");
+              setStockDisponible(null);
               setSuggestions([]);
             }}
             className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
@@ -183,10 +188,16 @@ export default function TransferenciasPage() {
           <input
             type="number"
             min="1"
+            max={stockDisponible ?? undefined}
             value={cantidad}
             onChange={(e) => setCantidad(e.target.value)}
             className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
           />
+          {stockDisponible !== null && (
+            <p className="text-sm text-slate-500 mt-1">
+              Stock disponible en bodega origen: {stockDisponible} unidades
+            </p>
+          )}
         </div>
 
         {/* Observaciones */}
