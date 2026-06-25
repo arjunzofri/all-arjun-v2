@@ -1,0 +1,218 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { transferirEntreBodegas } from "@/lib/actions/transferencias";
+import { BODEGAS } from "@/lib/constants";
+import { ProductoThumbnail } from "@/components/ProductoThumbnail";
+import { createProductoSearch } from "@/components/useProductoSearch";
+
+export default function TransferenciasPage() {
+  const [bodegaOrigen, setBodegaOrigen] = useState("");
+  const [bodegaDestino, setBodegaDestino] = useState("");
+  const [codigo, setCodigo] = useState("");
+  const [cantidad, setCantidad] = useState("");
+  const [observaciones, setObservaciones] = useState("");
+  const [error, setError] = useState("");
+  const [ok, setOk] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<
+    { codigo: string; detalle: string | null; imagenUrl: string | null; cantidad: number }[]
+  >([]);
+
+  const bodegaRef = useRef(bodegaOrigen);
+  bodegaRef.current = bodegaOrigen;
+
+  const searchRef = useRef<ReturnType<typeof createProductoSearch> | undefined>(undefined);
+  if (!searchRef.current) {
+    searchRef.current = createProductoSearch({
+      fetchFn: async (q) => {
+        const res = await fetch(
+          `/api/productos/por-bodega?bodegaId=${bodegaRef.current}&q=${encodeURIComponent(q)}`
+        );
+        if (!res.ok) throw new Error("fetch error");
+        return res.json();
+      },
+      onResults: setSuggestions,
+      guard: () => !!bodegaRef.current,
+    });
+  }
+
+  const handleSearch = (q: string) => {
+    setCodigo(q);
+    searchRef.current?.search(q);
+  };
+
+  useEffect(() => {
+    return () => searchRef.current?.dispose();
+  }, []);
+
+  const selectProducto = (item: {
+    codigo: string;
+    detalle: string | null;
+    cantidad: number;
+  }) => {
+    setCodigo(item.codigo);
+    setSuggestions([]);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setOk("");
+
+    if (!codigo || !cantidad || !bodegaOrigen || !bodegaDestino) {
+      setError("Completá todos los campos");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await transferirEntreBodegas({
+        codigo: codigo.trim().toUpperCase(),
+        cantidad: parseInt(cantidad, 10),
+        bodegaOrigenId: parseInt(bodegaOrigen, 10),
+        bodegaDestinoId: parseInt(bodegaDestino, 10),
+        idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        observaciones: observaciones.trim() || undefined,
+      });
+
+      if (result.ok === false) {
+        setError("Transferencia ya registrada (idempotente)");
+      } else {
+        setOk("Transferencia registrada — stock actualizado");
+        setCodigo("");
+        setCantidad("");
+        setObservaciones("");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al transferir");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const bodegasDestino = BODEGAS.filter(
+    (b) => b.id.toString() !== bodegaOrigen
+  );
+
+  return (
+    <div className="max-w-lg bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Transferencia entre bodegas</h1>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Bodega origen */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            Bodega origen
+          </label>
+          <select
+            value={bodegaOrigen}
+            onChange={(e) => {
+              setBodegaOrigen(e.target.value);
+              setBodegaDestino("");
+              setCodigo("");
+              setSuggestions([]);
+            }}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
+          >
+            <option value="">Seleccionar bodega</option>
+            {BODEGAS.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Bodega destino */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            Bodega destino
+          </label>
+          <select
+            value={bodegaDestino}
+            onChange={(e) => setBodegaDestino(e.target.value)}
+            disabled={!bodegaOrigen}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition disabled:opacity-50"
+          >
+            <option value="">Seleccionar bodega</option>
+            {bodegasDestino.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Producto */}
+        <div className="relative">
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Producto</label>
+          <input
+            type="text"
+            value={codigo}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
+            placeholder="Buscar producto..."
+            disabled={!bodegaOrigen}
+          />
+          {suggestions.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white border rounded shadow max-h-48 overflow-y-auto">
+              {suggestions.map((s) => (
+                <li
+                  key={s.codigo}
+                  onClick={() => selectProducto(s)}
+                  className="px-3 py-2.5 text-sm hover:bg-violet-50 cursor-pointer flex justify-between items-center transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <ProductoThumbnail src={s.imagenUrl} alt="" size="sm" />
+                    <span className="font-medium">{s.codigo}</span>
+                    {s.detalle && (
+                      <span className="text-gray-500 ml-2">{s.detalle}</span>
+                    )}
+                  </span>
+                  <span className="text-gray-400">Stock: {s.cantidad}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Cantidad */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Cantidad</label>
+          <input
+            type="number"
+            min="1"
+            value={cantidad}
+            onChange={(e) => setCantidad(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
+          />
+        </div>
+
+        {/* Observaciones */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Observaciones</label>
+          <textarea
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+            maxLength={500}
+            rows={2}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm resize-y outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
+            placeholder="Opcional"
+          />
+        </div>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {ok && <p className="text-sm text-green-600">{ok}</p>}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 transition-colors disabled:opacity-50"
+        >
+          {loading ? "Transfiriendo..." : "Transferir stock"}
+        </button>
+      </form>
+    </div>
+  );
+}
