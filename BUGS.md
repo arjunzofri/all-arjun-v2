@@ -408,3 +408,37 @@ este bug no era visible en build ni en tests por el mock de `auth()`.
 `session.user` debe incluir explícitamente `session.user.id = token.sub`. 
 No asumir que NextAuth v5 lo hace automáticamente — lo hacía en v4, lo 
 quitó en v5.
+
+---
+
+## 2026-08-05 — 500 al subir imagen en /productos (sharp + Turbopack)
+
+**Síntoma:** en producción, al subir imagen de un producto, la UI muestra
+"Failed to execute 'json' on 'Response': Unexpected end of JSON input".
+Log de Vercel: `ERR_DLOPEN_FAILED: libvips-cpp.so.8.18.3: cannot open
+shared object file` al cargar el módulo nativo sharp con el runtime
+linux-x64.
+
+**Causa raíz:** sharp 0.35.x (raíz `^0.35.1`) no se empaqueta correctamente
+por Vercel/nft bajo Next.js 16 (Turbopack): el layout nativo/libvips queda
+fuera del bundle. Issue lovell/sharp#4567. La app importa sharp
+dinámicamente en `lib/cloudinary.ts` (`subirImagen`, `await import("sharp")`)
+para comprimir la imagen antes de subir a Cloudinary.
+
+**Por qué no se veía en dev:** Turbopack local resuelve el módulo nativo
+del SO local (win32) sin tracing; el fallo es específico del empaquetado
+serverless linux-x64 de Vercel.
+
+**Fix:** downgrade `sharp` a `^0.34.4` en package.json (resuelve a 0.34.5).
+0.34.x empaca el binario correctamente en Vercel/Turbopack. 0.34.5 además
+satisface la preferencia peer de next@16.2.9 (`^0.34.5`), unificando a una
+sola versión de sharp en el árbol (antes la raíz `^0.35.1` forzaba 0.35.1
+ignorando esa preferencia).
+
+**Verificación post-deploy:** subir una imagen real en producción y
+confirmar que devuelve secure_url sin 500. Build + tsc no detectan este
+bug — es runtime serverless.
+
+**No tocar sin revisar:** sharp solo se usa en `lib/cloudinary.ts`. Si se
+actualiza sharp en el futuro, verificar el empaquetado nativo en Vercel
+antes de mergear. Referencia: lovell/sharp#4567.
