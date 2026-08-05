@@ -35,11 +35,15 @@ export async function subirImagen(file: File): Promise<string> {
     .jpeg({ quality: 80 })
     .toBuffer();
 
-  // Subir a Cloudinary
+  // Subir a Cloudinary — upload firmado (sin preset), mismo patrón que eliminarImagen
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = generarFirma(`timestamp=${timestamp}`, secret);
+
   const formData = new FormData();
   formData.append("file", new Blob([new Uint8Array(compressed)], { type: "image/jpeg" }));
-  formData.append("upload_preset", "arjun-products");
   formData.append("api_key", key);
+  formData.append("timestamp", String(timestamp));
+  formData.append("signature", signature);
 
   const res = await fetch(UPLOAD_URL, { method: "POST", body: formData });
   if (!res.ok) {
@@ -63,7 +67,7 @@ export async function eliminarImagen(url: string): Promise<void> {
   if (!key || !secret) return;
 
   const timestamp = Math.floor(Date.now() / 1000);
-  const signature = generarFirma(publicId, timestamp, secret);
+  const signature = generarFirma(`public_id=${publicId}&timestamp=${timestamp}`, secret);
 
   const formData = new FormData();
   formData.append("public_id", publicId);
@@ -77,11 +81,8 @@ export async function eliminarImagen(url: string): Promise<void> {
   );
 }
 
-function generarFirma(
-  publicId: string,
-  timestamp: number,
-  secret: string
-): string {
-  const params = `public_id=${publicId}&timestamp=${timestamp}${secret}`;
-  return createHash("sha1").update(params).digest("hex");
+function generarFirma(params: string, secret: string): string {
+  // params = los upload params a firmar (todo salvo file, cloud_name,
+  // resource_type y api_key), concatenados + api_secret al final.
+  return createHash("sha1").update(`${params}${secret}`).digest("hex");
 }

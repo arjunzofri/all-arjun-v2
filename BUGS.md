@@ -442,3 +442,42 @@ bug — es runtime serverless.
 **No tocar sin revisar:** sharp solo se usa en `lib/cloudinary.ts`. Si se
 actualiza sharp en el futuro, verificar el empaquetado nativo en Vercel
 antes de mergear. Referencia: lovell/sharp#4567.
+
+**Verificado en producción:** 2026-08-05 — el downgrade funcionó, el
+`ERR_DLOPEN_FAILED` de libvips desapareció. El error cambió a otro
+problema (upload preset), documentado en la entrada siguiente.
+
+---
+
+## 2026-08-05 — 500 al subir imagen — "Upload preset not found" (Cloudinary)
+
+**Síntoma:** tras el fix de sharp, el error ERR_DLOPEN_FAILED desapareció
+pero subir imagen sigue fallando con 500. Log de Vercel:
+`Cloudinary upload falló: {"error":{"message":"Upload preset not found"}}`.
+
+**Causa raíz:** `subirImagen()` en `lib/cloudinary.ts` hacía un upload
+**unsigned** con `formData.append("upload_preset", "arjun-products")`.
+Ese preset no existe (o no está en modo unsigned) en el cloud `dbl8yxnjy`.
+Los presets son configuración del dashboard de Cloudinary, no verificable
+ni creada desde código — dependencia frágil de config externa.
+
+**Fix:** cambiar a **upload firmado** en `subirImagen()`, mismo patrón que
+ya usaba `eliminarImagen()`/`generarFirma()` en el mismo archivo. El
+FormData lleva `file`, `api_key`, `timestamp` y `signature` (sha1 de
+`timestamp=<ts>${secret}`), y ya **no** incluye `upload_preset`. Se
+generalizó `generarFirma()` para recibir los params a firmar como string
+ya armado + secret, reusándola en ambos llamados (sin duplicar código).
+
+**Referencia:** Cloudinary authentication signatures — el string a firmar
+son todos los params salvo `file`, `cloud_name`, `resource_type` y
+`api_key`, + `api_secret` al final.
+https://cloudinary.com/documentation/authentication_signatures
+
+**Verificación:** tsc + build verdes; tests `__tests__/cloudinary.test.ts`
+verdes (los checks de formato/tamaño/credenciales y extraerPublicId no
+cambian). La prueba real es subir una imagen en producción tras el deploy.
+
+**No tocar sin revisar:** todo el upload de imágenes pasa por
+`lib/cloudinary.ts` con upload firmado. No reintroducir `upload_preset` en
+uploads unsigned sin crear/verificar el preset en el dashboard de
+Cloudinary. `generarFirma()` es compartida por upload y delete.
