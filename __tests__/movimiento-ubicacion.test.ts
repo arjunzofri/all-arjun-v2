@@ -129,6 +129,52 @@ describe("resolverOrigenDestino — ajuste", () => {
   });
 });
 
+// ── Ajuste 1 punta (entrada, moduloDestinoId null) — display ────────────
+// El ajuste de entrada se inserta con modulo_destino_id NULL (1 sola punta,
+// sin flujo bodega↔módulo). Para este caso el signo queda INVERTIDO respecto
+// a la rama de 2 puntas, de modo que efectoSobreUbicacion reproduzca el
+// raw-sum que usar crearAjuste para calcular el delta en DB:
+//   cantidad > 0 → destino bodega → efecto +cantidad
+//   cantidad < 0 → origen bodega   → efecto -cantidad
+
+describe("resolverOrigenDestino — ajuste 1 punta (entrada, modulo null)", () => {
+  it("cantidad positiva → destino bodega, origen null (el neto suma)", () => {
+    const r = resolverOrigenDestino({
+      tipo: "ajuste",
+      bodegaOrigenId: 1,
+      moduloDestinoId: null,
+      cantidad: 3,
+    });
+
+    expect(r.origen).toBeNull();
+    expect(r.destino).toEqual({ tipo: "bodega", id: 1 });
+  });
+
+  it("cantidad negativa → origen bodega, destino null (el neto resta)", () => {
+    const r = resolverOrigenDestino({
+      tipo: "ajuste",
+      bodegaOrigenId: 1,
+      moduloDestinoId: null,
+      cantidad: -2,
+    });
+
+    expect(r.origen).toEqual({ tipo: "bodega", id: 1 });
+    expect(r.destino).toBeNull();
+  });
+
+  it("cantidad 0 → origen y destino null", () => {
+    const r = resolverOrigenDestino({
+      tipo: "ajuste",
+      bodegaOrigenId: 1,
+      moduloDestinoId: null,
+      cantidad: 0,
+    });
+
+    expect(r.origen).toBeNull();
+    expect(r.destino).toBeNull();
+  });
+});
+
 // ── efectoSobreUbicacion + calcularCantidadNeta ───────────────────────────
 
 const BODEGA_1: Ubicacion = { tipo: "bodega", id: 1 };
@@ -195,6 +241,43 @@ describe("calcularCantidadNeta", () => {
       BODEGA_5,
     );
     expect(neto).toBe(8);
+  });
+});
+
+// ── calcularCantidadNeta: ajuste de entrada (1 punta, modulo null) ────────
+// Reproduce el raw-sum que usar crearAjuste() para el delta en DB. Hoy el
+// display da mal el número (invertido en signo): estos tests fijan el
+// resultado correcto.
+
+describe("calcularCantidadNeta — ajuste de entrada (1 punta, modulo null)", () => {
+  it("entrada 20, ajuste -2 (hacia abajo) → neto 18, no 22", () => {
+    const neto = calcularCantidadNeta(
+      { tipo: "entrada", bodegaOrigenId: 1, moduloDestinoId: null, cantidad: 20 },
+      [{ tipo: "ajuste", bodegaOrigenId: 1, moduloDestinoId: null, cantidad: -2 }],
+      BODEGA_1,
+    );
+    expect(neto).toBe(18);
+  });
+
+  it("entrada 1, ajuste +3 (hacia arriba) → neto 4, no -2", () => {
+    const neto = calcularCantidadNeta(
+      { tipo: "entrada", bodegaOrigenId: 1, moduloDestinoId: null, cantidad: 1 },
+      [{ tipo: "ajuste", bodegaOrigenId: 1, moduloDestinoId: null, cantidad: 3 }],
+      BODEGA_1,
+    );
+    expect(neto).toBe(4);
+  });
+
+  it("entrada 10, ajustes -2 y +3 (mezcla subida/bajada) → neto 11 (suma cruda)", () => {
+    const neto = calcularCantidadNeta(
+      { tipo: "entrada", bodegaOrigenId: 1, moduloDestinoId: null, cantidad: 10 },
+      [
+        { tipo: "ajuste", bodegaOrigenId: 1, moduloDestinoId: null, cantidad: -2 },
+        { tipo: "ajuste", bodegaOrigenId: 1, moduloDestinoId: null, cantidad: 3 },
+      ],
+      BODEGA_1,
+    );
+    expect(neto).toBe(11);
   });
 });
 

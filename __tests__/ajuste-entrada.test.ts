@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 // ── Imports de funciones que NO existen todavía (Fase B) ──────────────
-import { crearAjuste } from "@/lib/actions/ajustes";
+import { crearAjuste, getMovimientosContribuyentes } from "@/lib/actions/ajustes";
 import { calcularCorreccionEntrada } from "@/lib/utils/movimiento-ubicacion";
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -265,6 +265,54 @@ describe("crearAjuste — corrección hacia arriba (nuevo)", () => {
     const r2 = await crearAjuste({ movimientoOriginalId: id, cantidadReal: 5, idempotencyKey: key });
     expect(r2.ok).toBe(false);
     expect(r2.reason).toBe("idempotente");
+  });
+});
+
+// ── T-DISP: neta mostrada por getMovimientosContribuyentes para entradas ──
+// Verifica que el display use el raw-sum (neta correcta) y no el signo
+// invertido de la rama de 2 puntas de resolverOrigenDestino.
+
+describe("getMovimientosContribuyentes — neta de entradas con ajuste (display)", () => {
+  async function productoIdDeCodigo() {
+    return (await sql`
+      SELECT id FROM productos WHERE codigo = ${CODIGO}
+    ` as unknown as { id: number }[])[0]!.id;
+  }
+
+  it("T-DISP-UP: entrada corregida 1→4 muestra neta 4, no -2", async () => {
+    const folio = `MAN-${TEST_PREFIX}-DISPUP`;
+    await sql`
+      INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id)
+      VALUES (${folio}, (SELECT id FROM productos WHERE codigo = ${CODIGO}), 'entrada', 1, 1, 1)
+    `;
+    const rw = await sql`SELECT id FROM movimientos WHERE folio = ${folio}`;
+    const id = (rw as unknown as { id: number }[])[0]!.id;
+
+    const r = await crearAjuste({ movimientoOriginalId: id, cantidadReal: 4, idempotencyKey: `${TEST_PREFIX}-DISPUP-KEY` });
+    expect(r.ok).toBe(true);
+
+    const contrib = await getMovimientosContribuyentes(await productoIdDeCodigo(), { tipo: "bodega", id: 1 });
+    const e = contrib.find((c) => c.movimientoId === id);
+    expect(e).toBeDefined();
+    expect(e!.cantidadNeta).toBe(4);
+  });
+
+  it("T-DISP-DN: entrada corregida 20→18 muestra neta 18, no 22", async () => {
+    const folio = `MAN-${TEST_PREFIX}-DISPDN`;
+    await sql`
+      INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id)
+      VALUES (${folio}, (SELECT id FROM productos WHERE codigo = ${CODIGO}), 'entrada', 20, 1, 1)
+    `;
+    const rw = await sql`SELECT id FROM movimientos WHERE folio = ${folio}`;
+    const id = (rw as unknown as { id: number }[])[0]!.id;
+
+    const r = await crearAjuste({ movimientoOriginalId: id, cantidadReal: 18, idempotencyKey: `${TEST_PREFIX}-DISPDN-KEY` });
+    expect(r.ok).toBe(true);
+
+    const contrib = await getMovimientosContribuyentes(await productoIdDeCodigo(), { tipo: "bodega", id: 1 });
+    const e = contrib.find((c) => c.movimientoId === id);
+    expect(e).toBeDefined();
+    expect(e!.cantidadNeta).toBe(18);
   });
 });
 

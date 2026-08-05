@@ -62,6 +62,32 @@ export function resolverOrigenDestino(input: ResolverInput): ResolverOutput {
     //                    (llegó MENOS, se devuelve la diferencia a la bodega)
     //   cantidad === 0 → sin movimiento real; prevención en crearAjuste (Zod),
     //                    no acá. Si aun así llega, devolvemos null en ambas puntas.
+    //
+    // CASO 1 PUNTA (ajuste de entrada): se inserta con modulo_destino_id NULL
+    // (1 sola punta, sin flujo bodega↔módulo). Acá el signo queda INVERTIDO
+    // respecto a la rama de 2 puntas, para que efectoSobreUbicacion reproduzca
+    // el raw-sum que usar crearAjuste() para el delta en DB:
+    //   cantidad > 0 → destino bodega → efecto +cantidad
+    //   cantidad < 0 → origen bodega   → efecto -cantidad
+    // Sin este caso, el neto mostrado para entradas quedaba invertido en signo
+    // (bug en producción: ver "Zonas de riesgo conocidas" en PRD.md).
+    if (moduloDestinoId === null) {
+      if (cantidad > 0) {
+        return {
+          origen: null,
+          destino: bodegaOrigenId !== null ? { tipo: "bodega", id: bodegaOrigenId } : null,
+        };
+      }
+      if (cantidad < 0) {
+        return {
+          origen: bodegaOrigenId !== null ? { tipo: "bodega", id: bodegaOrigenId } : null,
+          destino: null,
+        };
+      }
+      // cantidad === 0
+      return { origen: null, destino: null };
+    }
+
     if (cantidad > 0) {
       return {
         origen: bodegaOrigenId !== null ? { tipo: "bodega", id: bodegaOrigenId } : null,

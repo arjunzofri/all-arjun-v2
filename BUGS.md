@@ -481,3 +481,38 @@ cambian). La prueba real es subir una imagen en producción tras el deploy.
 `lib/cloudinary.ts` con upload firmado. No reintroducir `upload_preset` en
 uploads unsigned sin crear/verificar el preset en el dashboard de
 Cloudinary. `generarFirma()` es compartida por upload y delete.
+
+---
+
+## 2026-08-05 — Neto invertido en AjusteModal para correcciones de entrada
+
+**Síntoma:** al corregir una entrada manual hacia arriba (original=1,
+cantidadReal=4), AjusteModal mostraba "Cantidad actual: -2 (original: 1)"
+en vez de 4. El cálculo de DB (stock) quedaba bien; solo el número mostrado
+estaba mal.
+
+**Causa raíz:** `crearAjuste()` inserta el ajuste de entrada con
+`modulo_destino_id = NULL` (1 sola punta, sin flujo bodega↔módulo). Pero
+`resolverOrigenDestino()` para tipo "ajuste" asumía SIEMPRE el flujo de
+2 puntas (cantidad>0 → origen=bodega, destino=módulo). Con `modulo` null,
+el destino quedaba null y el origen=bodega → efecto = -|cantidad|, signo
+invertido. El cálculo de DISPLAY usaba una fórmula distinta e incompatible
+con el raw-sum (netaActual = original + Σ ajustes) que la misma función
+usa para escribir en DB. Pre-existente en producción desde el commit
+a0c2293 (23 jun), sin relación a los fixes del 5 ago. Estaba documentado
+en PRD.md → "Zonas de riesgo conocidas".
+
+**Fix:** en `resolverOrigenDestino()`, rama "ajuste", agregar el caso 1 punta
+(`moduloDestinoId === null`) con el signo invertido: cantidad>0 → destino
+bodega (efecto +cantidad), cantidad<0 → origen bodega (efecto -cantidad),
+reproduciendo el raw-sum. La rama de 2 puntas (salida/retorno) no se toca.
+
+**Verificación:** tsc + build verdes; suite 351 passed (los 4 fallos son
+pre-existentes ajenos a ajustes). Tests nuevos fijan el display: entrada
+1→4 muestra 4 (no -2), 20→18 muestra 18 (no 22), mezcla de ajustes = suma
+cruda. Regresión 2-punta (R5-R7) intacta.
+
+**No tocar sin revisar:** el discriminante del caso 1 punta es
+`moduloDestinoId === null`. No modificar `resolverOrigenDestino` ni
+`calcularCantidadNeta` sin mantener separados el caso 1 punta (entrada)
+del de 2 puntas (salida/retorno) — hoy comparten la rama "ajuste".
