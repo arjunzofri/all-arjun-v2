@@ -1,0 +1,4 @@
+# Fijar LF como terminador de línea en el repo y en el working tree.
+# Con esto, el modo core.autocrlf del desarrollador no genera ruido de
+# line-endings (LF↔CRLF) en los diffs ni convierte el árbol completo.
+* text=auto eol=lf

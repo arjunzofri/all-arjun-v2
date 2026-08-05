@@ -258,49 +258,52 @@ describe("getMovimientosContribuyentes — retorno sin ajustes", () => {
 // ── Validación / rechazo ──────────────────────────────────────────────────
 
 describe("crearAjuste — validación", () => {
-  it("R1: movimientoOriginalId inexistente → throw", async () => {
-    await expect(
-      crearAjuste({
-        movimientoOriginalId: 999999,
-        cantidadReal: 18,
-        idempotencyKey: `${TEST_PREFIX}-R1`,
-      })
-    ).rejects.toThrow(/no encontrado|exist|movimiento/i);
+  it("R1: movimientoOriginalId inexistente → reason 'error' vía return, no throw", async () => {
+    const r = await crearAjuste({
+      movimientoOriginalId: 999999,
+      cantidadReal: 18,
+      idempotencyKey: `${TEST_PREFIX}-R1`,
+    });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe("error");
+    if (r.reason === "error") expect(r.mensaje).toMatch(/no encontrado|exist|movimiento/i);
   });
 
-  it("R2: tipo entrada → throw (solo se ajustan salidas o retornos)", async () => {
+  it("R2: entrada de sync → reason 'error' (solo se ajustan entradas manuales)", async () => {
     const rows = await sql`
       SELECT id FROM movimientos
       WHERE folio = ${`${TEST_PREFIX}-ENTRADA`}
     `;
     const entradaId = (rows as unknown as { id: number }[])[0]!.id;
 
-    await expect(
-      crearAjuste({
-        movimientoOriginalId: entradaId,
-        cantidadReal: 8,
-        idempotencyKey: `${TEST_PREFIX}-R2`,
-      })
-    ).rejects.toThrow(/salida|retorno|solo se pueden ajustar/i);
+    const r = await crearAjuste({
+      movimientoOriginalId: entradaId,
+      cantidadReal: 8,
+      idempotencyKey: `${TEST_PREFIX}-R2`,
+    });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe("error");
+    if (r.reason === "error") expect(r.mensaje).toMatch(/manual/i);
   });
 
-  it("R3: tipo ajuste → throw (no se corrige un ajuste)", async () => {
+  it("R3: tipo ajuste → reason 'error' (no se corrige un ajuste)", async () => {
     const rows = await sql`
       SELECT id FROM movimientos
       WHERE folio = ${`${TEST_PREFIX}-AJTPREV`}
     `;
     const ajusteId = (rows as unknown as { id: number }[])[0]!.id;
 
-    await expect(
-      crearAjuste({
-        movimientoOriginalId: ajusteId,
-        cantidadReal: 0,
-        idempotencyKey: `${TEST_PREFIX}-R3`,
-      })
-    ).rejects.toThrow(/salida|retorno|solo se pueden ajustar/i);
+    const r = await crearAjuste({
+      movimientoOriginalId: ajusteId,
+      cantidadReal: 0,
+      idempotencyKey: `${TEST_PREFIX}-R3`,
+    });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe("error");
+    if (r.reason === "error") expect(r.mensaje).toMatch(/solo se pueden ajustar|salida|retorno/i);
   });
 
-  it("R4: cantidadReal igual a la neta actual → throw (sin diferencia)", async () => {
+  it("R4: cantidadReal igual a la neta actual → reason 'error' (sin diferencia)", async () => {
     const folio = `${TEST_PREFIX}-R4`;
     const movId = await insertMovimiento({
       folio,
@@ -311,13 +314,14 @@ describe("crearAjuste — validación", () => {
       moduloDestinoId: 1,
     });
 
-    await expect(
-      crearAjuste({
-        movimientoOriginalId: movId,
-        cantidadReal: 20, // misma que la original, sin ajustes previos
-        idempotencyKey: `${TEST_PREFIX}-R4-KEY`,
-      })
-    ).rejects.toThrow(/diferencia|coincide/i);
+    const r = await crearAjuste({
+      movimientoOriginalId: movId,
+      cantidadReal: 20, // misma que la original, sin ajustes previos
+      idempotencyKey: `${TEST_PREFIX}-R4-KEY`,
+    });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe("error");
+    if (r.reason === "error") expect(r.mensaje).toMatch(/diferencia|coincide/i);
   });
 });
 
@@ -409,7 +413,7 @@ describe("crearAjuste — integración real", () => {
     expect(m.cantidad).toBe(+2);
   });
 
-  it("R8: stock insuficiente → throw, y ni stock ni movimientos cambiaron (atomicidad)", async () => {
+  it("R8: stock insuficiente → reason 'error', y ni stock ni movimientos cambiaron (atomicidad)", async () => {
     const folioOrig = `${TEST_PREFIX}-R8-ORIG`;
     // Producto con stock limitado en bodega (solo 5, seeded en beforeAll)
     const movId = await insertMovimiento({
@@ -432,13 +436,14 @@ describe("crearAjuste — integración real", () => {
     const countBefore = (countAntes as unknown as { c: number }[])[0]!.c;
 
     // Intentar ajuste que excede el stock: cantidadReal=6, delta=+3, necesita 3 de bodega pero solo hay 2
-    await expect(
-      crearAjuste({
-        movimientoOriginalId: movId,
-        cantidadReal: 6,
-        idempotencyKey: `${TEST_PREFIX}-R8-KEY`,
-      })
-    ).rejects.toThrow(/stock/i);
+    const r = await crearAjuste({
+      movimientoOriginalId: movId,
+      cantidadReal: 6,
+      idempotencyKey: `${TEST_PREFIX}-R8-KEY`,
+    });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe("error");
+    if (r.reason === "error") expect(r.mensaje).toMatch(/stock/i);
 
     // Leer estado DESPUÉS
     const stockDespues = await sql`

@@ -52,10 +52,14 @@ export function parseCantidadReal(value: string): ParseResultado {
 /**
  * Handler genérico de submit con guard de doble-submit.
  *
- * Trata cualquier resultado sin throw como éxito — incluyendo
- * { ok: false, reason: "idempotente" }, que crearAjuste devuelve
- * sin lanzar excepción. Esto es intencional: idempotente = ya
- * se procesó, mismo resultado neto que el éxito.
+ * Interpreta el result de crearAjuste:
+ *   - ok:false reason:"error" → muestra el mensaje de negocio devuelto
+ *     (las validaciones ahora se devuelven en el result, no se lanzan, para
+ *     que el mensaje real no quede redactado por Next en producción).
+ *   - ok:true o reason:"idempotente" → éxito. Idempotente = ya se procesó,
+ *     mismo resultado neto que el éxito (intencional).
+ *   - Excepciones reales (ej. "No autenticado", que sí sigue lanzándose)
+ *     se muestran vía catch.
  */
 export function createAjusteSubmitHandler(config: {
   crearAjusteFn: (input: CrearAjusteInput) => Promise<CrearAjusteResult>;
@@ -69,10 +73,16 @@ export function createAjusteSubmitHandler(config: {
     if (config.isPending()) return;
     config.setPending(true);
     try {
-      await config.crearAjusteFn(config.getInput());
-      // No inspeccionar result.ok — idempotente también es éxito.
-      config.onExito();
+      const result = await config.crearAjusteFn(config.getInput());
+      if (result.ok === false && result.reason === "error") {
+        // Validación de negocio devuelta en el result — mostrarla tal cual.
+        config.onError(result.mensaje);
+      } else {
+        // ok:true o reason:"idempotente" → éxito.
+        config.onExito();
+      }
     } catch (err) {
+      // Excepciones reales que siguen cruzando (ej. "No autenticado").
       config.onError(err instanceof Error ? err.message : String(err));
     } finally {
       config.setPending(false);

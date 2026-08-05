@@ -153,7 +153,8 @@ export type CrearAjusteInput = z.infer<typeof ajusteSchema>;
 
 export type CrearAjusteResult =
   | { movimientoId: number; ok: true; reason?: undefined }
-  | { movimientoId: null; ok: false; reason: "idempotente" };
+  | { movimientoId: null; ok: false; reason: "idempotente" }
+  | { movimientoId: null; ok: false; reason: "error"; mensaje: string };
 
 export async function crearAjuste(
   input: CrearAjusteInput,
@@ -162,7 +163,8 @@ export async function crearAjuste(
   if (!session?.user?.id) throw new Error("No autenticado");
   const userId = Number(session.user.id);
 
-  const parsed = ajusteSchema.parse(input);
+  try {
+    const parsed = ajusteSchema.parse(input);
   const {
     movimientoOriginalId,
     cantidadReal,
@@ -449,6 +451,22 @@ export async function crearAjuste(
   `;
 
   return await manejarResultadoCTE(cteResult, sql, folio);
+  } catch (err) {
+    // Invariante interna rota (bug de datos, no error de usuario): se deja
+    // cruzar como excepción, no como mensaje de formulario.
+    if (err instanceof Error && err.message.includes("datos incompletos")) {
+      throw err;
+    }
+    // Error de validación de negocio: devolverlo en el result para que el
+    // mensaje real llegue hasta AjusteModal (Next redacta los throws no
+    // capturados que cruzan el límite server/client en producción).
+    return {
+      movimientoId: null,
+      ok: false,
+      reason: "error",
+      mensaje: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
 
 /**

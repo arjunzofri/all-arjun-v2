@@ -126,6 +126,46 @@ describe("createAjusteSubmitHandler", () => {
     expect(onExito).not.toHaveBeenCalled();
   });
 
+  it("ok:false reason:'error' → llama onError con el mensaje, no onExito", async () => {
+    const onExito = vi.fn();
+    const onError = vi.fn();
+    let pending = false;
+
+    const handler = createAjusteSubmitHandler({
+      crearAjusteFn: async () => ({ movimientoId: null, ok: false, reason: "error", mensaje: "Stock insuficiente" }),
+      getInput: () => ({ movimientoOriginalId: 1, cantidadReal: 99, idempotencyKey: "k5", usuarioId: 1 }),
+      isPending: () => pending,
+      setPending: (v: boolean) => { pending = v; },
+      onExito,
+      onError,
+    });
+
+    await handler();
+
+    expect(onError).toHaveBeenCalledWith("Stock insuficiente");
+    expect(onExito).not.toHaveBeenCalled();
+  });
+
+  it("ok:false reason:'idempotente' → onExito (semántica existente no cambia)", async () => {
+    const onExito = vi.fn();
+    const onError = vi.fn();
+    let pending = false;
+
+    const handler = createAjusteSubmitHandler({
+      crearAjusteFn: async () => ({ movimientoId: null, ok: false, reason: "idempotente" }),
+      getInput: () => ({ movimientoOriginalId: 1, cantidadReal: 18, idempotencyKey: "k6", usuarioId: 1 }),
+      isPending: () => pending,
+      setPending: (v: boolean) => { pending = v; },
+      onExito,
+      onError,
+    });
+
+    await handler();
+
+    expect(onExito).toHaveBeenCalledOnce();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it("doble-submit: si isPending es true, crearAjusteFn no se llama", () => {
     const crearAjusteFn = vi.fn();
     let pending = true; // ya está pendiente
