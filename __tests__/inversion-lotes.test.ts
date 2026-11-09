@@ -43,7 +43,9 @@ vi.mock("@/db", async () => {
 
 import {
   getLotesCompraPorCodigo,
+  getLotesCompraPorCodigos,
   getStockActualPorCodigo,
+  getStockPorCodigo,
 } from "@/lib/utils/inversion-lotes";
 import { getVidaDigitalClient } from "@/db/vidadigital";
 import { sql } from "drizzle-orm";
@@ -87,7 +89,31 @@ async function sumaLíneasDeduplicadas(
 
 function mockVidaRows(rows: unknown[]) {
   mockState.vida = true;
-  vdExecute.mockResolvedValue({ rows });
+  // La variante batch hace 2 queries (vida, sanjh). El fixture va a la
+  // primera; la segunda queda vacía salvo que el test use mockLotesQueries.
+  vdExecute.mockResolvedValueOnce({ rows }).mockResolvedValue({ rows: [] });
+}
+
+function mockLotesQueries(vidaRows: unknown[], sanjhRows: unknown[]) {
+  mockState.vida = true;
+  vdExecute
+    .mockResolvedValueOnce({ rows: vidaRows })
+    .mockResolvedValueOnce({ rows: sanjhRows });
+}
+
+function mockStockPorCodigoRows(rows: unknown[]) {
+  mockState.stock = true;
+  dbSelect.mockReturnValue({
+    from: () => ({
+      innerJoin: () => ({
+        groupBy: () => ({
+          having: () => ({
+            orderBy: () => Promise.resolve(rows),
+          }),
+        }),
+      }),
+    }),
+  });
 }
 
 function mockStockRows(rows: unknown[]) {
@@ -113,6 +139,7 @@ describe("getLotesCompraPorCodigo() — mocks", () => {
   it("mapea filas crudas a LoteCompra con números", async () => {
     mockVidaRows([
       {
+        codigo: "1055",
         origen: "vida",
         folio: "001653",
         fecha: "2026-05-19",
@@ -136,6 +163,7 @@ describe("getLotesCompraPorCodigo() — mocks", () => {
   it("dos filas con el mismo folio pero distinto origen devuelven 2 lotes", async () => {
     mockVidaRows([
       {
+        codigo: "1055",
         origen: "vida",
         folio: "001653",
         fecha: "2026-05-19",
@@ -143,6 +171,7 @@ describe("getLotesCompraPorCodigo() — mocks", () => {
         cantidad: "450",
       },
       {
+        codigo: "1055",
         origen: "sanjh",
         folio: "001653",
         fecha: "2026-05-19",
@@ -161,6 +190,7 @@ describe("getLotesCompraPorCodigo() — mocks", () => {
   it("preserva fecha null y costo null", async () => {
     mockVidaRows([
       {
+        codigo: "MANUAL",
         origen: "vida",
         folio: "MAN-1",
         fecha: null,
@@ -263,7 +293,172 @@ describe("getStockActualPorCodigo() — stock", () => {
   });
 });
 
-// ── 8.4 Solo lectura ─────────────────────────────────────────────────────
+// ── 8.5 Batch por código (Slice 4) ───────────────────────────────────────
+describe("getLotesCompraPorCodigos() — batch", () => {
+  it("9. agrupa filas de 2 códigos desde las 2 queries por esquema", async () => {
+    mockLotesQueries(
+      [
+        {
+          codigo: "A",
+          folio: "001",
+          fecha: "2026-01-01",
+          precdocd: "2",
+          cantidad: "10",
+        },
+        {
+          codigo: "B",
+          folio: "002",
+          fecha: "2026-02-01",
+          precdocd: "3",
+          cantidad: "20",
+        },
+      ],
+      [
+        {
+          codigo: "A",
+          folio: "999",
+          fecha: "2025-12-01",
+          precdocd: null,
+          cantidad: "5",
+        },
+      ]
+    );
+
+    const mapa = await getLotesCompraPorCodigos(["A", "B"]);
+
+    expect([...mapa.keys()].sort()).toEqual(["A", "B"]);
+    expect(mapa.get("A")).toEqual([
+      {
+        folio: "999",
+        fecha: "2025-12-01",
+        cantidad: 5,
+        costoUnitario: null,
+      },
+      {
+        folio: "001",
+        fecha: "2026-01-01",
+        cantidad: 10,
+        costoUnitario: 2,
+      },
+    ]);
+    expect(mapa.get("B")).toEqual([
+      {
+        folio: "002",
+        fecha: "2026-02-01",
+        cantidad: 20,
+        costoUnitario: 3,
+      },
+    ]);
+    expect(vdExecute).toHaveBeenCalledTimes(2);
+  });
+
+  it("10. input vacío → Map vacío sin consultar Vida Digital", async () => {
+    mockState.vida = true;
+
+    const mapa = await getLotesCompraPorCodigos([]);
+
+    expect(mapa.size).toBe(0);
+    expect(vdExecute).not.toHaveBeenCalled();
+  });
+
+  it("11. batch == single para 5 códigos reales (integración)", async () => {
+    const codigos = ["1055", "TMQ-KM-3024", "1125", "ZS003", "1029"];
+
+    const batch = await getLotesCompraPorCodigos(codigos);
+
+    for (const codigo of codigos) {
+      await expect(batch.get(codigo) ?? []).toEqual(
+        await getLotesCompraPorCodigo(codigo)
+      );
+    }
+  });
+
+  it("12. mismo folio en vida y sanjh → 2 lotes en el código (R3)", async () => {
+    mockLotesQueries(
+      [
+        {
+          codigo: "X",
+          folio: "001653",
+          fecha: "2026-05-19",
+          precdocd: "2",
+          cantidad: "450",
+        },
+      ],
+      [
+        {
+          codigo: "X",
+          folio: "001653",
+          fecha: "2026-05-19",
+          precdocd: "2",
+          cantidad: "100",
+        },
+      ]
+    );
+
+    const mapa = await getLotesCompraPorCodigos(["X"]);
+
+    expect(mapa.get("X")).toHaveLength(2);
+    expect(mapa.get("X")?.map((l) => l.cantidad)).toEqual([450, 100]);
+  });
+
+  it("13. dos códigos con el mismo número de folio no se contaminan (R2)", async () => {
+    mockLotesQueries(
+      [
+        {
+          codigo: "A",
+          folio: "001",
+          fecha: "2026-01-01",
+          precdocd: "2",
+          cantidad: "10",
+        },
+        {
+          codigo: "B",
+          folio: "001",
+          fecha: "2026-01-01",
+          precdocd: "2",
+          cantidad: "77",
+        },
+      ],
+      []
+    );
+
+    const mapa = await getLotesCompraPorCodigos(["A", "B"]);
+
+    expect(mapa.get("A")?.map((l) => l.cantidad)).toEqual([10]);
+    expect(mapa.get("B")?.map((l) => l.cantidad)).toEqual([77]);
+  });
+});
+
+// ── 8.6 Stock por código (Slice 4) ───────────────────────────────────────
+describe("getStockPorCodigo() — batch", () => {
+  it("14. integración: solo stock > 0, detalle presente, 1055 = 466", async () => {
+    const mapa = await getStockPorCodigo();
+
+    expect(mapa.size).toBeGreaterThan(0);
+    for (const [codigo, valor] of mapa) {
+      expect(valor.stock, codigo).toBeGreaterThan(0);
+    }
+    expect(mapa.get("1055")).toEqual({
+      stock: 466,
+      detalle: expect.any(String),
+    });
+  });
+
+  it("15. descarta defensivamente sumas <= 0 (mock)", async () => {
+    mockStockPorCodigoRows([
+      { codigo: "A", detalle: "Producto A", stock: 5 },
+      { codigo: "B", detalle: null, stock: -3 },
+      { codigo: "C", detalle: null, stock: 0 },
+    ]);
+
+    const mapa = await getStockPorCodigo();
+
+    expect([...mapa.keys()]).toEqual(["A"]);
+    expect(mapa.get("A")).toEqual({ stock: 5, detalle: "Producto A" });
+  });
+});
+
+// ── 8.4 Solo lectura (test 16: sigue pasando) ────────────────────────────
 describe("inversion-lotes.ts — solo lectura a Vida Digital", () => {
   const src = readFileSync(
     resolve(__dirname, "../lib/utils/inversion-lotes.ts"),
