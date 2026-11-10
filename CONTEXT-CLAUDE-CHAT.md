@@ -141,7 +141,7 @@ Handoff escrito por el Director Tecnico (Claude) antes de cambiar de cuenta. Tod
 - Ciclo PBT-IA por slice: Fase A (contrato, revision de impacto lateral, riesgos) -> el Director aprueba/ajusta -> Fase B (tests en rojo) -> C (implementacion <=200 lineas) -> D (tsc, vitest completo, build, flag) -> el Director verifica y hace commit.
 
 ### Como se invoca claude-deep en modo headless (desde PowerShell del PC)
-- Script: `C:\Users\pablo\Documents\app-arjun-v2\_poc_tmp\deep.ps1 -Prompt <archivo.md> -Log <archivo.log> -Tools <lista>`. Carga `~/.claude/pbravot/pbravot-perfil.ps1` (Metodo pBravoT; la API key vive en la variable de usuario `DEEPSEEK_API_KEY`) y corre `claude -p` en el repo. Alternativa estandar pBravoT: `~/.claude/pbravot/deep.ps1` (ver ~/.claude/PBRAVOT-MODO-POWERSHELL.md).
+- Script: `C:\Users\pablo\Documents\app-arjun-v2\_poc_tmp\deep.ps1 -Prompt <archivo.md> -Log <archivo.log> -Tools <lista>`. Carga `~/.claude/pbravot/pbravot-perfil.ps1` (Metodo pBravoT; la API key vive cifrada con DPAPI en `%LOCALAPPDATA%\pbravot\secrets\`) y corre `claude -p` en el repo. Alternativa estandar pBravoT: `~/.claude/pbravot/deep.ps1` (ver ~/.claude/PBRAVOT-MODO-POWERSHELL.md).
 - Fase A solo lectura: `-Tools Read,Glob,Grep`. Fases B-C-D: `-Tools "Read,Glob,Grep,Edit,Write,Bash"`. Siempre "SIN commit".
 - Lanzar detached (la tool de PowerShell corta a los 60 s): `New-Object System.Diagnostics.ProcessStartInfo 'powershell.exe', "-NoLogo -ExecutionPolicy Bypass -File ..."` con WindowStyle Hidden. El log termina con `=== FIN ===`.
 - Prompts y logs de cada slice quedan en `_poc_tmp\` (m2_s*.md/.log, m1_*.md/.log).
@@ -231,3 +231,10 @@ Artifact "Cotizacion App Arjun — Identificacion por foto e Inversion en mercad
 
 ### VALIDACION CONTRA WINFAC (2026-11-10, punto 2 del plan de entrega) — OK
 Fotos de 10 notas de venta impresas del WinFac enviadas por Pablo (5 Vida Digital: 002040, 002109, 002228, 002331, 002515; 5 Sanjh: 003680, 003757, 003758, 003766, 003767). Transcripcion verificada contra unidades y total impresos de cada nota. Resultado (`_poc_tmp/winfac_vs.cjs`, `winfac_impresas.json`, `winfac_vs.out`): en las 10 notas, impreso WinFac = Vida Digital (Neon, regla de la app) = app Arjun, linea por linea (codigo, zeta, cantidad, precio) y por bodega. Unica diferencia inicial (002109 MK-EDF01 vs MK-BDF01) fue error de lectura de la foto, confirmado ampliando la imagen. Suma con 001986/001987: 12 notas impresas validadas.
+
+### MODULO 1 — Identificacion por foto: TERMINADO Y ENCENDIDO (2026-11-10, aprobado por Pablo)
+- Commits: a65e812/b31e408 (slice 3 fichas + script `npm run fichas`), 74ce01f (4 describir), e3992a3 (5 preseleccion), 6c2330c (6 rerank), 9606b07 (7 orquestador + POST /api/identificacion), 93d87fe/ebc2604 (8 pantalla /entradas/identificar + menu), 8625e56 (9 codigo ARJ-YYMMDD-XXX), 60c1a2b (etapa B con lista liviana: 307k->189k caracteres, 38 s -> 4 s; plazo por etapa), 14ce085 (reintento ante timeout de Gemini), 8a7c917 (4.a opcion "Otra posibilidad"), 1bcd258 (si el rerank no alcanza, devuelve la preseleccion con aviso), flag identificacion_foto=true.
+- Fichas visuales: 2.254 de 2.542 productos en `producto_fichas_visuales` (las 288 restantes tienen la imagen rota en Cloudinary, 404). Regenerar incremental: `npm run fichas` (local, nunca en Vercel).
+- Precision real (banco `_poc_tmp/eval_identificacion.ts`, 27 fotos de bodega, 3 corridas): 19, 21 y 20 aciertos (codigo correcto entre las 3-4 opciones); version final 20/27 sin errores, mediana 21 s. 25/27 acertadas en al menos una corrida. Fallos: productos casi identicos (termos, cajas parecidas). Mejora posible: la comparacion visual (etapa C).
+- Claves GEMINI_API_KEY_1/2/3 cargadas en Vercel por Pablo (2026-11-10).
+- Lineas de produccion por slice declaradas en cada commit; slices 3 y 8 divididos en dos commits por el limite de 200.
