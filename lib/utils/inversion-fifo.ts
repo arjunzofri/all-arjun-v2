@@ -1,3 +1,5 @@
+export type OrigenEmpresa = "vida" | "sanjh";
+
 export interface LoteCompra {
   folio: string;
   /** ISO "YYYY-MM-DD" (o timestamp ISO). null = fecha desconocida → se trata como el más antiguo. */
@@ -5,6 +7,8 @@ export interface LoteCompra {
   cantidad: number;
   /** Costo unitario USD (precdocd). null = lote sin costo (ej. entrada manual MAN-). */
   costoUnitario: number | null;
+  /** Esquema de Vida Digital del que proviene el lote. */
+  origen?: OrigenEmpresa;
 }
 
 export interface PartidaValorizada {
@@ -15,6 +19,8 @@ export interface PartidaValorizada {
   costoUnitario: number | null;
   /** cantidadRemanente * costoUnitario redondeado a 2 decimales. null si el lote no tiene costo. */
   valor: number | null;
+  /** Propaga LoteCompra.origen. */
+  origen?: OrigenEmpresa;
 }
 
 export interface ResultadoInversion {
@@ -52,14 +58,19 @@ export function calcularInversionFifo(
   }
 
   // FIFO desde la compra más reciente. Orden lexicográfico de ISO = cronológico.
+  // Desempate: fecha DESC → folio DESC → origen (vida, sanjh, sin origen) →
+  // costo ASC. Determinista aunque la misma nota venga de ambas empresas.
+  const rankOrigen = (o?: OrigenEmpresa): number =>
+    o === "vida" ? 0 : o === "sanjh" ? 1 : 2;
   const ordenados = [...lotes].sort((a, b) => {
-    if (a.fecha === null || b.fecha === null) {
-      if (a.fecha === b.fecha) return 0;
-      return a.fecha === null ? 1 : -1;
-    }
-    if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1;
-    if (a.folio === b.folio) return 0;
-    return a.folio < b.folio ? 1 : -1;
+    const fa = a.fecha ?? "";
+    const fb = b.fecha ?? "";
+    if (fa !== fb) return fa < fb ? 1 : -1;
+    if (a.folio !== b.folio) return a.folio < b.folio ? 1 : -1;
+    const ra = rankOrigen(a.origen);
+    const rb = rankOrigen(b.origen);
+    if (ra !== rb) return ra - rb;
+    return (a.costoUnitario ?? 0) - (b.costoUnitario ?? 0);
   });
 
   let restante = stockActual;
@@ -76,6 +87,7 @@ export function calcularInversionFifo(
         lote.costoUnitario === null
           ? null
           : round2(cantidadRemanente * lote.costoUnitario),
+      origen: lote.origen,
     };
   });
 

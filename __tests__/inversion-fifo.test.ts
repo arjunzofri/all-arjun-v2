@@ -211,6 +211,71 @@ describe("calcularInversionFifo — validación", () => {
   });
 });
 
+// ── Origen: misma nota en Vida Digital y Sanjh ────────────────────────────
+
+describe("calcularInversionFifo — origen", () => {
+  const lotes: LoteCompra[] = [
+    { folio: "001986", fecha: "2026-08-03", cantidad: 300, costoUnitario: 5, origen: "sanjh" },
+    { folio: "001986", fecha: "2026-08-03", cantidad: 100, costoUnitario: 3, origen: "vida" },
+  ];
+
+  it("produce 2 partidas y desempata vida antes que sanjh", () => {
+    const r = calcularInversionFifo(lotes, 150);
+
+    expect(r.partidas).toEqual([
+      {
+        folio: "001986",
+        fecha: "2026-08-03",
+        cantidadComprada: 100,
+        cantidadRemanente: 100,
+        costoUnitario: 3,
+        valor: 300,
+        origen: "vida",
+      },
+      {
+        folio: "001986",
+        fecha: "2026-08-03",
+        cantidadComprada: 300,
+        cantidadRemanente: 50,
+        costoUnitario: 5,
+        valor: 250,
+        origen: "sanjh",
+      },
+    ]);
+  });
+
+  it("da el mismo resultado con el input barajado", () => {
+    expect(calcularInversionFifo([lotes[1], lotes[0]], 150)).toEqual(
+      calcularInversionFifo(lotes, 150)
+    );
+  });
+
+  it("mismo folio/fecha/origen: desempata por costo ASC, independiente del input", () => {
+    const caros: LoteCompra[] = [
+      { folio: "F", fecha: "2026-01-01", cantidad: 10, costoUnitario: 7, origen: "vida" },
+      { folio: "F", fecha: "2026-01-01", cantidad: 10, costoUnitario: 5, origen: "vida" },
+    ];
+
+    const r = calcularInversionFifo(caros, 12);
+
+    expect(r.partidas.map((p) => [p.costoUnitario, p.cantidadRemanente, p.valor])).toEqual([
+      [5, 10, 50],
+      [7, 2, 14],
+    ]);
+    expect(calcularInversionFifo([caros[1], caros[0]], 12)).toEqual(r);
+  });
+
+  it("lotes sin origen (fixtures sintéticos) siguen calculándose", () => {
+    const r = calcularInversionFifo(
+      [{ folio: "SIN", fecha: "2026-01-01", cantidad: 4, costoUnitario: 2 }],
+      4
+    );
+
+    expect(r.partidas[0].origen).toBeUndefined();
+    expect(r.valorTotal).toBe(8);
+  });
+});
+
 // ── Smoke — escenario realista de 5 lotes ─────────────────────────────────
 
 describe("calcularInversionFifo — smoke realista", () => {

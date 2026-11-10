@@ -16,6 +16,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  clavePartida,
+  formatearOrigen,
   mensajeErrorDetalle,
   urlDetalle,
 } from "@/components/inversion/DetalleCodigo";
@@ -62,6 +64,39 @@ describe("mensajeErrorDetalle()", () => {
   });
 });
 
+// ── Origen de la partida ─────────────────────────────────────────────────
+
+describe("formatearOrigen()", () => {
+  it("traduce cada empresa y usa — cuando no hay origen", () => {
+    expect(formatearOrigen("vida")).toBe("Vida Digital");
+    expect(formatearOrigen("sanjh")).toBe("Sanjh");
+    expect(formatearOrigen(undefined)).toBe("—");
+  });
+});
+
+describe("clavePartida()", () => {
+  const base = {
+    folio: "001986",
+    fecha: "2026-08-03",
+    costoUnitario: 3,
+  };
+
+  it("produce keys distintas para la misma nota en dos empresas", () => {
+    const vida = clavePartida({ ...base, origen: "vida" });
+    const sanjh = clavePartida({ ...base, origen: "sanjh" });
+
+    expect(vida).not.toBe(sanjh);
+    expect(vida).toBe("vida-001986-2026-08-03-3");
+    expect(sanjh).toBe("sanjh-001986-2026-08-03-3");
+  });
+
+  it("tolera origen, fecha y costo nulos", () => {
+    expect(
+      clavePartida({ folio: "MAN-1", fecha: null, costoUnitario: null })
+    ).toBe("-MAN-1--");
+  });
+});
+
 // ── Contrato de fuente: DetalleCodigo ────────────────────────────────────
 
 describe("DetalleCodigo.tsx — contrato de fuente", () => {
@@ -99,6 +134,13 @@ describe("DetalleCodigo.tsx — contrato de fuente", () => {
 
   it("no renderiza el mensaje original de un error capturado", () => {
     expect(src).not.toMatch(/\.message/);
+  });
+
+  it("muestra Nota de Venta y la columna Empresa", () => {
+    expect(src).toContain("Nota de Venta");
+    expect(src).toContain("Empresa");
+    expect(src).not.toMatch(/>Folio</);
+    expect(src).toMatch(/clavePartida\(/);
   });
 });
 

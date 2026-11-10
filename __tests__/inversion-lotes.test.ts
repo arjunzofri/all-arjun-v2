@@ -72,6 +72,7 @@ async function sumaLíneasDeduplicadas(
     JOIN ${sql.raw(origen)}.movidcto m ON i.knumfoli = m.knumfoli
     WHERE i.codunico = ${codigo}
       ${folio === undefined ? sql`` : sql`AND i.knumfoli = ${folio}`}
+      AND i.pestadot = '3'
       AND m.tipomovi = 'V'
       AND m.kcodcli2 IN (2, 20, 218)
       AND m.fechanvt >= '2023-09-01'
@@ -156,35 +157,40 @@ describe("getLotesCompraPorCodigo() — mocks", () => {
         fecha: "2026-05-19",
         cantidad: 450,
         costoUnitario: 2,
+        origen: "vida",
       },
     ]);
   });
 
-  it("dos filas con el mismo folio pero distinto origen devuelven 2 lotes", async () => {
-    mockVidaRows([
-      {
-        codigo: "1055",
-        origen: "vida",
-        folio: "001653",
-        fecha: "2026-05-19",
-        precdocd: "2.00",
-        cantidad: "450",
-      },
-      {
-        codigo: "1055",
-        origen: "sanjh",
-        folio: "001653",
-        fecha: "2026-05-19",
-        precdocd: "2.00",
-        cantidad: "100",
-      },
-    ]);
+  it("el mismo folio en las dos empresas devuelve 2 lotes con su origen", async () => {
+    // Las filas crudas no traen origen: el esquema de la query lo asigna.
+    mockLotesQueries(
+      [
+        {
+          codigo: "1055",
+          folio: "001653",
+          fecha: "2026-05-19",
+          precdocd: "2.00",
+          cantidad: "450",
+        },
+      ],
+      [
+        {
+          codigo: "1055",
+          folio: "001653",
+          fecha: "2026-05-19",
+          precdocd: "2.00",
+          cantidad: "100",
+        },
+      ]
+    );
 
     const lotes = await getLotesCompraPorCodigo("1055");
 
     expect(lotes).toHaveLength(2);
     expect(lotes.map((l) => l.folio)).toEqual(["001653", "001653"]);
     expect(lotes.map((l) => l.cantidad)).toEqual([450, 100]);
+    expect(lotes.map((l) => l.origen)).toEqual(["vida", "sanjh"]);
   });
 
   it("preserva fecha null y costo null", async () => {
@@ -207,6 +213,7 @@ describe("getLotesCompraPorCodigo() — mocks", () => {
         fecha: null,
         cantidad: 5,
         costoUnitario: null,
+        origen: "vida",
       },
     ]);
   });
@@ -233,18 +240,21 @@ describe("getLotesCompraPorCodigo() — integración real", () => {
         fecha: "2024-10-28",
         cantidad: 390,
         costoUnitario: 2,
+        origen: "sanjh",
       },
       {
         folio: "002418",
         fecha: "2025-02-19",
         cantidad: 60,
         costoUnitario: 2,
+        origen: "sanjh",
       },
       {
         folio: "001653",
         fecha: "2026-05-19",
         cantidad: esperadoVida1653,
         costoUnitario: 2,
+        origen: "vida",
       },
     ]);
 
@@ -333,12 +343,14 @@ describe("getLotesCompraPorCodigos() — batch", () => {
         fecha: "2025-12-01",
         cantidad: 5,
         costoUnitario: null,
+        origen: "sanjh",
       },
       {
         folio: "001",
         fecha: "2026-01-01",
         cantidad: 10,
         costoUnitario: 2,
+        origen: "vida",
       },
     ]);
     expect(mapa.get("B")).toEqual([
@@ -347,6 +359,7 @@ describe("getLotesCompraPorCodigos() — batch", () => {
         fecha: "2026-02-01",
         cantidad: 20,
         costoUnitario: 3,
+        origen: "vida",
       },
     ]);
     expect(vdExecute).toHaveBeenCalledTimes(2);
@@ -399,6 +412,7 @@ describe("getLotesCompraPorCodigos() — batch", () => {
 
     expect(mapa.get("X")).toHaveLength(2);
     expect(mapa.get("X")?.map((l) => l.cantidad)).toEqual([450, 100]);
+    expect(mapa.get("X")?.map((l) => l.origen)).toEqual(["vida", "sanjh"]);
   });
 
   it("13. dos códigos con el mismo número de folio no se contaminan (R2)", async () => {
@@ -483,5 +497,10 @@ describe("inversion-lotes.ts — solo lectura a Vida Digital", () => {
     expect(src).toMatch(/getVidaDigitalClient/);
     expect(src).toMatch(/\bvida\b/);
     expect(src).toMatch(/\bsanjh\b/);
+  });
+
+  it("filtra líneas confirmadas y conserva el DISTINCT ON", () => {
+    expect(src).toMatch(/i\.pestadot\s*=\s*'3'/);
+    expect(src).toMatch(/DISTINCT ON \(/);
   });
 });

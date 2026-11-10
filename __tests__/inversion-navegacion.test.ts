@@ -33,12 +33,12 @@ function renderShell(showInversion: boolean) {
 describe("DashboardShell — item Inversion", () => {
   it("con showInversion=true muestra el link", () => {
     expect(renderShell(true)).toContain('href="/inversion-mercaderia"');
-    expect(renderShell(true)).toContain("Inversion");
+    expect(renderShell(true)).toContain("Inversión");
   });
 
   it("con showInversion=false no muestra el link", () => {
     expect(renderShell(false)).not.toContain("/inversion-mercaderia");
-    expect(renderShell(false)).not.toContain(">Inversion<");
+    expect(renderShell(false)).not.toContain(">Inversión<");
   });
 
   it("el resto del NAV no cambia y los children se renderizan", () => {

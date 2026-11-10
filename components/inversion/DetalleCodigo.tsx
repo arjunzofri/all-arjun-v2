@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import type { RespuestaInversion } from "@/app/api/inversion/por-codigo/route";
+import type {
+  OrigenEmpresa,
+  PartidaValorizada,
+} from "@/lib/utils/inversion-fifo";
 import {
   formatearFecha,
   formatearMoneda,
@@ -11,6 +15,19 @@ import {
 
 export function urlDetalle(codigo: string): string {
   return `/api/inversion/por-codigo?codigo=${encodeURIComponent(codigo)}`;
+}
+
+export function formatearOrigen(origen?: OrigenEmpresa): string {
+  if (origen === "vida") return "Vida Digital";
+  if (origen === "sanjh") return "Sanjh";
+  return "—";
+}
+
+/** Key estable de fila: misma nota en dos empresas no colisiona. */
+export function clavePartida(
+  p: Pick<PartidaValorizada, "origen" | "folio" | "fecha" | "costoUnitario">
+): string {
+  return `${p.origen ?? ""}-${p.folio}-${p.fecha ?? ""}-${p.costoUnitario ?? ""}`;
 }
 
 /** Mensaje por status. Nunca se muestra el mensaje original del servidor. */
@@ -137,7 +154,8 @@ export default function DetalleCodigo({ codigo, onClose }: Props) {
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50">
                     <th className="py-2 pl-3 pr-2 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Fecha</th>
-                    <th className="py-2 px-2 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Folio</th>
+                    <th className="py-2 px-2 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Nota de Venta</th>
+                    <th className="py-2 px-2 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Empresa</th>
                     <th className="py-2 px-2 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Comprado</th>
                     <th className="py-2 px-2 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Remanente</th>
                     <th className="py-2 px-2 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Costo unit.</th>
@@ -146,12 +164,15 @@ export default function DetalleCodigo({ codigo, onClose }: Props) {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {datos.partidas.map((p) => (
-                    <tr key={`${p.folio}-${p.fecha ?? ""}`}>
+                    <tr key={clavePartida(p)}>
                       <td className="py-2 pl-3 pr-2 text-xs text-slate-600 tabular-nums">
                         {formatearFecha(p.fecha)}
                       </td>
                       <td className="py-2 px-2 text-xs font-medium text-slate-700">
                         {p.folio}
+                      </td>
+                      <td className="py-2 px-2 text-xs text-slate-600">
+                        {formatearOrigen(p.origen)}
                       </td>
                       <td className="py-2 px-2 text-right text-xs text-slate-600 tabular-nums">
                         {formatearNumero(p.cantidadComprada)}
@@ -169,7 +190,7 @@ export default function DetalleCodigo({ codigo, onClose }: Props) {
                   ))}
                   {datos.partidas.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-xs text-slate-400">
+                      <td colSpan={7} className="py-8 text-center text-xs text-slate-400">
                         Sin compras registradas
                       </td>
                     </tr>
