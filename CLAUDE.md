@@ -23,6 +23,9 @@ Esta conexión se usa exclusivamente para:
 1. El sync automático de compras Anil (`db/vidadigital/queries.ts` →
    `getComprasAnilDesde(fecha)`)
 2. El buscador histórico para ingreso manual (`buscarProductoHistorico(query)`)
+3. La valorización FIFO de inversión (`lib/utils/inversion-lotes.ts`)
+4. El catálogo de identificación por foto (`getCatalogoVidaDigital()` y
+   `getCatalogoIdentificacion()`)
 
 **Regla dura: nunca se escribe en `VIDADIGITAL_DATABASE_URL`.** Es de solo
 lectura, siempre. Cualquier mutación de stock ocurre exclusivamente en la

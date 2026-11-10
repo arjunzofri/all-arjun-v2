@@ -28,6 +28,20 @@ export interface ProductoHistorico {
   packing: number | null;
 }
 
+export interface FilaCatalogoVD {
+  codigo: string;
+  detalle: string | null;
+  imagenUrl: string | null;
+}
+
+export interface ProductoCatalogoVD {
+  /** Código tal como está en public.productos (sin normalizar). */
+  codigo: string;
+  detalle: string | null;
+  /** Nunca null: se descartan los códigos sin imagen no vacía. */
+  imagenUrl: string;
+}
+
 // ── Compras Anil desde fecha ─────────────────────────────────────────────
 /**
  * Compra de Anil desde la fecha de corte (sync_watermark.value para compras-anil).
@@ -200,4 +214,84 @@ export async function buscarProductoHistorico(
     imagenUrl: r.imagen,
     packing: r.cantcaja,
   }));
+}
+
+// ── Catálogo de identificación por foto ──────────────────────────────────
+/**
+ * Deduplica filas crudas de public.productos a una fila por código.
+ *
+ * AJUSTE aprobado: `detalle` = el más frecuente entre TODAS las filas del
+ * código (también las sin imagen); empate → el más corto, luego alfabético.
+ * null solo si ninguna fila tiene detalle (los vacíos no votan).
+ * `imagenUrl` = la única no vacía del código; si hubiera más de una,
+ * se elige la menor lexicográficamente para ser determinista.
+ *
+ * En TS y no en SQL: la regla de desempate es testeable sin escribir en
+ * Vida Digital (read-only) y 5.318 filas se agregan en memoria sin costo.
+ */
+export function deduplicarCatalogo(
+  filas: readonly FilaCatalogoVD[]
+): ProductoCatalogoVD[] {
+  const porCodigo = new Map<string, FilaCatalogoVD[]>();
+  for (const f of filas) {
+    if (f.codigo.trim() === "") continue;
+    const grupo = porCodigo.get(f.codigo);
+    if (grupo) grupo.push(f);
+    else porCodigo.set(f.codigo, [f]);
+  }
+
+  const salida: ProductoCatalogoVD[] = [];
+  for (const [codigo, grupo] of porCodigo) {
+    const imagenUrl = grupo
+      .map((f) => f.imagenUrl?.trim() ?? "")
+      .filter(Boolean)
+      .sort()[0];
+    if (!imagenUrl) continue;
+
+    const conteo = new Map<string, number>();
+    for (const f of grupo) {
+      const d = f.detalle;
+      if (d !== null && d.trim() !== "") conteo.set(d, (conteo.get(d) ?? 0) + 1);
+    }
+    let detalle: string | null = null;
+    if (conteo.size > 0) {
+      detalle = [...conteo.entries()].sort(
+        (a, b) =>
+          b[1] - a[1] ||
+          a[0].length - b[0].length ||
+          (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)
+      )[0][0];
+    }
+
+    salida.push({ codigo, detalle, imagenUrl });
+  }
+
+  return salida.sort((a, b) => (a.codigo < b.codigo ? -1 : a.codigo > b.codigo ? 1 : 0));
+}
+
+/**
+ * Catálogo completo con imagen para identificación por foto.
+ * Solo SELECT. No filtra por empresa_id a propósito: compras de Anil
+ * pueden venir de Sanjh (empresa_id=1) o Vida Digital (empresa_id=2).
+ */
+export async function getCatalogoVidaDigital(): Promise<ProductoCatalogoVD[]> {
+  const db = getVidaDigitalClient();
+
+  const result = await db.execute(
+    sql`
+      SELECT p.codigo, p.detalle, p.imagen_url
+      FROM public.productos p
+      WHERE p.codigo IS NOT NULL
+        AND btrim(p.codigo) <> ''
+    `
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { rows } = result as any as {
+    rows: { codigo: string; detalle: string | null; imagen_url: string | null }[];
+  };
+
+  return deduplicarCatalogo(
+    rows.map((r) => ({ codigo: r.codigo, detalle: r.detalle, imagenUrl: r.imagen_url }))
+  );
 }

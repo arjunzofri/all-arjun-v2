@@ -35,6 +35,18 @@ export const productos = pgTable("productos", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// ── Fichas visuales de identificación ───────────────────────────────────
+// Sin FK: los códigos del catálogo pueden existir solo en Vida Digital.
+export const productoFichasVisuales = pgTable("producto_fichas_visuales", {
+  codigo: text("codigo").primaryKey(),
+  ficha: jsonb("ficha"),
+  imagenHash: text("imagen_hash"),
+  modelo: text("modelo"),
+  generadoEn: timestamp("generado_en", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
 // ── Bodegas ──────────────────────────────────────────────────────────────
 export const bodegas = pgTable("bodegas", {
   id: serial("id").primaryKey(),
