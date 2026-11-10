@@ -554,3 +554,6 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 **Fix de datos (Director):** `UPDATE sync_watermark SET value='2026-05-01' WHERE key='compras-anil-desde'` (inicio de los datos sincronizados). Resultado esperado: 5 diferencias (los 5 codigos pendientes de 001653), igual que `_poc_tmp/conciliacion_prod_0501.json`.
 
 **Pendiente (fix de codigo, requiere aprobacion):** acotar el lado app a la misma ventana para que no dependa de como se inicializa la key, e inicializar la key con el inicio real de los datos y no con el corte incremental. Tras el corte de inventario (app vacia + key = fecha de corte) el problema no se presenta, pero el codigo no debe depender de eso.
+
+### Fix de codigo (2026-11-10, aprobado por Pablo)
+`conciliarComprasAnil` acota el lado app con `acotarLineasApp`: una linea se compara si su folio esta en el lado VD o si entro a la app desde `desde` (`MIN(created_at)`). Verificado en produccion (solo lectura): desde 2026-05-01 -> 5 diferencias (001653, esperadas). Limite conocido: si el sync procesa notas confirmadas ANTES de `desde` (solo en regularizaciones manuales como la del 2026-11-10), esas lineas aparecen como diferencia con motivo `fuera_de_desde`; despues del corte de inventario no ocurre porque el sync solo trae fechconf >= watermark >= desde.

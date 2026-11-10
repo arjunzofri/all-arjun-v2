@@ -32,6 +32,7 @@ vi.mock("@/db/vidadigital/queries", async (importOriginal) => {
 import {
   getLineasApp,
   conciliarComprasAnil,
+  acotarLineasApp,
 } from "@/lib/sync/conciliacion-compras";
 import {
   getComprasAnilDesde,
@@ -45,12 +46,18 @@ type SqlCall = [TemplateStringsArray, ...unknown[]];
 const calls = () => mockSql.mock.calls as unknown as SqlCall[];
 const textos = () => calls().map(([s]) => s.join("?"));
 
-function filaApp(folio: string, codigo: string, cantidad: number | string) {
+function filaApp(
+  folio: string,
+  codigo: string,
+  cantidad: number | string,
+  creadoDesde = "2026-07-01",
+) {
   return {
     folio,
     codigo,
     bodega: "Bodega 1 Vida Digital",
     cantidad,
+    creadoDesde,
   };
 }
 
@@ -91,11 +98,13 @@ describe("getLineasApp()", () => {
     expect(texto).toContain("LEFT JOIN");
     expect(texto).toContain("movimiento_original_id");
     expect(texto).toContain("SUM(cantidad)");
+    // bug 203 diferencias falsas: la ventana necesita MIN(created_at)
+    expect(texto).toContain("MIN(m.created_at)");
   });
 
   // ── 14: neto app = entrada + ajuste ───────────────────────────────────
   it("suma ajustes al neto (la query resta/ajusta server-side)", async () => {
-    mockSql.mockResolvedValue([filaApp("001986", "HR-6", 800)]);
+    mockSql.mockResolvedValue([filaApp("001986", "HR-6", 800, "2026-06-02")]);
     const lineas = await getLineasApp();
     expect(lineas).toEqual([
       {
@@ -103,6 +112,7 @@ describe("getLineasApp()", () => {
         codigo: "HR-6",
         bodega: "Bodega 1 Vida Digital",
         cantidad: 800,
+        creadoDesde: "2026-06-02",
       },
     ]);
     const texto = textos()[0];
@@ -162,6 +172,83 @@ describe("conciliarComprasAnil()", () => {
       (d) => d.tipo === "nota_ausente_en_vd",
     );
     expect(ausente?.motivo).toBe("sin_fechconf");
+  });
+});
+
+// ── bug "203 diferencias falsas": ventana de la app ─────────────────────
+describe("conciliarComprasAnil() ventana de la app", () => {
+  it("(a) línea app anterior a desde y fuera de VD no cuenta como diferencia", async () => {
+    mockGetCompras.mockResolvedValue([compraVd("002515", "A", 10)]);
+    mockSql.mockResolvedValue([
+      filaApp("002515", "A", 10, "2026-11-10"),
+      filaApp("001653", "B", 5, "2026-06-23"),
+    ]);
+
+    const res = await conciliarComprasAnil("2026-11-10");
+
+    expect(res.cuadra).toBe(true);
+    expect(res.diferencias).toEqual([]);
+  });
+
+  it("(b) nota anulada creada desde desde sigue como sobra + ausente", async () => {
+    mockGetCompras.mockResolvedValue([]);
+    mockSql.mockResolvedValue([filaApp("003000", "A", 4, "2026-11-10")]);
+    mockGetEstado.mockResolvedValueOnce([
+      {
+        folio: "003000",
+        existe: true,
+        fechconf: null,
+        lineasConfirmadas: 0,
+        lineasValidas: 0,
+      },
+    ]);
+
+    const res = await conciliarComprasAnil("2026-11-10");
+
+    expect(res.diferencias.map((d) => d.tipo).sort()).toEqual([
+      "nota_ausente_en_vd",
+      "sobra_en_app",
+    ]);
+  });
+
+  it("(c) línea app anterior a desde con folio presente en VD se compara", async () => {
+    mockGetCompras.mockResolvedValue([compraVd("001", "A", 7)]);
+    mockSql.mockResolvedValue([filaApp("001", "A", 5, "2026-01-01")]);
+
+    const res = await conciliarComprasAnil("2026-11-10");
+
+    expect(res.diferencias).toHaveLength(1);
+    expect(res.diferencias[0].tipo).toBe("cantidad_distinta");
+  });
+
+  it("acotarLineasApp conserva por folio VD o por fecha de creación", () => {
+    const lineas = [
+      {
+        folio: "001",
+        codigo: "A",
+        bodega: "B",
+        cantidad: 1,
+        creadoDesde: "2026-01-01",
+      },
+      {
+        folio: "002",
+        codigo: "B",
+        bodega: "B",
+        cantidad: 2,
+        creadoDesde: "2026-11-15",
+      },
+      {
+        folio: "003",
+        codigo: "C",
+        bodega: "B",
+        cantidad: 3,
+        creadoDesde: "2026-01-01",
+      },
+    ];
+
+    const acotadas = acotarLineasApp(lineas, new Set(["001"]), "2026-11-10");
+
+    expect(acotadas.map((l) => l.folio)).toEqual(["001", "002"]);
   });
 });
 

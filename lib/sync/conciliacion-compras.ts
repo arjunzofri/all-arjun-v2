@@ -29,6 +29,9 @@ export interface LineaConciliacion {
   codigo: string;
   bodega: string;
   cantidad: number;
+  /** MIN(created_at) de la línea en la app (YYYY-MM-DD); opcional para no
+   *  romper compararCompras y sus tests. */
+  creadoDesde?: string;
 }
 
 export interface DiferenciaConciliacion {
@@ -210,6 +213,22 @@ export function compararCompras(
   };
 }
 
+/**
+ * Acota las líneas de la app a la misma ventana que el lado VD.
+ * Conserva una línea si su folio está en VD (se compara) o si entró a la app
+ * desde `desde` (si su nota ya no está confirmada en VD, sigue siendo
+ * diferencia). Descarta el resto: son líneas anteriores a la ventana.
+ */
+export function acotarLineasApp(
+  app: readonly LineaConciliacion[],
+  foliosVd: ReadonlySet<string>,
+  desde: string,
+): LineaConciliacion[] {
+  return app.filter(
+    (l) => foliosVd.has(l.folio) || (l.creadoDesde ?? "") >= desde,
+  );
+}
+
 export function clasificarNotaAusente(
   estado: EstadoNotaVd | undefined,
   desde: string,
@@ -235,7 +254,8 @@ export async function getLineasApp(): Promise<LineaConciliacion[]> {
     SELECT m.folio,
            p.codigo,
            b.nombre AS bodega,
-           (SUM(m.cantidad) + COALESCE(SUM(adj.cantidad), 0))::int AS cantidad
+           (SUM(m.cantidad) + COALESCE(SUM(adj.cantidad), 0))::int AS cantidad,
+           MIN(m.created_at)::date::text AS "creadoDesde"
     FROM movimientos m
     JOIN productos p ON p.id = m.producto_id
     JOIN bodegas b ON b.id = m.bodega_origen_id
@@ -254,6 +274,7 @@ export async function getLineasApp(): Promise<LineaConciliacion[]> {
     codigo: string;
     bodega: string;
     cantidad: number | string;
+    creadoDesde: string;
   }[];
 
   return rows.map((r) => ({
@@ -261,6 +282,7 @@ export async function getLineasApp(): Promise<LineaConciliacion[]> {
     codigo: r.codigo,
     bodega: r.bodega,
     cantidad: Number(r.cantidad),
+    creadoDesde: r.creadoDesde,
   }));
 }
 
@@ -274,16 +296,17 @@ export async function conciliarComprasAnil(
   ]);
 
   const foliosVd = new Set(vd.map((l) => l.folio));
-  const ausentes = [...new Set(app.map((l) => l.folio))].filter(
+  const appAcotadas = acotarLineasApp(app, foliosVd, desde);
+  const ausentes = [...new Set(appAcotadas.map((l) => l.folio))].filter(
     (f) => !foliosVd.has(f),
   );
 
-  if (ausentes.length === 0) return compararCompras(desde, vd, app);
+  if (ausentes.length === 0) return compararCompras(desde, vd, appAcotadas);
 
   const notasVd = new Map(
     (await getEstadoNotasVd(ausentes)).map((e) => [e.folio, e]),
   );
-  return compararCompras(desde, vd, app, notasVd);
+  return compararCompras(desde, vd, appAcotadas, notasVd);
 }
 
 /** Lee 'compras-anil-desde'; fallback 'compras-anil'; fallback "2026-05-01". */
