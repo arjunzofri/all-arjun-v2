@@ -127,12 +127,12 @@ describe("getComprasAnilDesde — JOIN con GROUP BY en public.productos", () => 
     expect(filas[0].cantidad).toBe(66);
   });
 
-  it("HJ-80092-8: 2 folios distintos, total=50 (no 250 — public.productos tiene 5 filas)", async () => {
+  it("HJ-80092-8: 1 folio, total=20 (la línea de 001653 está en borrador)", async () => {
     const compras = await getComprasAnilDesde("2026-05-01");
     const filas = compras.filter((c) => c.codigo === "HJ-80092-8");
-    // 2 compras distintas (folios 001653 y 001691)
-    expect(filas.length).toBe(2);
+    // 001653 tiene una línea pestadot='1' (30) que no cuenta; solo queda 001691.
+    expect(filas.length).toBe(1);
     const total = filas.reduce((s, c) => s + c.cantidad, 0);
-    expect(total).toBe(50);
+    expect(total).toBe(20);
   });
 });

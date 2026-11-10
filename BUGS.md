@@ -516,3 +516,17 @@ cruda. Regresión 2-punta (R5-R7) intacta.
 `moduloDestinoId === null`. No modificar `resolverOrigenDestino` ni
 `calcularCantidadNeta` sin mantener separados el caso 1 punta (entrada)
 del de 2 puntas (salida/retorno) — hoy comparten la rama "ajuste".
+
+## 2026-11-10 — Sync de compras Anil sumaba lineas en borrador y copias exactas (fix 1 de 4)
+
+**Sintoma:** stock de Arjun distinto de las notas de venta impresas. Comparacion de los 188 movimientos sincronizados contra la regla validada: 149 iguales, 27 con mas, 2 con menos, 8 con productos que ya no estan en su nota. Ej. 001653: 19 codigos con lineas en borrador (+1.443 u.); 001986 EGD-100 10 (real 5).
+
+**Causa raiz (esta parte):** `getComprasAnilDesde()` sumaba todas las filas de `itemdcto`. Vida Digital guarda lineas en borrador (`pestadot='1'`, `knumdocu`/`knumorde` NULL) que no salen en el documento impreso, y copias exactas de la misma linea (kdocitem `' 13'` vs `'13'`). Regla de negocio de Pablo: las notas o lineas en borrador no cuentan hasta que sean compras confirmadas.
+
+**Fix:** misma regla que `lib/utils/inversion-lotes.ts` (commit e4cb0ff): `i.pestadot = '3'` + `DISTINCT ON (knumfoli, codunico, kdocitem normalizado)` por esquema, antes de las agregaciones. Solo `db/vidadigital/queries.ts`.
+
+**Verificacion:** tsc OK; tests reales solo lectura 28/28 (001986 = 1.536 u., HR-6 1.000; 001987 = 952 u.; 001653 = oraculo pestadot 3 deduplicado). Regla validada: 214/215 notas cuadran con `movidcto.val_doc`.
+
+**Pendiente (mismo bug, fixes aparte):** fix 0, los tests de sync escriben en produccion y fuerzan el watermark a 2026-06-15 (`__tests__/sync-compras-anil.test.ts`); fix 4, sync cortado antes de terminar; fix 3, segunda bodega del mismo producto en la misma nota se pierde por UNIQUE (folio, producto); fix 2, notas editadas despues del sync no se releen. El stock ya cargado mal se regulariza aparte, con ajustes auditados aprobados por Pablo. Nota 002515: se confirmo el 2026-11-10, coincide en cantidades con lo sincronizado.
+
+**No tocar sin revisar:** no correr `npx vitest run` completo ni `sync-compras-anil.test.ts` hasta el fix 0: escriben en la base de produccion.

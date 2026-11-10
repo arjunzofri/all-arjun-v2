@@ -47,6 +47,13 @@ export interface ProductoCatalogoVD {
  * Compra de Anil desde la fecha de corte (sync_watermark.value para compras-anil).
  * UNION ALL entre vida y sanjh — sin riesgo de duplicados porque
  * son sistemas distintos con folios independientes.
+ *
+ * Regla de líneas válidas (la misma validada en lib/utils/inversion-lotes.ts):
+ *   1. Solo líneas confirmadas: i.pestadot = '3'. Descarta las líneas en
+ *      borrador (pestadot = '1'), que duplican la línea real y no salen en
+ *      el documento impreso. Una nota completa en borrador no aporta nada.
+ *   2. Dedup por (knumfoli, codunico, kdocitem normalizado) con DISTINCT ON,
+ *      por esquema: la misma línea importada dos veces (' 13' y '13').
  */
 export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> {
   const db = getVidaDigitalClient();
@@ -55,7 +62,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
     sql`
       SELECT
         i.knumfoli AS folio,
-        m.fechanvt,
+        i.fechanvt,
         p.codigo,
         p.detalle,
         i.cantsali  AS cantidad,
@@ -63,22 +70,33 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         p.imagen_url AS imagen_url,
         i.precdocd  AS precdocd,
         i.knumezet AS nro_ingreso
-      FROM vida.itemdcto i
-      JOIN vida.movidcto m ON i.knumfoli = m.knumfoli
+      FROM (
+        SELECT DISTINCT ON (
+          i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int
+        )
+          i.knumfoli, i.codunico, i.cantsali, i.precdocd, i.knumezet,
+          m.fechanvt
+        FROM vida.itemdcto i
+        JOIN vida.movidcto m ON i.knumfoli = m.knumfoli
+        WHERE i.pestadot = '3'
+          AND m.tipomovi = 'V'
+          AND m.kcodcli2 IN (2, 20, 218)
+          AND m.fechanvt >= ${fecha}
+        ORDER BY
+          i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int,
+          m.fechanvt, i.precdocd, i.cantsali
+      ) i
       JOIN (
         SELECT codigo, MAX(detalle) AS detalle, MAX(imagen_url) AS imagen_url, MAX(cantcaja) AS cantcaja
         FROM public.productos
         GROUP BY codigo
       ) p ON i.codunico = p.codigo
-      WHERE m.tipomovi = 'V'
-        AND m.kcodcli2 IN (2, 20, 218)
-        AND m.fechanvt >= ${fecha}
 
       UNION ALL
 
       SELECT
         i.knumfoli AS folio,
-        m.fechanvt,
+        i.fechanvt,
         p.codigo,
         p.detalle,
         i.cantsali  AS cantidad,
@@ -86,16 +104,27 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         p.imagen_url AS imagen_url,
         i.precdocd  AS precdocd,
         i.knumezet AS nro_ingreso
-      FROM sanjh.itemdcto i
-      JOIN sanjh.movidcto m ON i.knumfoli = m.knumfoli
+      FROM (
+        SELECT DISTINCT ON (
+          i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int
+        )
+          i.knumfoli, i.codunico, i.cantsali, i.precdocd, i.knumezet,
+          m.fechanvt
+        FROM sanjh.itemdcto i
+        JOIN sanjh.movidcto m ON i.knumfoli = m.knumfoli
+        WHERE i.pestadot = '3'
+          AND m.tipomovi = 'V'
+          AND m.kcodcli2 IN (2, 20, 218)
+          AND m.fechanvt >= ${fecha}
+        ORDER BY
+          i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int,
+          m.fechanvt, i.precdocd, i.cantsali
+      ) i
       JOIN (
         SELECT codigo, MAX(detalle) AS detalle, MAX(imagen_url) AS imagen_url, MAX(cantcaja) AS cantcaja
         FROM public.productos
         GROUP BY codigo
       ) p ON i.codunico = p.codigo
-      WHERE m.tipomovi = 'V'
-        AND m.kcodcli2 IN (2, 20, 218)
-        AND m.fechanvt >= ${fecha}
 
       ORDER BY fechanvt DESC, folio DESC
     `
