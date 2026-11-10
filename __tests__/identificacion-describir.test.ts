@@ -127,11 +127,21 @@ describe("guarda estática", () => {
     }
   }
 
-  it("ningún archivo de app/ o components/ importa lib/identificacion", () => {
+  it("ningún componente cliente importa lib/identificacion", () => {
+    // Slice 7 agrega una route handler server en app/api/identificacion, que
+    // sí importa lib/identificacion. La regla aplica solo a componentes
+    // cliente: el código de identificación toca DB y nunca debe empaquetarse
+    // al browser.
     const raiz = resolve(__dirname, "..");
     const importadores = [resolve(raiz, "app"), resolve(raiz, "components")]
       .flatMap(archivos)
-      .filter((f) => /lib\/identificacion\//.test(readFileSync(f, "utf8")));
+      .filter((f) => {
+        const texto = readFileSync(f, "utf8");
+        return (
+          /["']use client["']/.test(texto) &&
+          /lib\/identificacion\//.test(texto)
+        );
+      });
     expect(importadores).toEqual([]);
   });
 });
