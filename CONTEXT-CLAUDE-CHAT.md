@@ -201,3 +201,10 @@ Artifact "Cotizacion App Arjun — Identificacion por foto e Inversion en mercad
 - Tabla `producto_fichas_visuales` creada en la base propia con CREATE TABLE IF NOT EXISTS (drizzle-kit push queda vetado: ver Zonas de riesgo del PRD, desfase `uq_users_username`).
 - CLAUDE.md declara los 4 usos read-only de Vida Digital.
 - **SIGUIENTE: Slice 3** (script local generador de fichas, lotes de 16 imagenes, incremental por hash).
+
+### ACTUALIZACION 2026-11-10 13:50 — Debugging del sync CERRADO (codigo) + regularizacion
+- Regla de negocio de Pablo: las notas o lineas en borrador NO se consideran hasta ser compras confirmadas.
+- Fixes en main: `4d37c44` fix 1 (pestadot 3 + dedup en getComprasAnilDesde), `2a90068` fix 0 (tests del sync con mocks; antes ejecutaban el sync real y forzaban el watermark en produccion), `2047914` fix 4 (watermark por fechconf; absorbe fix 2), `3b4ad6c` fix 3 (UNIQUE folio+producto+bodega, aplicada por SQL puntual).
+- Regularizacion aplicada: sync real (+17 movs / +1.913 u.) y 25 ajustes AJT-REGSYNC (-634 u.). Pendientes 5 codigos de 001653 (ver BUGS.md) esperando decision de Pablo.
+- REGLA OPERATIVA: no correr `npx vitest run` completo: ~13 archivos de test aun escriben en la base de produccion (con limpieza). Correr solo archivos puntuales que usen mocks o sean solo lectura. Pendiente: base de pruebas separada (rama Neon).
+- Tablas de prueba en produccion detectadas: movimientos TRF-TRF-SMOKE-*/TRF-TRF-NEW-* (TEST-TRF-001) y usuarios test-user2, test-dup, test-login (admin).
