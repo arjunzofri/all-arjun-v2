@@ -116,3 +116,14 @@ Ver sección 10 de PRD.md — estructura completa documentada ahí. Resumen:
 Ver `PRD.md` para alcance funcional completo y `CONTEXT-CLAUDE-CHAT.md`
 para contexto de arquitectura a pegar en sesiones con el Director Técnico
 (Claude chat).
+
+## Entorno QA (Fase E — ver ~/.claude/PBRAVOT-QA.md)
+- Configuracion: `.pbravot/qa-entorno.json`. CUIDADO: `.env.local` apunta a PRODUCCION; el entorno de
+  QA redirige `DATABASE_URL` a `TEST_DATABASE_URL` (rama Neon "test") y se niega a arrancar si
+  ambas apuntan al mismo host.
+- Levantar: `& "$HOME\.claude\pbravot\qa-entorno.ps1" -Repo . -Accion levantar` (http://localhost:3123)
+- Cuentas sinteticas: `.pbravot/qa-preparar.mjs` crea qa-admin y qa-operador en la rama de pruebas y
+  las deja en `..\_dt\qa\cuentas.json`.
+- Datos: la rama de pruebas cambia entre corridas; los casos se escriben con valores relativos.
+- Fuera de QA local: "Identificar por foto" (requiere claves de Gemini, API de pago).
+- Detener: `-Accion detener` (restaura next-env.d.ts).

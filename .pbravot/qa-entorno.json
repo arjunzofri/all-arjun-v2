@@ -1,0 +1,17 @@
+{
+  "url": "http://localhost:3123",
+  "comando": "npm run dev -- -p 3123",
+  "envArchivos": [".env.local", ".env"],
+  "envDesde": { "DATABASE_URL": "TEST_DATABASE_URL" },
+  "env": {
+    "NEXTAUTH_URL": "http://localhost:3123",
+    "AUTH_URL": "http://localhost:3123",
+    "AUTH_TRUST_HOST": "true"
+  },
+  "guardas": [ { "var": "DATABASE_URL", "distintoDe": "DATABASE_URL" } ],
+  "produccion": ["all-arjun-v2.vercel.app"],
+  "preview": [],
+  "preparar": "node .pbravot/qa-preparar.mjs",
+  "restaurar": ["next-env.d.ts"],
+  "timeoutSeg": 180
+}
