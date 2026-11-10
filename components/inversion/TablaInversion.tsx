@@ -1,9 +1,13 @@
+"use client";
+
+import { useState } from "react";
 import type { ResumenInversion } from "@/lib/utils/inversion-resumen";
 import {
   formatearMoneda,
   formatearNumero,
   formatearPromedio,
 } from "@/lib/utils/inversion-formato";
+import DetalleCodigo from "./DetalleCodigo";
 
 export interface FilaVista {
   codigo: string;
@@ -32,8 +36,10 @@ export function filasParaVista(resumen: ResumenInversion): FilaVista[] {
 
 export default function TablaInversion({ resumen }: { resumen: ResumenInversion }) {
   const filas = filasParaVista(resumen);
+  const [seleccionado, setSeleccionado] = useState<string | null>(null);
 
   return (
+    <>
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full text-sm border-collapse">
         <thead>
@@ -50,7 +56,14 @@ export default function TablaInversion({ resumen }: { resumen: ResumenInversion 
           {filas.map((f) => (
             <tr key={f.codigo} className="hover:bg-slate-50 transition-colors">
               <td className="py-2.5 pl-4 pr-3">
-                <span className="font-semibold text-xs text-violet-600">{f.codigo}</span>
+                <button
+                  type="button"
+                  onClick={() => setSeleccionado(f.codigo)}
+                  aria-haspopup="dialog"
+                  className="font-semibold text-xs text-violet-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 rounded"
+                >
+                  {f.codigo}
+                </button>
               </td>
               <td className="py-2.5 px-3 text-slate-600 max-w-xs">
                 <span className="line-clamp-2 leading-snug text-xs">{f.detalle}</span>
@@ -84,5 +97,12 @@ export default function TablaInversion({ resumen }: { resumen: ResumenInversion 
         </tbody>
       </table>
     </div>
+    {seleccionado && (
+      <DetalleCodigo
+        codigo={seleccionado}
+        onClose={() => setSeleccionado(null)}
+      />
+    )}
+    </>
   );
 }

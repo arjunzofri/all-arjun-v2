@@ -29,6 +29,23 @@ export function resolverAccesoInversion(
   return "ok";
 }
 
+/** Bloque de error: solo mensajes fijos, nunca el error original. */
+function BloqueError({ mensaje }: { mensaje: string }) {
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">
+        Inversión en mercadería
+      </h1>
+      <div
+        role="alert"
+        className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-700"
+      >
+        {mensaje}
+      </div>
+    </div>
+  );
+}
+
 export default async function InversionMercaderiaPage() {
   const session = await auth();
   const acceso = resolverAccesoInversion(
@@ -39,10 +56,19 @@ export default async function InversionMercaderiaPage() {
   if (acceso === "login") redirect("/login");
   if (acceso === "no-encontrado") notFound();
 
-  const stockPorCodigo = await getStockPorCodigo();
-  const lotesPorCodigo = await getLotesCompraPorCodigos([
-    ...stockPorCodigo.keys(),
-  ]);
+  let stockPorCodigo: Awaited<ReturnType<typeof getStockPorCodigo>>;
+  try {
+    stockPorCodigo = await getStockPorCodigo();
+  } catch {
+    return <BloqueError mensaje="Error al cargar el inventario" />;
+  }
+
+  let lotesPorCodigo: Awaited<ReturnType<typeof getLotesCompraPorCodigos>>;
+  try {
+    lotesPorCodigo = await getLotesCompraPorCodigos([...stockPorCodigo.keys()]);
+  } catch {
+    return <BloqueError mensaje="No se pudo consultar Vida Digital" />;
+  }
   const resumen = calcularResumenInversion(stockPorCodigo, lotesPorCodigo);
   const { totales } = resumen;
 

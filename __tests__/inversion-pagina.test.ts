@@ -7,6 +7,9 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
@@ -134,6 +137,33 @@ describe("página", () => {
     expect(mockLotes).toHaveBeenCalledWith([...stock.keys()]);
   });
 
+  it("falla getStockPorCodigo → bloque de inventario, sin mensaje original", async () => {
+    mockStock.mockRejectedValue(new Error("SECRETO_STOCK_ORIGINAL"));
+
+    const html = renderToStaticMarkup(
+      (await InversionMercaderiaPage()) as React.ReactElement
+    );
+
+    expect(html).toContain("Error al cargar el inventario");
+    expect(html).not.toContain("SECRETO_STOCK_ORIGINAL");
+    expect(mockLotes).not.toHaveBeenCalled();
+    expect(html).not.toContain("Inversión total");
+  });
+
+  it("falla getLotesCompraPorCodigos → bloque de Vida Digital, sin mensaje original", async () => {
+    mockStock.mockResolvedValue(stock);
+    mockLotes.mockRejectedValue(new Error("SECRETO_VIDADIGITAL_ORIGINAL"));
+
+    const html = renderToStaticMarkup(
+      (await InversionMercaderiaPage()) as React.ReactElement
+    );
+
+    expect(html).toContain("No se pudo consultar Vida Digital");
+    expect(html).not.toContain("SECRETO_VIDADIGITAL_ORIGINAL");
+    expect(mockLotes).toHaveBeenCalledTimes(1);
+    expect(html).not.toContain("Inversión total");
+  });
+
   it("admin: pasa calcularResumenInversion(stock, lotes) a TablaInversion", async () => {
     mockStock.mockResolvedValue(stock);
     mockLotes.mockResolvedValue(lotes);
@@ -150,5 +180,36 @@ describe("página", () => {
     expect((tabla!.props as { resumen: unknown }).resumen).toEqual(
       calcularResumenInversion(stock, lotes)
     );
+  });
+});
+
+// ── Contrato de fuente: lecturas en try/catch separados ──────────────────
+
+describe("page.tsx — manejo de errores de lectura", () => {
+  const src = readFileSync(
+    resolve(__dirname, "../app/(dashboard)/inversion-mercaderia/page.tsx"),
+    "utf8"
+  );
+
+  it("getStockPorCodigo va en su propio try/catch", () => {
+    expect(src).toMatch(
+      /try\s*\{[\s\S]{0,200}?await getStockPorCodigo\(\)[\s\S]{0,200}?\}\s*catch/
+    );
+  });
+
+  it("getLotesCompraPorCodigos va en su propio try/catch", () => {
+    expect(src).toMatch(
+      /try\s*\{[\s\S]{0,200}?await getLotesCompraPorCodigos\([\s\S]{0,200}?\}\s*catch/
+    );
+  });
+
+  it("muestra los bloques esperados", () => {
+    expect(src).toContain("Error al cargar el inventario");
+    expect(src).toContain("No se pudo consultar Vida Digital");
+  });
+
+  it("nunca interpola el mensaje de un error capturado", () => {
+    expect(src).not.toMatch(/\.message/);
+    expect(src).not.toMatch(/String\(\s*(?:e|error)\s*\)/);
   });
 });
