@@ -21,6 +21,12 @@ vi.mock("@neondatabase/serverless", () => ({
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
+// Este test verifica el sync sin conciliación: aislado del valor real del flag.
+// El caso flag-on está cubierto en conciliacion-sync.test.ts.
+vi.mock("@/lib/feature-flags", () => ({
+  flagActivo: vi.fn(() => false),
+}));
+
 vi.mock("@/db/vidadigital/queries", () => ({
   getComprasAnilDesde: vi.fn(),
 }));
