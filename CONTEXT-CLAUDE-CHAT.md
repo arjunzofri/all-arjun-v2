@@ -214,3 +214,11 @@ Artifact "Cotizacion App Arjun — Identificacion por foto e Inversion en mercad
 - Fallos conocidos de la suite: smoke-e2e tsc (timeout 5 s) y vistas-unificacion nextCursor (asume < 100 filas en bodega 1).
 - Datos de prueba borrados de produccion (aprobado por Pablo): 7 productos TEST-*, 10 movimientos, 9 filas de stock, usuarios test-user2, test-dup, test-login.
 - Pendiente (decision de Pablo, en espera): 5 codigos de 001653 en Bodega 1 (ver BUGS.md).
+
+### DECISION 2026-11-10 — Entrega con corte de inventario (Pablo / Anil)
+- Al entregar la app se parte de cero en stock: la misma semana de la entrega Arjun empieza a usarla y hace inventario fisico completo (Bodega 1, Bodega 2, Bodega Arjun, modulos 180/182/183/184/193).
+- Se CONSERVAN productos (278, con 103 ubicaciones asignadas), usuarios, bodegas y modulos. Se REINICIAN stock, movimientos, movimiento_visaciones y ajustes; el watermark compras-anil queda en la fecha de corte (fecha de confirmacion). Antes: rama Neon de respaldo de production.
+- Carga del conteo: codigo por codigo en la pantalla de Entradas (decision de Pablo).
+- Brecha detectada: `crearEntrada` solo acepta bodegas (bodegaId). Para contar stock que ya esta en los modulos hace falta permitir el conteo inicial directo a un modulo (folio INV-), o habria que cargarlo a bodega y luego hacer salida. Pendiente de slice.
+- Con el corte, los 5 codigos pendientes de 001653 y cualquier arrastre previo quedan resueltos.
+- Hechos al 2026-11-10: en la v2 nunca se registro una salida a modulos (las 52 salidas son migradas de v1) y no hubo actividad de usuarios en los ultimos 30 dias.

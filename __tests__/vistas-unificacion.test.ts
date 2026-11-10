@@ -19,9 +19,22 @@ describe("getStockPorUbicacion — bodega", () => {
   });
 
   it("nextCursor es null si no hay más items", async () => {
-    const page = await getStockPorUbicacion({ tipo: "bodega", ubicacionId: 1, limit: 100 });
-    expect(page.nextCursor).toBeNull();
-  });
+    const vistos = new Set<number>();
+    let cursor: number | undefined;
+    let page: Awaited<ReturnType<typeof getStockPorUbicacion>> | undefined;
+    let paginas = 0;
+    do {
+      page = await getStockPorUbicacion({ tipo: "bodega", ubicacionId: 1, limit: 100, cursor });
+      for (const item of page.items) {
+        expect(vistos.has(item.id)).toBe(false);
+        vistos.add(item.id);
+      }
+      cursor = page.nextCursor ?? undefined;
+      paginas++;
+    } while (cursor && paginas < 50);
+    expect(paginas).toBeLessThan(50);
+    expect(page!.nextCursor).toBeNull();
+  }, 30_000);
 
   it("respeta limit", async () => {
     const page = await getStockPorUbicacion({ tipo: "bodega", ubicacionId: 1, limit: 2 });

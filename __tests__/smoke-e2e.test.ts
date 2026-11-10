@@ -23,7 +23,7 @@ describe("smoke E2E", () => {
         stdio: "pipe",
       });
     }).not.toThrow();
-  });
+  }, 90_000);
 
   // ── R8: NextAuth export compatible con proxy ──────────────────
   it("lib/auth.ts exporta 'auth' (handler de proxy)", async () => {
