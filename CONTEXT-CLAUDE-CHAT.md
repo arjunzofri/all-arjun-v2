@@ -141,7 +141,7 @@ Handoff escrito por el Director Tecnico (Claude) antes de cambiar de cuenta. Tod
 - Ciclo PBT-IA por slice: Fase A (contrato, revision de impacto lateral, riesgos) -> el Director aprueba/ajusta -> Fase B (tests en rojo) -> C (implementacion <=200 lineas) -> D (tsc, vitest completo, build, flag) -> el Director verifica y hace commit.
 
 ### Como se invoca claude-deep en modo headless (desde PowerShell del PC)
-- Script: `C:\Users\pablo\Documents\app-arjun-v2\_poc_tmp\deep.ps1 -Prompt <archivo.md> -Log <archivo.log> -Tools <lista>`. Extrae las variables de entorno de la funcion `claude-deep` del `$PROFILE` y corre `claude -p` en el repo.
+- Script: `C:\Users\pablo\Documents\app-arjun-v2\_poc_tmp\deep.ps1 -Prompt <archivo.md> -Log <archivo.log> -Tools <lista>`. Carga `~/.claude/pbravot/pbravot-perfil.ps1` (Metodo pBravoT; la API key vive en la variable de usuario `DEEPSEEK_API_KEY`) y corre `claude -p` en el repo. Alternativa estandar pBravoT: `~/.claude/pbravot/deep.ps1` (ver ~/.claude/PBRAVOT-MODO-POWERSHELL.md).
 - Fase A solo lectura: `-Tools Read,Glob,Grep`. Fases B-C-D: `-Tools "Read,Glob,Grep,Edit,Write,Bash"`. Siempre "SIN commit".
 - Lanzar detached (la tool de PowerShell corta a los 60 s): `New-Object System.Diagnostics.ProcessStartInfo 'powershell.exe', "-NoLogo -ExecutionPolicy Bypass -File ..."` con WindowStyle Hidden. El log termina con `=== FIN ===`.
 - Prompts y logs de cada slice quedan en `_poc_tmp\` (m2_s*.md/.log, m1_*.md/.log).

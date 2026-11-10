@@ -1,5 +1,11 @@
 import { neon } from "@neondatabase/serverless";
 import { getComprasAnilDesde } from "@/db/vidadigital/queries";
+import { flagActivo } from "@/lib/feature-flags";
+import {
+  conciliarComprasAnil,
+  getDesdeConciliacion,
+  type ResultadoConciliacion,
+} from "@/lib/sync/conciliacion-compras";
 
 // ponytail: pre-seed manual de bodegas. Si se agregan más, migrar a tabla.
 const BODEGA_ID: Record<string, number> = {
@@ -9,6 +15,13 @@ const BODEGA_ID: Record<string, number> = {
 };
 
 const SYNC_KEY = "compras-anil";
+const ORIGEN_KEY = "compras-anil-desde";
+
+export interface SyncComprasAnilResultado {
+  procesadas: number;
+  watermark: string;
+  conciliacion?: ResultadoConciliacion | { error: string };
+}
 
 // ── Upsert de producto (compartido: sync Anil + entrada manual) ──
 
@@ -100,10 +113,9 @@ export async function insertarMovimientoSync(
 
 // ── Sync principal ────────────────────────────────────────────────────
 
-export async function syncComprasAnil(corte: string): Promise<{
-  procesadas: number;
-  watermark: string;
-}> {
+export async function syncComprasAnil(
+  corte: string,
+): Promise<SyncComprasAnilResultado> {
   const sql = neon(process.env.DATABASE_URL!);
 
   // Defensa: validar que BODEGA_ID coincida con las filas reales en bodegas/modulos.
@@ -127,6 +139,14 @@ export async function syncComprasAnil(corte: string): Promise<{
       );
     }
   }
+
+  // Fecha de origen de la conciliación: fija al corte del primer sync.
+  // El script de corte de inventario debe borrar/reiniciar esta key.
+  await sql`
+    INSERT INTO sync_watermark (key, value)
+    VALUES (${ORIGEN_KEY}, ${corte})
+    ON CONFLICT (key) DO NOTHING
+  `;
 
   const compras = await getComprasAnilDesde(corte);
 
@@ -167,5 +187,23 @@ export async function syncComprasAnil(corte: string): Promise<{
     ON CONFLICT (key) DO UPDATE SET value = ${maxFecha}
   `;
 
-  return { procesadas, watermark: maxFecha };
+  // Conciliación automática (flag). Una falla acá NO rompe el sync:
+  // las compras ya quedaron insertadas.
+  let conciliacion: SyncComprasAnilResultado["conciliacion"];
+  if (flagActivo("conciliacion_compras")) {
+    const desde = await getDesdeConciliacion(sql);
+    try {
+      conciliacion = await conciliarComprasAnil(desde);
+    } catch (err) {
+      conciliacion = {
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  }
+
+  return {
+    procesadas,
+    watermark: maxFecha,
+    ...(conciliacion ? { conciliacion } : {}),
+  };
 }

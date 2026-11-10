@@ -4,8 +4,42 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
+import type { ResultadoConciliacion } from "@/lib/sync/conciliacion-compras";
 
 // ── Tipos ──────────────────────────────────────────────────────────────
+
+type SyncResultado = {
+  procesadas: number;
+  watermark: string;
+  conciliacion?: ResultadoConciliacion | { error: string };
+};
+
+const TONO_CONCILIACION = {
+  ok: "border-green-200 bg-green-50 text-green-700",
+  alerta: "border-amber-200 bg-amber-50 text-amber-700",
+  error: "border-red-200 bg-red-50 text-red-700",
+} as const;
+
+/** Texto + tono del bloque de conciliación. `undefined` → sin bloque. */
+export function formatearConciliacion(
+  c: SyncResultado["conciliacion"],
+): { tono: keyof typeof TONO_CONCILIACION; texto: string } | null {
+  if (c === undefined) return null;
+  if ("error" in c) {
+    return { tono: "error", texto: `Conciliación falló: ${c.error}` };
+  }
+  const r = c.resumen;
+  if (c.cuadra) {
+    return {
+      tono: "ok",
+      texto: `Conciliación OK: ${r.notasRevisadas} notas, ${r.lineasVd} líneas, ${r.unidadesVd} u.`,
+    };
+  }
+  return {
+    tono: "alerta",
+    texto: `Conciliación: ${r.diferencias} diferencias en ${r.notasConDiferencias} notas (app ${r.unidadesApp} u. vs VD ${r.unidadesVd} u.)`,
+  };
+}
 
 type StockUbicacion = { id: number; nombre: string; cantidad: number };
 
@@ -131,10 +165,10 @@ async function fetchProductos(
 // ── Sync handler (mismo patrón que createLogoutHandler) ──────────────────
 
 export function createSyncHandler(config: {
-  syncFn: () => Promise<{ procesadas: number; watermark: string }>;
+  syncFn: () => Promise<SyncResultado>;
   isPending: () => boolean;
   setPending: (v: boolean) => void;
-  onResult: (result: { procesadas: number; watermark: string }) => void;
+  onResult: (result: SyncResultado) => void;
   onError: (mensaje: string) => void;
 }) {
   return async () => {
@@ -181,7 +215,7 @@ export default function ProductosPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [syncPending, setSyncPending] = useState(false);
-  const [syncResultado, setSyncResultado] = useState<{ procesadas: number; watermark: string } | null>(null);
+  const [syncResultado, setSyncResultado] = useState<SyncResultado | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
   const searchRef = useRef<ReturnType<typeof createProductSearch> | undefined>(undefined);
   const initialDone = useRef(false);
@@ -311,6 +345,12 @@ export default function ProductosPage() {
 
   // ── JSX ────────────────────────────────────────────────────────────
 
+  const conciliacionFmt = formatearConciliacion(syncResultado?.conciliacion);
+  const diferencias =
+    syncResultado?.conciliacion && !("error" in syncResultado.conciliacion)
+      ? syncResultado.conciliacion.diferencias
+      : [];
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
@@ -328,6 +368,27 @@ export default function ProductosPage() {
         <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           {syncResultado.procesadas} compras procesadas. Watermark:{" "}
           {syncResultado.watermark}
+        </div>
+      )}
+
+      {conciliacionFmt && (
+        <div
+          className={`mb-4 rounded-lg border px-4 py-3 text-sm ${TONO_CONCILIACION[conciliacionFmt.tono]}`}
+        >
+          <div>{conciliacionFmt.texto}</div>
+          {diferencias.length > 0 && (
+            <ul className="mt-2 space-y-0.5 font-mono text-xs">
+              {diferencias.slice(0, 10).map((d, i) => (
+                <li key={i}>
+                  {d.folio} · {d.codigo ?? "—"} · {d.bodega ?? "—"} ·{" "}
+                  {d.cantidadVd ?? "—"}→{d.cantidadApp ?? "—"}
+                </li>
+              ))}
+              {diferencias.length > 10 && (
+                <li>+{diferencias.length - 10} más</li>
+              )}
+            </ul>
+          )}
         </div>
       )}
 

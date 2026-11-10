@@ -20,6 +20,7 @@ const EJERCITA_SYNC = [
   /\bimport\s*\{[^}]*\bregistrarConciliacion\b[^}]*\}/,
   /\bimport\s*\{[^}]*\bgetLineasApp\b[^}]*\}/,
   /from\s+["']@\/app\/api\/sync\/compras-anil\/route["']/,
+  /from\s+["']@\/app\/api\/sync\/conciliacion\/route["']/,
 ];
 
 const MOCK_NEON = /vi\.mock\(\s*["']@neondatabase\/serverless["']/;
