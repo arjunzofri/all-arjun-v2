@@ -39,6 +39,11 @@ export function marcarManual() {
   return { esDeCatalogo: false as const };
 }
 
+/** Código inicial desde ?codigo= (recortado). Función pura. */
+export function codigoDesdeQuery(search: string): string {
+  return (new URLSearchParams(search).get("codigo") ?? "").trim();
+}
+
 export default function EntradasPage() {
   const [codigo, setCodigo] = useState("");
   const [detalle, setDetalle] = useState("");
@@ -60,7 +65,7 @@ export default function EntradasPage() {
   const fotoLocalRef = useRef<string | null>(null);
 
   const searchRef = useRef<ReturnType<typeof createProductoSearch> | undefined>(undefined);
-  if (!searchRef.current) {
+  if (searchRef.current == null) {
     searchRef.current = createProductoSearch({
       fetchFn: async (q) => {
         const res = await fetch(`/api/productos/buscar-historico?q=${encodeURIComponent(q)}`);
@@ -105,6 +110,22 @@ export default function EntradasPage() {
       })
       .catch(() => {});
   };
+
+  // Llegada desde /entradas/identificar: mismo flujo que escribir y elegir.
+  useEffect(() => {
+    const q = codigoDesdeQuery(window.location.search);
+    if (!q) return;
+    fetch(`/api/productos/buscar-historico?q=${encodeURIComponent(q)}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((items: Sugerencia[]) => {
+        const match = items.find((i) => i.codigo.toUpperCase() === q.toUpperCase());
+        if (match) selectProducto(match);
+        else handleSearch(q); // deja el código escrito + sugerencias
+      })
+      .catch(() => handleSearch(q));
+    // Solo al montar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleFoto = async (file: File) => {
     if (fotoLocalRef.current) URL.revokeObjectURL(fotoLocalRef.current);

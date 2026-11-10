@@ -1,0 +1,109 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { CamaraBoton } from "@/components/CamaraBoton";
+import { comprimirImagen, miniaturaCloudinary } from "@/lib/utils/comprimir-imagen";
+
+type Opcion = { codigo: string; codigos: string[]; detalle: string | null; imagenUrl: string; razon: string };
+type Resultado = { opciones: Opcion[] };
+
+const ERROR_GENERICO = "No se pudo identificar el producto. Intenta de nuevo.";
+const BOTON_USAR = "mt-2 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700 transition-colors";
+
+export default function IdentificarProducto() {
+  const router = useRouter();
+  const [foto, setFoto] = useState<string | null>(null);
+  const [analizando, setAnalizando] = useState(false);
+  const [error, setError] = useState("");
+  const [resultado, setResultado] = useState<Resultado | null>(null);
+  const [elegidos, setElegidos] = useState<Record<number, string>>({});
+  const fotoRef = useRef<string | null>(null);
+  useEffect(() => () => { if (fotoRef.current) URL.revokeObjectURL(fotoRef.current); }, []);
+
+  const handleFoto = async (file: File) => {
+    if (analizando) return;
+    if (fotoRef.current) URL.revokeObjectURL(fotoRef.current);
+    fotoRef.current = URL.createObjectURL(file);
+    setFoto(fotoRef.current); setError(""); setResultado(null); setAnalizando(true);
+    try {
+      const { data, mimeType } = await comprimirImagen(file);
+      const res = await fetch("/api/identificacion", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data, mimeType }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) return setError(json?.error ?? ERROR_GENERICO);
+      if (!json?.opciones) return setError(ERROR_GENERICO);
+      setResultado(json as Resultado);
+      setElegidos(Object.fromEntries((json.opciones as Opcion[]).map((o, i) => [i, o.codigo])));
+    } catch { setError(ERROR_GENERICO); } finally { setAnalizando(false); }
+  };
+
+  const reiniciar = () => {
+    if (fotoRef.current) URL.revokeObjectURL(fotoRef.current);
+    fotoRef.current = null;
+    setFoto(null); setResultado(null); setError(""); setElegidos({});
+  };
+
+  return (
+    <div className="max-w-lg">
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Identificar producto</h1>
+      <div className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-dashed border-slate-300 bg-white">
+        {foto && <img src={foto} alt="Foto del producto" className="w-40 h-40 rounded-xl object-cover border border-slate-200" />}
+        <CamaraBoton onFoto={handleFoto} disabled={analizando} className="!p-5 rounded-2xl bg-violet-600 !text-white hover:!bg-violet-700" />
+        <span className="text-sm font-medium text-slate-700">Sacar foto del producto</span>
+      </div>
+
+      {analizando && (
+        <div role="status" className="mt-4 rounded-lg bg-violet-50 border border-violet-200 px-4 py-3 text-sm text-violet-700">
+          Analizando la foto... puede tardar hasta 45 segundos
+        </div>
+      )}
+      {error && (
+        <div role="alert" className="mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
+      )}
+
+      {resultado && !analizando && (
+        <div className="mt-6 space-y-3">
+          {resultado.opciones.length === 0 && <p className="text-sm text-slate-600">No encontramos productos parecidos en la foto.</p>}
+          {resultado.opciones.slice(0, 3).map((op, i) => {
+            const elegido = elegidos[i] ?? op.codigo;
+            return (
+              <div key={`${op.codigo}-${i}`} className="flex gap-3 p-3 rounded-xl border border-slate-200 bg-white shadow-sm">
+                <img src={miniaturaCloudinary(op.imagenUrl, 160)} alt={op.codigo}
+                  className="w-16 h-16 rounded-lg object-contain bg-white border border-slate-200 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <span className="font-mono text-sm font-semibold text-slate-900">{elegido}</span>
+                  {op.detalle && <p className="text-xs text-slate-600 truncate">{op.detalle}</p>}
+                  <p className="text-xs text-slate-500 mt-1">{op.razon}</p>
+                  {op.codigos.length > 1 && op.codigos.map((c) => (
+                    <label key={c} className="flex items-center gap-2 text-xs text-slate-700 mt-1">
+                      <input type="radio" name={`codigos-${i}`} checked={elegido === c}
+                        onChange={() => setElegidos((s) => ({ ...s, [i]: c }))} />
+                      <span className="font-mono">{c}</span>
+                    </label>
+                  ))}
+                  <button type="button" className={BOTON_USAR}
+                    onClick={() => router.push(`/entradas?codigo=${encodeURIComponent(elegido)}`)}>Usar este código</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="mt-6 space-y-3 text-center">
+        <p className="text-sm text-slate-500">¿Ninguno es el producto?</p>
+        <Link href="/entradas" className="inline-block text-sm font-medium text-violet-600 hover:underline">Buscar manualmente</Link>
+        <div>
+          <button type="button" onClick={reiniciar}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+            Sacar otra foto
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
