@@ -85,6 +85,7 @@ afterEach(() => {
     else process.env[k] = envGuardado[k];
   }
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
   vi.useRealTimers();
 });
 
@@ -253,6 +254,34 @@ describe("llamarGeminiJson() — parseo defensivo", () => {
     expect(safety).toHaveBeenCalledTimes(1);
     expect(errSafety).toBeInstanceOf(GeminiError);
     expect(errSafety.message).toContain("SAFETY");
+  });
+});
+
+describe("opciones de llamarGeminiJson()", () => {
+  it("razonamiento modelo omite thinkingConfig", async () => {
+    const { llamarGeminiJson } = await cargar();
+    ponerClaves("k1");
+    const fn = stubFetch(respuestaTexto('{"ok":true}'));
+
+    await llamarGeminiJson([{ text: "rerank" }], { razonamiento: "modelo" });
+
+    const body = JSON.parse(bodyDe(fn));
+    expect(body.generationConfig).toEqual({
+      temperature: 0,
+      responseMimeType: "application/json",
+    });
+    expect(body.generationConfig).not.toHaveProperty("thinkingConfig");
+  });
+
+  it("timeoutMs reemplaza el timeout por defecto", async () => {
+    const { llamarGeminiJson } = await cargar();
+    ponerClaves("k1");
+    stubFetch(respuestaTexto('{"ok":true}'));
+    const spy = vi.spyOn(AbortSignal, "timeout");
+
+    await llamarGeminiJson([{ text: "lote" }], { timeoutMs: 120_000 });
+
+    expect(spy).toHaveBeenCalledWith(120_000);
   });
 });
 

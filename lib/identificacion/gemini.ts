@@ -14,8 +14,8 @@ export class GeminiError extends Error {
   }
 }
 
-const URL_GEMINI =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent";
+export const MODELO_GEMINI = "gemini-3.5-flash-lite";
+const URL_GEMINI = `https://generativelanguage.googleapis.com/v1beta/models/${MODELO_GEMINI}:generateContent`;
 const TIMEOUT_MS = 20_000;
 const MAX_CUERPO_ERROR = 300;
 const MAX_TEXTO_JSON = 200;
@@ -84,7 +84,16 @@ function parsearJson<T>(texto: string, intento: number): T {
  * 401/403 rotan a la siguiente clave (una clave mala no tumba la llamada).
  * 400/404 se lanzan de inmediato. Clave en header, nunca en la URL.
  */
-export async function llamarGeminiJson<T>(parts: GeminiPart[]): Promise<T> {
+export interface OpcionesGemini {
+  /** "low" (default) envía thinkingLevel low; "modelo" omite thinkingConfig. */
+  razonamiento?: "low" | "modelo";
+  timeoutMs?: number;
+}
+
+export async function llamarGeminiJson<T>(
+  parts: GeminiPart[],
+  opciones: OpcionesGemini = {}
+): Promise<T> {
   const claves = leerClaves();
   if (claves.length === 0) {
     throw new GeminiError("Sin claves GEMINI_API_KEY_*", null, 0);
@@ -111,10 +120,12 @@ export async function llamarGeminiJson<T>(parts: GeminiPart[]): Promise<T> {
           generationConfig: {
             temperature: 0,
             responseMimeType: "application/json",
-            thinkingConfig: { thinkingLevel: "low" },
+            ...(opciones.razonamiento === "modelo"
+              ? {}
+              : { thinkingConfig: { thinkingLevel: "low" } }),
           },
         }),
-        signal: AbortSignal.timeout(TIMEOUT_MS),
+        signal: AbortSignal.timeout(opciones.timeoutMs ?? TIMEOUT_MS),
       });
     } catch (e) {
       const motivo = e instanceof Error ? e.message : String(e);
