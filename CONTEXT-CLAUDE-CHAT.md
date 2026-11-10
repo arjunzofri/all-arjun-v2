@@ -228,3 +228,6 @@ Artifact "Cotizacion App Arjun — Identificacion por foto e Inversion en mercad
 2. Validacion contra WinFac: muestra de ~10 notas de venta impresas (fotos de Pablo) comparadas contra la app.
 3. Script de corte de inventario: rama Neon de respaldo, reinicio de stock/movimientos/visaciones/ajustes, watermark = fecha de corte.
 4. Arjun hace inventario fisico la semana de la entrega y lo carga codigo por codigo en Entradas. Lo que va a modulos lo manejan los usuarios con salidas normales (decision de Pablo: no se hace slice de conteo directo a modulos).
+
+### VALIDACION CONTRA WINFAC (2026-11-10, punto 2 del plan de entrega) — OK
+Fotos de 10 notas de venta impresas del WinFac enviadas por Pablo (5 Vida Digital: 002040, 002109, 002228, 002331, 002515; 5 Sanjh: 003680, 003757, 003758, 003766, 003767). Transcripcion verificada contra unidades y total impresos de cada nota. Resultado (`_poc_tmp/winfac_vs.cjs`, `winfac_impresas.json`, `winfac_vs.out`): en las 10 notas, impreso WinFac = Vida Digital (Neon, regla de la app) = app Arjun, linea por linea (codigo, zeta, cantidad, precio) y por bodega. Unica diferencia inicial (002109 MK-EDF01 vs MK-BDF01) fue error de lectura de la foto, confirmado ampliando la imagen. Suma con 001986/001987: 12 notas impresas validadas.
