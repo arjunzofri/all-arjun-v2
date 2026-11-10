@@ -6,6 +6,7 @@ import { BODEGAS } from "@/lib/constants";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { CamaraBoton } from "@/components/CamaraBoton";
 import { createProductoSearch } from "@/components/useProductoSearch";
+import { esCodigoArj } from "@/lib/utils/codigo-alternativo";
 
 type Sugerencia = {
   codigo: string;
@@ -59,6 +60,7 @@ export default function EntradasPage() {
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Sugerencia[]>([]);
   const [esDeCatalogo, setEsDeCatalogo] = useState(false);
+  const [nuevoArj, setNuevoArj] = useState(false);
   const [fotoLocal, setFotoLocal] = useState<string | null>(null);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [uploadingFoto, setUploadingFoto] = useState(false);
@@ -113,8 +115,19 @@ export default function EntradasPage() {
 
   // Llegada desde /entradas/identificar: mismo flujo que escribir y elegir.
   useEffect(() => {
-    const q = codigoDesdeQuery(window.location.search);
+    const params = new URLSearchParams(window.location.search);
+    const q = (params.get("codigo") ?? "").trim();
     if (!q) return;
+    // Código ARJ nuevo: no existe en ningún catálogo, no buscar el histórico.
+    if (params.get("nuevo") === "1" && esCodigoArj(q)) {
+      // Prefill inicial desde la URL, fuera del render.
+      queueMicrotask(() => {
+        setCodigo(q);
+        setEsDeCatalogo(marcarManual().esDeCatalogo);
+        setNuevoArj(true);
+      });
+      return;
+    }
     fetch(`/api/productos/buscar-historico?q=${encodeURIComponent(q)}`)
       .then((r) => (r.ok ? r.json() : []))
       .then((items: Sugerencia[]) => {
@@ -124,7 +137,6 @@ export default function EntradasPage() {
       })
       .catch(() => handleSearch(q));
     // Solo al montar.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFoto = async (file: File) => {
@@ -188,7 +200,7 @@ export default function EntradasPage() {
       setOk("Entrada registrada");
       setCodigo(""); setDetalle(""); setImagenUrl(null); setPacking(null);
       setObservaciones(""); setImagenError(false); setCantidad(""); setBodegaId(""); setUbicacion("");
-      setEsDeCatalogo(false); limpiarFoto();
+      setEsDeCatalogo(false); limpiarFoto(); setNuevoArj(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar");
     } finally { setLoading(false); }
@@ -200,6 +212,11 @@ export default function EntradasPage() {
   return (
     <div className="max-w-lg bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Nueva entrada</h1>
+      {nuevoArj && (
+        <div role="status" className="mb-4 rounded-lg bg-violet-50 border border-violet-200 px-4 py-3 text-sm text-violet-700">
+          Código nuevo ARJ: completa el detalle del producto y registra la entrada.
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
           <div className="flex items-center justify-between mb-1.5">

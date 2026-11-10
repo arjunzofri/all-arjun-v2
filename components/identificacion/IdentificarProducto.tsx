@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CamaraBoton } from "@/components/CamaraBoton";
 import { comprimirImagen, miniaturaCloudinary } from "@/lib/utils/comprimir-imagen";
+import { generarCodigoAlternativo } from "@/lib/actions/identificacion";
 
 type Opcion = { codigo: string; codigos: string[]; detalle: string | null; imagenUrl: string; razon: string };
 type Resultado = { opciones: Opcion[] };
@@ -19,6 +20,8 @@ export default function IdentificarProducto() {
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [elegidos, setElegidos] = useState<Record<number, string>>({});
+  const [creandoCodigo, setCreandoCodigo] = useState(false);
+  const [errorCodigo, setErrorCodigo] = useState("");
   const fotoRef = useRef<string | null>(null);
   useEffect(() => () => { if (fotoRef.current) URL.revokeObjectURL(fotoRef.current); }, []);
 
@@ -39,6 +42,17 @@ export default function IdentificarProducto() {
       setResultado(json as Resultado);
       setElegidos(Object.fromEntries((json.opciones as Opcion[]).map((o, i) => [i, o.codigo])));
     } catch { setError(ERROR_GENERICO); } finally { setAnalizando(false); }
+  };
+
+  const crearCodigoNuevo = async () => {
+    setCreandoCodigo(true); setErrorCodigo("");
+    try {
+      const { codigo } = await generarCodigoAlternativo();
+      router.push(`/entradas?codigo=${encodeURIComponent(codigo)}&nuevo=1`);
+    } catch (err) {
+      setErrorCodigo(err instanceof Error ? err.message : "No se pudo crear el código");
+      setCreandoCodigo(false);
+    }
   };
 
   const reiniciar = () => {
@@ -97,6 +111,13 @@ export default function IdentificarProducto() {
       <div className="mt-6 space-y-3 text-center">
         <p className="text-sm text-slate-500">¿Ninguno es el producto?</p>
         <Link href="/entradas" className="inline-block text-sm font-medium text-violet-600 hover:underline">Buscar manualmente</Link>
+        <div>
+          <button type="button" onClick={crearCodigoNuevo} disabled={creandoCodigo}
+            className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 transition-colors disabled:opacity-50">
+            {creandoCodigo ? "Creando código..." : "Crear código nuevo"}
+          </button>
+          {errorCodigo && <p role="alert" className="mt-2 text-xs text-red-600">{errorCodigo}</p>}
+        </div>
         <div>
           <button type="button" onClick={reiniciar}
             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
