@@ -8,7 +8,7 @@ import { comprimirImagen, miniaturaCloudinary } from "@/lib/utils/comprimir-imag
 import { generarCodigoAlternativo } from "@/lib/actions/identificacion";
 
 type Opcion = { codigo: string; codigos: string[]; detalle: string | null; imagenUrl: string; razon: string; fuente?: "visual" | "preseleccion" };
-type Resultado = { opciones: Opcion[] };
+type Resultado = { opciones: Opcion[]; avisos?: string[] };
 
 const ERROR_GENERICO = "No se pudo identificar el producto. Intenta de nuevo.";
 const BOTON_USAR = "mt-2 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700 transition-colors";
@@ -81,6 +81,9 @@ export default function IdentificarProducto() {
 
       {resultado && !analizando && (
         <div className="mt-6 space-y-3">
+          {resultado.avisos?.some((a) => a.includes("comparación visual no disponible")) && (
+            <p className="text-xs text-amber-700">Resultado rápido: la comparación por imagen no alcanzó a terminar. Revisa bien antes de elegir.</p>
+          )}
           {resultado.opciones.length === 0 && <p className="text-sm text-slate-600">No encontramos productos parecidos en la foto.</p>}
           {resultado.opciones.map((op, i) => {
             const elegido = elegidos[i] ?? op.codigo;

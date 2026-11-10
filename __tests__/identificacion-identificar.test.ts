@@ -320,13 +320,31 @@ describe("carrera contra el presupuesto", () => {
     expect(mocks.rerank).not.toHaveBeenCalled();
   });
 
-  it("si el rerank cuelga, vence el plazo → tiempo", async () => {
+  it("si el rerank cuelga, vence el plazo → devuelve preseleccion con aviso (no lanza)", async () => {
+    mocks.preseleccionar.mockResolvedValue({ candidatos: codigos(5), llm: ["G4", "G2"], kw: codigos(5) });
     mocks.rerank.mockImplementation(() => new Promise(() => {}));
 
     const promesa = identificarProducto(IMAGEN, { presupuestoMs: 1_000 });
-    const fallo = expect(promesa).rejects.toMatchObject({ tipo: "tiempo" });
     await vi.advanceTimersByTimeAsync(1_000);
-    await fallo;
+    const { opciones, avisos } = await promesa;
+
+    expect(opciones.map((o) => o.codigo)).toEqual(["G0", "G1", "G2"]);
+    expect(opciones.every((o) => o.fuente === "preseleccion")).toBe(true);
+    expect(opciones[0].razon).toBe("Sin comparación visual: candidato por descripción");
+    expect(avisos).toContain("comparación visual no disponible (tiempo)");
+  });
+});
+
+describe("rerank fallido", () => {
+  it("si el rerank lanza error → devuelve 3 opciones de preseleccion con aviso (error)", async () => {
+    mocks.preseleccionar.mockResolvedValue({ candidatos: codigos(5), llm: [], kw: codigos(5) });
+    mocks.rerank.mockRejectedValue(new Error("HTTP 500"));
+
+    const { opciones, avisos } = await identificarProducto(IMAGEN);
+
+    expect(opciones.map((o) => o.codigo)).toEqual(["G0", "G1", "G2"]);
+    expect(opciones.every((o) => o.fuente === "preseleccion")).toBe(true);
+    expect(avisos).toContain("comparación visual no disponible (error)");
   });
 });
 

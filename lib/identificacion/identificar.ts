@@ -113,20 +113,32 @@ export async function identificarProducto(
   const itemsRerank = candidatos.map((c) => porCodigo.get(c)).filter((i): i is ItemCatalogo => Boolean(i));
 
   const tRerank = Date.now();
-  let identificadas;
-  try { identificadas = await conPlazo(rerankPorTandas(img, itemsRerank), restante()); } catch (e) { throw comoError(e); }
+  let identificadas: Awaited<ReturnType<typeof rerankPorTandas>> | null = null;
+  let falloRerank: "tiempo" | "error" | null = null;
+  try { identificadas = await conPlazo(rerankPorTandas(img, itemsRerank), restante()); }
+  catch (e) { falloRerank = e instanceof ErrorIdentificacion && e.tipo === "tiempo" ? "tiempo" : "error"; }
   const rerankMs = Date.now() - tRerank;
 
-  const resultado = identificadas.flatMap((o): OpcionResultado[] => {
-    const item = porCodigo.get(o.codigo);
-    return item ? [{ codigo: item.codigo, codigos: item.codigos, detalle: item.detalle, imagenUrl: item.imagenUrl, razon: o.razon, fuente: "visual" as const }] : [];
-  });
+  let resultado: OpcionResultado[];
+  if (falloRerank) {
+    // El rerank no respondió: devolvemos la preselección en vez de un error.
+    avisos.push(`comparación visual no disponible (${falloRerank})`);
+    resultado = candidatos.slice(0, 3).flatMap((c): OpcionResultado[] => {
+      const item = porCodigo.get(c);
+      return item ? [{ codigo: item.codigo, codigos: item.codigos, detalle: item.detalle, imagenUrl: item.imagenUrl, razon: "Sin comparación visual: candidato por descripción", fuente: "preseleccion" as const }] : [];
+    });
+  } else {
+    resultado = identificadas!.flatMap((o): OpcionResultado[] => {
+      const item = porCodigo.get(o.codigo);
+      return item ? [{ codigo: item.codigo, codigos: item.codigos, detalle: item.detalle, imagenUrl: item.imagenUrl, razon: o.razon, fuente: "visual" as const }] : [];
+    });
 
-  // El mejor candidato por descripción que el rerank descartó; nunca reemplaza a los visuales.
-  const primero = pre.llm[0];
-  if (primero && resultado.length < 4 && !resultado.some((o) => o.codigo === primero)) {
-    const item = porCodigo.get(primero);
-    if (item) resultado.push({ codigo: item.codigo, codigos: item.codigos, detalle: item.detalle, imagenUrl: item.imagenUrl, razon: "Primer candidato por descripción", fuente: "preseleccion" });
+    // El mejor candidato por descripción que el rerank descartó; nunca reemplaza a los visuales.
+    const primero = pre.llm[0];
+    if (primero && resultado.length < 4 && !resultado.some((o) => o.codigo === primero)) {
+      const item = porCodigo.get(primero);
+      if (item) resultado.push({ codigo: item.codigo, codigos: item.codigos, detalle: item.detalle, imagenUrl: item.imagenUrl, razon: "Primer candidato por descripción", fuente: "preseleccion" });
+    }
   }
 
   return {

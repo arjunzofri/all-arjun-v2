@@ -137,6 +137,11 @@ describe("IdentificarProducto — opción de preselección", () => {
   it("no recorta las opciones en el cliente", () => {
     expect(src).not.toMatch(/opciones\.slice\(/);
   });
+  it("muestra la nota cuando falta la comparación visual", () => {
+    expect(src).toContain("comparación visual no disponible");
+    expect(src).toContain("Resultado rápido: la comparación por imagen no alcanzó a terminar. Revisa bien antes de elegir.");
+    expect(src).toMatch(/avisos\?: string\[\]/);
+  });
 });
 
 describe("límite client/server", () => {
