@@ -1,4 +1,5 @@
 {
   "inversion_mercaderia": true,
-  "identificacion_foto": false
+  "identificacion_foto": false,
+  "conciliacion_compras": false
 }

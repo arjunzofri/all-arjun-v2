@@ -222,3 +222,9 @@ Artifact "Cotizacion App Arjun — Identificacion por foto e Inversion en mercad
 - Brecha detectada: `crearEntrada` solo acepta bodegas (bodegaId). Para contar stock que ya esta en los modulos hace falta permitir el conteo inicial directo a un modulo (folio INV-), o habria que cargarlo a bodega y luego hacer salida. Pendiente de slice.
 - Con el corte, los 5 codigos pendientes de 001653 y cualquier arrastre previo quedan resueltos.
 - Hechos al 2026-11-10: en la v2 nunca se registro una salida a modulos (las 52 salidas son migradas de v1) y no hubo actividad de usuarios en los ultimos 30 dias.
+
+### PLAN DE ENTREGA (aprobado por Pablo 2026-11-10)
+1. Conciliacion automatica de compras app vs Vida Digital (slice en curso; Fase A lanzada). Objetivo: poder afirmar con evidencia que las compras de la app son exactamente iguales a las de Vida Digital.
+2. Validacion contra WinFac: muestra de ~10 notas de venta impresas (fotos de Pablo) comparadas contra la app.
+3. Script de corte de inventario: rama Neon de respaldo, reinicio de stock/movimientos/visaciones/ajustes, watermark = fecha de corte.
+4. Arjun hace inventario fisico la semana de la entrega y lo carga codigo por codigo en Entradas. Lo que va a modulos lo manejan los usuarios con salidas normales (decision de Pablo: no se hace slice de conteo directo a modulos).
