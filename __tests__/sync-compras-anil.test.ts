@@ -49,6 +49,7 @@ function compra(over: Record<string, unknown> = {}) {
   return {
     folio: "F-1",
     fechanvt: "2026-07-01",
+    fechconf: "2026-07-01",
     codigo: "COD-1",
     detalle: null,
     cantidad: 1,
@@ -99,21 +100,22 @@ describe("R1 — idempotencia", () => {
 
 // ── R2: Watermark ──────────────────────────────────────────────────────
 describe("R2 — watermark", () => {
-  it("escribe como watermark la mayor fechanvt procesada", async () => {
+  it("escribe como watermark la mayor fechconf procesada", async () => {
     mockGet.mockResolvedValue([
-      compra({ folio: "F-A", codigo: "A", fechanvt: "2026-07-01" }),
-      compra({ folio: "F-B", codigo: "B", fechanvt: "2026-08-03" }),
+      // Confirmada tarde: fechconf 2026-09-15 debe ganarle a la corte.
+      compra({ folio: "F-A", codigo: "A", fechanvt: "2026-07-01", fechconf: "2026-09-15" }),
+      compra({ folio: "F-B", codigo: "B", fechanvt: "2026-08-03", fechconf: "2026-08-03" }),
     ]);
 
     const res = await syncComprasAnil("2026-06-18");
 
-    expect(res.watermark).toBe("2026-08-03");
+    expect(res.watermark).toBe("2026-09-15");
 
     const ultimo = calls()[calls().length - 1];
     const text = ultimo[0].join("?");
     expect(text).toContain("INSERT INTO sync_watermark");
     expect(ultimo.slice(1)).toContain("compras-anil");
-    expect(ultimo.slice(1)).toContain("2026-08-03");
+    expect(ultimo.slice(1)).toContain("2026-09-15");
   });
 });
 

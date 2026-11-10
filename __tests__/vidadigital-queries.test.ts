@@ -201,3 +201,41 @@ describe("getComprasAnilDesde — regla de líneas válidas", () => {
     expect(totalNota(filas)).toBe(await sumaOraculo("001653"));
   });
 });
+
+// ── FASE B fix 4: el corte es la fecha de CONFIRMACION (fechconf) ──────
+// Una nota confirmada tarde (fechconf muy posterior a fechanvt) debe entrar
+// aunque su fechanvt quede antes del corte. Fixtures verificados read-only:
+//   002228 vida  fechanvt 2026-09-02 / fechconf 2026-09-15
+//   002109 vida  fechanvt 2026-08-04 / fechconf 2026-08-04
+//   001220 vida  fechanvt 2026-02-11 / fechconf 2026-03-31 (lag 48 dias)
+describe("getComprasAnilDesde — corte por fecha de confirmación", () => {
+  it("002228 entra con corte 2026-09-01 (confirmada el 15)", async () => {
+    const rows = await getComprasAnilDesde("2026-09-01");
+    expect(rows.some((r) => r.folio === "002228")).toBe(true);
+  });
+
+  it("cada compra trae fechconf >= 2026-09-01", async () => {
+    const rows = await getComprasAnilDesde("2026-09-01");
+    expect(rows.length).toBeGreaterThan(0);
+    const viejas = rows.filter((r) => (r.fechconf ?? "") < "2026-09-01");
+    expect(viejas).toEqual([]);
+  });
+
+  it("002228 entra con corte 2026-09-14 aunque su fechanvt sea 2026-09-02", async () => {
+    const rows = await getComprasAnilDesde("2026-09-14");
+    expect(rows.some((r) => r.folio === "002228")).toBe(true);
+  });
+
+  it("002109 (fechconf 2026-08-04) NO entra con corte 2026-09-14", async () => {
+    const rows = await getComprasAnilDesde("2026-09-14");
+    expect(rows.some((r) => r.folio === "002109")).toBe(false);
+  });
+
+  it("001220 (fechanvt 2026-02-11, fechconf 2026-03-31) entra con corte 2026-03-01", async () => {
+    const filas = (await getComprasAnilDesde("2026-03-01")).filter(
+      (r) => r.folio === "001220"
+    );
+    expect(filas.length).toBeGreaterThan(0);
+    expect(filas.every((r) => r.fechconf === "2026-03-31")).toBe(true);
+  });
+});

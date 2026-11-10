@@ -151,8 +151,10 @@ export async function syncComprasAnil(corte: string): Promise<{
     });
 
     procesadas++;
-    if (compra.fechanvt && compra.fechanvt > maxFecha) {
-      maxFecha = compra.fechanvt;
+    // El watermark avanza por fecha de CONFIRMACION: una nota confirmada
+    // tarde (fechconf posterior a su fechanvt) no se pierde.
+    if (compra.fechconf && compra.fechconf > maxFecha) {
+      maxFecha = compra.fechconf;
     }
   }
 

@@ -75,8 +75,13 @@ Ver sección 10 de PRD.md — estructura completa documentada ahí. Resumen:
    y el `ORDER BY`. La v1 tuvo dos bugs de paginación distintos por mezclar
    estos criterios.
 4. **El sync de compras Anil usa fecha de corte dinámica, determinada por
-   `sync_watermark.value` para la key `compras-anil`.** No se sincroniza
-   automáticamente nada anterior a ese valor. Mercadería más antigua
+   `sync_watermark.value` para la key `compras-anil`, y esa fecha es la de
+   CONFIRMACIÓN (`movidcto.fechconf`), no la de la nota (`fechanvt`).** Cada
+   sync trae las compras confirmadas desde esa fecha inclusive (la idempotencia
+   folio+producto evita duplicar); una nota confirmada tarde entra aunque su
+   `fechanvt` sea anterior al watermark. Las notas en borrador no tienen
+   `fechconf` y no entran hasta confirmarse. No se sincroniza automáticamente
+   nada anterior a ese valor. Mercadería más antigua
    se regulariza solo vía ingreso manual con el buscador histórico (que sí
    consulta todo el histórico, sin filtro de fecha, pero solo para traer
    metadata — nunca cantidades).

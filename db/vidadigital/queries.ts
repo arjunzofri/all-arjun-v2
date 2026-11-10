@@ -11,6 +11,8 @@ export interface Visacion {
 export interface CompraAnil {
   folio: string;
   fechanvt: string | null;
+  /** Fecha de confirmación (YYYY-MM-DD). Null solo en notas no confirmadas. */
+  fechconf: string | null;
   codigo: string;
   detalle: string | null;
   cantidad: number;
@@ -48,6 +50,11 @@ export interface ProductoCatalogoVD {
  * UNION ALL entre vida y sanjh — sin riesgo de duplicados porque
  * son sistemas distintos con folios independientes.
  *
+ * La fecha de corte es la fecha de CONFIRMACION (movidcto.fechconf), no la
+ * fecha de la nota (fechanvt): una nota confirmada tarde debe entrar aunque su
+ * fechanvt quede antes del corte. Solo las notas confirmadas tienen fechconf;
+ * las que siguen en borrador no entran hasta confirmarse.
+ *
  * Regla de líneas válidas (la misma validada en lib/utils/inversion-lotes.ts):
  *   1. Solo líneas confirmadas: i.pestadot = '3'. Descarta las líneas en
  *      borrador (pestadot = '1'), que duplican la línea real y no salen en
@@ -63,6 +70,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
       SELECT
         i.knumfoli AS folio,
         i.fechanvt,
+        i.fechconf,
         p.codigo,
         p.detalle,
         i.cantsali  AS cantidad,
@@ -75,13 +83,14 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
           i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int
         )
           i.knumfoli, i.codunico, i.cantsali, i.precdocd, i.knumezet,
-          m.fechanvt
+          m.fechanvt, m.fechconf::date::text AS fechconf
         FROM vida.itemdcto i
         JOIN vida.movidcto m ON i.knumfoli = m.knumfoli
         WHERE i.pestadot = '3'
           AND m.tipomovi = 'V'
           AND m.kcodcli2 IN (2, 20, 218)
-          AND m.fechanvt >= ${fecha}
+          AND m.fechconf IS NOT NULL
+          AND m.fechconf::date >= ${fecha}::date
         ORDER BY
           i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int,
           m.fechanvt, i.precdocd, i.cantsali
@@ -97,6 +106,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
       SELECT
         i.knumfoli AS folio,
         i.fechanvt,
+        i.fechconf,
         p.codigo,
         p.detalle,
         i.cantsali  AS cantidad,
@@ -109,13 +119,14 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
           i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int
         )
           i.knumfoli, i.codunico, i.cantsali, i.precdocd, i.knumezet,
-          m.fechanvt
+          m.fechanvt, m.fechconf::date::text AS fechconf
         FROM sanjh.itemdcto i
         JOIN sanjh.movidcto m ON i.knumfoli = m.knumfoli
         WHERE i.pestadot = '3'
           AND m.tipomovi = 'V'
           AND m.kcodcli2 IN (2, 20, 218)
-          AND m.fechanvt >= ${fecha}
+          AND m.fechconf IS NOT NULL
+          AND m.fechconf::date >= ${fecha}::date
         ORDER BY
           i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int,
           m.fechanvt, i.precdocd, i.cantsali
@@ -135,6 +146,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
     rows: {
       folio: string;
       fechanvt: string | null;
+      fechconf: string | null;
       codigo: string;
       detalle: string | null;
       cantidad: number;
@@ -178,6 +190,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
       entry = {
         folio: r.folio,
         fechanvt: r.fechanvt,
+        fechconf: r.fechconf,
         codigo: r.codigo,
         detalle: r.detalle,
         cantidad: 0,
