@@ -8,11 +8,8 @@ import {
   compararCompras,
   clasificarNotaAusente,
 } from "@/lib/sync/conciliacion-compras";
-import type {
-  LineaConciliacion,
-  EstadoNotaVd,
-} from "@/lib/sync/conciliacion-compras";
-import type { CompraAnil } from "@/db/vidadigital/queries";
+import type { LineaConciliacion } from "@/lib/sync/conciliacion-compras";
+import type { CompraAnil, EstadoNotaVd } from "@/db/vidadigital/queries";
 
 const B1 = "Bodega 1 Vida Digital";
 const B2 = "Bodega 2 Vida Digital";
@@ -403,5 +400,45 @@ describe("compararCompras — 12. totales iguales no implican cuadre", () => {
 
     expect(r.resumen.unidadesApp).toBe(r.resumen.unidadesVd);
     expect(r.cuadra).toBe(false);
+  });
+});
+
+// ── 13 ───────────────────────────────────────────────────────────────────
+
+describe("compararCompras — 13. clave ausente vale 0", () => {
+  it("línea app con neto 0 y ausente en VD → cuadra", () => {
+    const r = compararCompras(DESDE, [], [app("002515", "X", B1, 0)]);
+
+    expect(r.cuadra).toBe(true);
+    expect(r.diferencias).toEqual([]);
+    expect(r.resumen.lineasApp).toBe(1);
+    expect(r.resumen.unidadesApp).toBe(0);
+  });
+
+  it("nota con todas las líneas en neto 0 → sin nota_ausente_en_vd", () => {
+    const r = compararCompras(
+      DESDE,
+      [],
+      [app("002515", "X", B1, 0), app("002515", "Y", B2, 0)],
+    );
+
+    expect(r.diferencias).toEqual([]);
+    expect(r.cuadra).toBe(true);
+  });
+
+  it("línea app con neto negativo y ausente en VD → sobra_en_app negativa", () => {
+    const r = compararCompras(DESDE, [], [app("002515", "X", B1, -4)]);
+
+    // El folio suma -4 ≠ 0: también emite nota_ausente_en_vd (por diseño).
+    expect(r.diferencias.filter((d) => d.tipo === "sobra_en_app")).toEqual([
+      {
+        tipo: "sobra_en_app",
+        folio: "002515",
+        codigo: "X",
+        bodega: B1,
+        cantidadVd: 0,
+        cantidadApp: -4,
+      },
+    ]);
   });
 });

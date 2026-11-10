@@ -23,6 +23,15 @@ export interface CompraAnil {
   precioUnitario: number | null;
 }
 
+/** Estado de una nota en VD para clasificar notas app-only. */
+export interface EstadoNotaVd {
+  folio: string;
+  existe: boolean; // hay fila en movidcto (vida o sanjh)
+  fechconf: string | null; // MAX(fechconf) no nulo entre esquemas, YYYY-MM-DD
+  lineasConfirmadas: number; // itemdcto con pestadot='3'
+  lineasValidas: number; // + tipomovi='V' + kcodcli2 IN (2,20,218) + fechconf not null
+}
+
 export interface ProductoHistorico {
   codigo: string;
   detalle: string | null;
@@ -215,6 +224,81 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
   }
 
   return [...compraMap.values()].map(({ _visMap, ...c }) => c);
+}
+
+// ── Estado de notas (conciliación) ───────────────────────────────────────
+/**
+ * Estado de cada folio en VD, una query por esquema y merge en TS.
+ * Devuelve una entrada por folio pedido (existe=false si no aparece).
+ * Solo SELECT.
+ */
+export async function getEstadoNotasVd(
+  folios: readonly string[],
+): Promise<EstadoNotaVd[]> {
+  const unicos = [...new Set(folios)];
+  if (unicos.length === 0) return [];
+
+  // R1: neon-http expande arrays del template a ($1, $2, ...); ANY() no recibe
+  // array. IN (sql.join) con un parámetro por folio.
+  // ponytail: sin chunking; si algún día supera ~1000 folios, partir en lotes.
+  const lista = sql.join(unicos.map((f) => sql`${f}`), sql`, `);
+  const db = getVidaDigitalClient();
+  const porFolio = new Map<string, EstadoNotaVd>();
+
+  for (const esq of ["vida", "sanjh"] as const) {
+    const result = await db.execute(
+      sql`
+        SELECT m.knumfoli::text AS folio,
+               MAX(m.fechconf)::date::text AS fechconf,
+               COUNT(i.kdocitem) FILTER (WHERE i.pestadot = '3')::int AS lineas_confirmadas,
+               COUNT(i.kdocitem) FILTER (
+                 WHERE i.pestadot = '3' AND m.tipomovi = 'V'
+                   AND m.kcodcli2 IN (2, 20, 218) AND m.fechconf IS NOT NULL
+               )::int AS lineas_validas
+        FROM ${sql.raw(esq)}.movidcto m
+        LEFT JOIN ${sql.raw(esq)}.itemdcto i ON i.knumfoli = m.knumfoli
+        WHERE m.knumfoli::text IN (${lista})
+        GROUP BY m.knumfoli
+      `
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { rows } = result as any as {
+      rows: {
+        folio: string;
+        fechconf: string | null;
+        lineas_confirmadas: number | string;
+        lineas_validas: number | string;
+      }[];
+    };
+
+    for (const r of rows) {
+      const previo = porFolio.get(r.folio);
+      const fechconf = r.fechconf;
+      porFolio.set(r.folio, {
+        folio: r.folio,
+        existe: true,
+        fechconf:
+          previo?.fechconf && (!fechconf || previo.fechconf > fechconf)
+            ? previo.fechconf
+            : fechconf,
+        lineasConfirmadas:
+          (previo?.lineasConfirmadas ?? 0) + Number(r.lineas_confirmadas),
+        lineasValidas: (previo?.lineasValidas ?? 0) + Number(r.lineas_validas),
+      });
+    }
+  }
+
+  return unicos.map(
+    (folio) =>
+      porFolio.get(folio) ?? {
+        folio,
+        existe: false,
+        fechconf: null,
+        lineasConfirmadas: 0,
+        lineasValidas: 0,
+      },
+  );
 }
 
 // ── Buscador histórico ───────────────────────────────────────────────────

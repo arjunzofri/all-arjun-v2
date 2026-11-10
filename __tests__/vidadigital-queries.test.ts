@@ -12,6 +12,7 @@ import { sql } from "drizzle-orm";
 import {
   getComprasAnilDesde,
   buscarProductoHistorico,
+  getEstadoNotasVd,
 } from "@/db/vidadigital/queries";
 import { getVidaDigitalClient } from "@/db/vidadigital";
 import { getBodegaPorCodigoIngreso } from "@/lib/utils/get-bodega-por-codigo-ingreso";
@@ -249,5 +250,25 @@ describe("getComprasAnilDesde — corte por fecha de confirmación", () => {
     );
     expect(filas.length).toBeGreaterThan(0);
     expect(filas.every((r) => r.fechconf === "2026-03-31")).toBe(true);
+  });
+});
+
+// ── getEstadoNotasVd: read-only contra Vida Digital ────────────────────
+describe("getEstadoNotasVd()", () => {
+  it("001986 existe confirmada; 999999 no existe", async () => {
+    const estados = await getEstadoNotasVd(["001986", "002515", "999999"]);
+    const porFolio = new Map(estados.map((e) => [e.folio, e]));
+
+    const nota = porFolio.get("001986");
+    expect(nota?.existe).toBe(true);
+    expect(nota?.fechconf).toBe("2026-08-05");
+    expect(nota?.lineasValidas).toBeGreaterThan(0);
+
+    expect(porFolio.get("002515")?.existe).toBe(true);
+
+    const inexistente = porFolio.get("999999");
+    expect(inexistente?.existe).toBe(false);
+    expect(inexistente?.fechconf).toBeNull();
+    expect(inexistente?.lineasConfirmadas).toBe(0);
   });
 });

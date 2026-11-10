@@ -16,6 +16,9 @@ const TESTS_DIR = join(process.cwd(), "__tests__");
 const EJERCITA_SYNC = [
   /\bimport\s*\{[^}]*\bsyncComprasAnil\b[^}]*\}/,
   /\bimport\s*\{[^}]*\bbackfillVisaciones\b[^}]*\}/,
+  /\bimport\s*\{[^}]*\bconciliarComprasAnil\b[^}]*\}/,
+  /\bimport\s*\{[^}]*\bregistrarConciliacion\b[^}]*\}/,
+  /\bimport\s*\{[^}]*\bgetLineasApp\b[^}]*\}/,
   /from\s+["']@\/app\/api\/sync\/compras-anil\/route["']/,
 ];
 
