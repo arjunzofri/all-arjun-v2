@@ -214,6 +214,44 @@ describe("llamarGeminiJson() — rotación y reintentos", () => {
       expect(claveDe(fn, 0)).not.toBe(claveDe(fn, 1));
     }
   });
+
+  it("T15: timeout en clave 1 → reintenta con clave 2 y devuelve success", async () => {
+    const { llamarGeminiJson } = await cargar();
+    ponerClaves("k1", "k2", "k3");
+    const fn = vi.fn();
+    fn.mockRejectedValueOnce(
+      new DOMException("The operation was aborted due to timeout", "TimeoutError")
+    );
+    fn.mockResolvedValueOnce(respuestaTexto('{"ok":true}'));
+    vi.stubGlobal("fetch", fn);
+
+    vi.useFakeTimers();
+    const promesa = llamarGeminiJson([{ text: "responde" }]);
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    await expect(promesa).resolves.toEqual({ ok: true });
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect([claveDe(fn, 0), claveDe(fn, 1)]).toEqual(["k1", "k2"]);
+  });
+
+  it("T16: error de red en todas las claves → lanza con status null tras claves*2 intentos", async () => {
+    const { llamarGeminiJson, GeminiError } = await cargar();
+    ponerClaves("k1", "k2");
+    const fn = vi.fn();
+    fn.mockRejectedValue(new TypeError("fetch failed: ECONNRESET"));
+    vi.stubGlobal("fetch", fn);
+
+    vi.useFakeTimers();
+    const p = capturarError(llamarGeminiJson<unknown>([{ text: "responde" }]));
+    await vi.advanceTimersByTimeAsync(30_000);
+    const err = await p;
+
+    expect(fn).toHaveBeenCalledTimes(4);
+    expect(err).toBeInstanceOf(GeminiError);
+    expect(err.status).toBeNull();
+    expect(err.intentos).toBe(4);
+    expect(err.message).toContain("ECONNRESET");
+  });
 });
 
 describe("llamarGeminiJson() — parseo defensivo", () => {

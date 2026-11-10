@@ -80,7 +80,7 @@ function parsearJson<T>(texto: string, intento: number): T {
 }
 
 /**
- * POST a Gemini con rotación de claves y reintentos en 429/5xx.
+ * POST a Gemini con rotación de claves y reintentos en 429/5xx/timeout/red.
  * 401/403 rotan a la siguiente clave (una clave mala no tumba la llamada).
  * 400/404 se lanzan de inmediato. Clave en header, nunca en la URL.
  */
@@ -103,6 +103,7 @@ export async function llamarGeminiJson<T>(
   const maxIntentos = claves.length * 2;
   let ultimoStatus: number | null = null;
   let ultimoCuerpo = "";
+  let ultimoMotivo: string | null = null;
 
   for (let intento = 1; intento <= maxIntentos; intento++) {
     const clave = claves[(inicio + intento - 1) % claves.length];
@@ -129,11 +130,24 @@ export async function llamarGeminiJson<T>(
       });
     } catch (e) {
       const motivo = e instanceof Error ? e.message : String(e);
-      throw new GeminiError(
-        `Error de red o timeout: ${motivo.slice(0, MAX_CUERPO_ERROR)}`,
-        null,
-        intento
-      );
+      const reintentable =
+        e instanceof TypeError ||
+        (e instanceof DOMException &&
+          (e.name === "TimeoutError" || e.name === "AbortError"));
+      if (!reintentable) {
+        throw new GeminiError(
+          `Error de red o timeout: ${motivo.slice(0, MAX_CUERPO_ERROR)}`,
+          null,
+          intento
+        );
+      }
+      // Timeout o red: mismo backoff que 429/5xx y siguiente clave.
+      ultimoMotivo = motivo.slice(0, MAX_CUERPO_ERROR);
+      ultimoStatus = null;
+      if (intento < maxIntentos) {
+        await esperar(Math.min(250 * 2 ** (intento - 1), 2_000));
+      }
+      continue;
     }
 
     if (respuesta.ok) {
@@ -162,7 +176,9 @@ export async function llamarGeminiJson<T>(
   }
 
   throw new GeminiError(
-    `Gemini HTTP ${ultimoStatus}: ${ultimoCuerpo}`,
+    ultimoStatus !== null
+      ? `Gemini HTTP ${ultimoStatus}: ${ultimoCuerpo}`
+      : `Error de red o timeout: ${ultimoMotivo ?? "desconocido"}`,
     ultimoStatus,
     maxIntentos
   );
