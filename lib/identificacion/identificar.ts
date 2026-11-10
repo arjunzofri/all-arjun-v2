@@ -11,6 +11,7 @@ export interface OpcionResultado {
   detalle: string | null;
   imagenUrl: string;
   razon: string;
+  fuente: "visual" | "preseleccion";
 }
 
 export interface ResultadoIdentificacion {
@@ -118,8 +119,15 @@ export async function identificarProducto(
 
   const resultado = identificadas.flatMap((o): OpcionResultado[] => {
     const item = porCodigo.get(o.codigo);
-    return item ? [{ codigo: item.codigo, codigos: item.codigos, detalle: item.detalle, imagenUrl: item.imagenUrl, razon: o.razon }] : [];
+    return item ? [{ codigo: item.codigo, codigos: item.codigos, detalle: item.detalle, imagenUrl: item.imagenUrl, razon: o.razon, fuente: "visual" as const }] : [];
   });
+
+  // El mejor candidato por descripción que el rerank descartó; nunca reemplaza a los visuales.
+  const primero = pre.llm[0];
+  if (primero && resultado.length < 4 && !resultado.some((o) => o.codigo === primero)) {
+    const item = porCodigo.get(primero);
+    if (item) resultado.push({ codigo: item.codigo, codigos: item.codigos, detalle: item.detalle, imagenUrl: item.imagenUrl, razon: "Primer candidato por descripción", fuente: "preseleccion" });
+  }
 
   return {
     opciones: resultado,

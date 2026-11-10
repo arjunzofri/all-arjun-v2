@@ -137,10 +137,57 @@ describe("orden de etapas", () => {
         detalle: "detalle G1",
         imagenUrl: "https://cdn.test/G1.jpg",
         razon: "misma caja",
+        fuente: "visual",
       },
     ]);
     expect(resultado.candidatos).toBe(30);
     expect(resultado.tiempos.totalMs).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("opcion extra de preseleccion", () => {
+  it("agrega al final el primer candidato por descripcion si el rerank lo descarto", async () => {
+    mocks.preseleccionar.mockResolvedValue({ candidatos: codigos(30), llm: ["G5", "G6"], kw: [] });
+    mocks.rerank.mockResolvedValue([
+      { codigo: "G1", razon: "misma caja" },
+      { codigo: "G2", razon: "similar" },
+    ]);
+
+    const { opciones } = await identificarProducto(IMAGEN);
+
+    expect(opciones.map((o) => o.codigo)).toEqual(["G1", "G2", "G5"]);
+    expect(opciones.map((o) => o.fuente)).toEqual(["visual", "visual", "preseleccion"]);
+    expect(opciones[2]).toMatchObject({ razon: "Primer candidato por descripción", detalle: "detalle G5" });
+  });
+
+  it("no la agrega si el primer candidato ya esta entre los visuales", async () => {
+    mocks.preseleccionar.mockResolvedValue({ candidatos: codigos(30), llm: ["G1", "G5"], kw: [] });
+
+    const { opciones } = await identificarProducto(IMAGEN);
+
+    expect(opciones).toHaveLength(1);
+    expect(opciones[0].fuente).toBe("visual");
+  });
+
+  it("no la agrega con pre.llm vacio (fallback por palabras)", async () => {
+    mocks.preseleccionar.mockResolvedValue({ candidatos: codigos(30), llm: [], kw: codigos(30) });
+
+    const { opciones } = await identificarProducto(IMAGEN);
+
+    expect(opciones.map((o) => o.codigo)).toEqual(["G1"]);
+    expect(opciones.every((o) => o.fuente === "visual")).toBe(true);
+  });
+
+  it("nunca devuelve mas de 4 opciones", async () => {
+    mocks.preseleccionar.mockResolvedValue({ candidatos: codigos(30), llm: ["G9"], kw: [] });
+    mocks.rerank.mockResolvedValue(
+      ["G1", "G2", "G3", "G4"].map((codigo) => ({ codigo, razon: "similar" }))
+    );
+
+    const { opciones } = await identificarProducto(IMAGEN);
+
+    expect(opciones).toHaveLength(4);
+    expect(opciones.some((o) => o.codigo === "G9")).toBe(false);
   });
 });
 

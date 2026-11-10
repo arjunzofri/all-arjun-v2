@@ -128,6 +128,17 @@ describe("entradas/page — query ?codigo=", () => {
   });
 });
 
+describe("IdentificarProducto — opción de preselección", () => {
+  const src = readFileSync(join(process.cwd(), "components/identificacion/IdentificarProducto.tsx"), "utf8");
+  it("rotula la opción no visual como 'Otra posibilidad'", () => {
+    expect(src).toContain('op.fuente === "preseleccion"');
+    expect(src).toContain("Otra posibilidad");
+  });
+  it("no recorta las opciones en el cliente", () => {
+    expect(src).not.toMatch(/opciones\.slice\(/);
+  });
+});
+
 describe("límite client/server", () => {
   it("ningún archivo 'use client' importa lib/identificacion", () => {
     const archivos: string[] = [];

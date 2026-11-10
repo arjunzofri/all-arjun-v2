@@ -7,7 +7,7 @@ import { CamaraBoton } from "@/components/CamaraBoton";
 import { comprimirImagen, miniaturaCloudinary } from "@/lib/utils/comprimir-imagen";
 import { generarCodigoAlternativo } from "@/lib/actions/identificacion";
 
-type Opcion = { codigo: string; codigos: string[]; detalle: string | null; imagenUrl: string; razon: string };
+type Opcion = { codigo: string; codigos: string[]; detalle: string | null; imagenUrl: string; razon: string; fuente?: "visual" | "preseleccion" };
 type Resultado = { opciones: Opcion[] };
 
 const ERROR_GENERICO = "No se pudo identificar el producto. Intenta de nuevo.";
@@ -82,7 +82,7 @@ export default function IdentificarProducto() {
       {resultado && !analizando && (
         <div className="mt-6 space-y-3">
           {resultado.opciones.length === 0 && <p className="text-sm text-slate-600">No encontramos productos parecidos en la foto.</p>}
-          {resultado.opciones.slice(0, 3).map((op, i) => {
+          {resultado.opciones.map((op, i) => {
             const elegido = elegidos[i] ?? op.codigo;
             return (
               <div key={`${op.codigo}-${i}`} className="flex gap-3 p-3 rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -91,6 +91,7 @@ export default function IdentificarProducto() {
                 <div className="flex-1 min-w-0">
                   <span className="font-mono text-sm font-semibold text-slate-900">{elegido}</span>
                   {op.detalle && <p className="text-xs text-slate-600 truncate">{op.detalle}</p>}
+                  {op.fuente === "preseleccion" && <span className="inline-block mt-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">Otra posibilidad</span>}
                   <p className="text-xs text-slate-500 mt-1">{op.razon}</p>
                   {op.codigos.length > 1 && op.codigos.map((c) => (
                     <label key={c} className="flex items-center gap-2 text-xs text-slate-700 mt-1">
