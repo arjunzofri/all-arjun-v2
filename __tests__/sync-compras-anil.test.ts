@@ -74,9 +74,13 @@ beforeEach(() => {
 
 // ── R1: Idempotencia — doble sync no duplica ────────────────────────────
 describe("R1 — idempotencia", () => {
-  it("el schema declara unique(folio, producto_id) en movimientos", () => {
+  it("el schema declara unique(folio, producto_id, bodega_origen_id) nulls not distinct", () => {
     const schema = readFileSync(join(process.cwd(), "db", "schema.ts"), "utf8");
-    expect(schema).toContain('unique("uq_movimientos_folio_producto").on(t.folio, t.productoId)');
+    // compact: tolera el formato multilínea del builder de Drizzle.
+    const compact = schema.replace(/\s+/g, "");
+    expect(compact).toContain(
+      'unique("uq_movimientos_folio_producto_bodega").on(t.folio,t.productoId,t.bodegaOrigenId).nullsNotDistinct()',
+    );
   });
 
   it("la CTE de inserción lleva el guard NOT EXISTS por (folio, producto)", async () => {
@@ -95,6 +99,112 @@ describe("R1 — idempotencia", () => {
     expect(principal).toContain("folio = ?");
     expect(principal).toContain("producto_id = (SELECT id FROM productos WHERE codigo = ?");
     expect(principal).toContain("NOT EXISTS (SELECT 1 FROM existing)");
+  });
+});
+
+// ── Fix 3: segunda bodega del mismo producto en la misma nota ───────────
+describe("Fix 3 — bodega en la idempotencia", () => {
+  // T1: mismo folio+código en dos bodegas → dos movimientos, cada uno con
+  // su propio guard por bodega en la CTE.
+  it("T1: dos bodegas del mismo folio/código generan dos inserts", async () => {
+    await insertarMovimientoSync(mockSql as never, {
+      folio: "F-1", codigo: "COD-1", cantidad: 5, bodegaId: 1,
+      visaciones: [], fechanvt: "2026-07-01",
+    });
+    await insertarMovimientoSync(mockSql as never, {
+      folio: "F-1", codigo: "COD-1", cantidad: 5, bodegaId: 2,
+      visaciones: [], fechanvt: "2026-07-01",
+    });
+
+    const principales = calls().filter(([s]) =>
+      s.join("?").includes("INSERT INTO movimientos"),
+    );
+    expect(principales).toHaveLength(2);
+    for (const [strings] of principales) {
+      const text = strings.join("?");
+      expect(text).toContain("WITH existing AS");
+      expect(text).toContain("bodega_origen_id = ?");
+    }
+    const valores = principales.map((c) => c.slice(1));
+    expect(valores.some((v) => v.includes(1))).toBe(true);
+    expect(valores.some((v) => v.includes(2))).toBe(true);
+  });
+
+  // T2: el fallback de visaciones también filtra por bodega.
+  it("T2: el SELECT id de fallback filtra por bodega", async () => {
+    mockSql.mockImplementation(async (strings: TemplateStringsArray) => {
+      const text = strings.join("?");
+      if (text.includes("FROM bodegas")) return BODEGAS;
+      if (text.includes("INSERT INTO movimientos")) return []; // ya existía
+      if (text.includes("SELECT id FROM movimientos")) return [{ id: 42 }];
+      return [];
+    });
+
+    await insertarMovimientoSync(mockSql as never, {
+      folio: "F-1", codigo: "COD-1", cantidad: 2, bodegaId: 2,
+      visaciones: [{ nroIngreso: "NRO-1", cantidad: 2 }],
+      fechanvt: "2026-07-01",
+    });
+
+    const fallback = calls().find(
+      ([s]) => s.join("?").includes("SELECT id FROM movimientos") &&
+        !s.join("?").includes("INSERT INTO movimientos"),
+    );
+    expect(fallback).toBeDefined();
+    expect(fallback![0].join("?")).toContain("bodega_origen_id = ?");
+
+    const vis = calls().find(([s]) =>
+      s.join("?").includes("INSERT INTO movimiento_visaciones"),
+    );
+    expect(vis).toBeDefined();
+    // values[0] = movimiento_id devuelto por el fallback
+    expect(vis!.slice(1)).toContain(42);
+  });
+
+  // T4: reprocesar la misma bodega no crea otro movimiento; las visaciones
+  // se cuelgan siempre del mismo id y la unique las deduplica.
+  it("T4: doble sync de la misma bodega reusa el movimiento existente", async () => {
+    let principal = 0;
+    mockSql.mockImplementation(async (strings: TemplateStringsArray) => {
+      const text = strings.join("?");
+      if (text.includes("FROM bodegas")) return BODEGAS;
+      if (text.includes("INSERT INTO movimientos")) {
+        principal++;
+        return principal === 1 ? [{ id: 7 }] : [];
+      }
+      if (text.includes("SELECT id FROM movimientos")) return [{ id: 7 }];
+      return [];
+    });
+
+    const params = {
+      folio: "F-1", codigo: "COD-1", cantidad: 2, bodegaId: 1,
+      visaciones: [{ nroIngreso: "NRO-1", cantidad: 2 }],
+      fechanvt: "2026-07-01",
+    };
+    await insertarMovimientoSync(mockSql as never, params);
+    await insertarMovimientoSync(mockSql as never, params);
+
+    const vis = calls().filter(([s]) =>
+      s.join("?").includes("INSERT INTO movimiento_visaciones"),
+    );
+    expect(vis).toHaveLength(2);
+    for (const [strings, movimientoId] of vis) {
+      expect(movimientoId).toBe(7);
+      expect(strings.join("?")).toContain(
+        "ON CONFLICT (movimiento_id, nro_ingreso) DO NOTHING",
+      );
+    }
+    expect(principal).toBe(2); // ambas filas usan el guard, no un INSERT ciego
+  });
+
+  // T6: migración v1 sin target que dependa de la constraint renombrada.
+  it("T6: migrar-salidas-v1 ya no usa ON CONFLICT (folio, producto_id)", () => {
+    const src = readFileSync(
+      join(process.cwd(), "lib", "sync", "migrar-salidas-v1.ts"),
+      "utf8",
+    );
+    expect(src).not.toContain("ON CONFLICT (folio, producto_id)");
+    expect(src).toContain("ON CONFLICT DO NOTHING");
   });
 });
 

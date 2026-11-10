@@ -90,7 +90,7 @@ export async function migrarSalidasV1(): Promise<{
         bodega_origen_id, modulo_destino_id, usuario_id, created_at, observaciones)
       VALUES (${folio}, ${productoId}, 'salida', ${s.cantidad},
         1, ${moduloId}, ${usuarioId}, ${s.timestamp_salida}::timestamp, ${s.observaciones ?? null})
-      ON CONFLICT (folio, producto_id) DO NOTHING
+      ON CONFLICT DO NOTHING
       RETURNING id
     ` as unknown as { id: number }[];
 

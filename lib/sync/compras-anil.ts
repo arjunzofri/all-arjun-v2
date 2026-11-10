@@ -51,6 +51,7 @@ export async function insertarMovimientoSync(
       SELECT id FROM movimientos
       WHERE folio = ${params.folio}
         AND producto_id = (SELECT id FROM productos WHERE codigo = ${params.codigo})
+        AND bodega_origen_id = ${params.bodegaId}
     ),
     stock_ok AS (
       INSERT INTO stock (producto_id, bodega_id, cantidad)
@@ -79,6 +80,7 @@ export async function insertarMovimientoSync(
       SELECT id FROM movimientos
       WHERE folio = ${params.folio}
         AND producto_id = (SELECT id FROM productos WHERE codigo = ${params.codigo})
+        AND bodega_origen_id = ${params.bodegaId}
     `;
     const eRows = existing as unknown as { id: number }[];
     movimientoId = eRows[0]?.id ?? null;

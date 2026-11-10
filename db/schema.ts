@@ -107,8 +107,11 @@ export const movimientos = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [
-    // Idempotencia: mismo folio + producto no puede moverse dos veces.
-    unique("uq_movimientos_folio_producto").on(t.folio, t.productoId),
+    // Idempotencia: mismo folio + producto + bodega no puede moverse dos veces.
+    // nullsNotDistinct: el sync escribe folios no nulos; bodega puede ser NULL.
+    unique("uq_movimientos_folio_producto_bodega")
+      .on(t.folio, t.productoId, t.bodegaOrigenId)
+      .nullsNotDistinct(),
   ]
 );
 

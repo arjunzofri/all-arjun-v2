@@ -11,29 +11,33 @@ export async function backfillVisaciones(): Promise<{
   // 1. Obtener todos los datos de Vida Digital (una sola llamada)
   const compras = await getComprasAnilDesde("2026-05-01");
 
-  // 2. Indexar por (folio, codigo) para búsqueda O(1)
+  // 2. Indexar por (folio, codigo, bodega) para búsqueda O(1).
+  //    La bodega es imprescindible: el mismo producto puede entrar en dos
+  //    bodegas con el mismo folio (GLP vs GL1) y cada movimiento recibe
+  //    solo sus propias visaciones.
   const index = new Map<string, (typeof compras)[number]>();
   for (const c of compras) {
-    index.set(`${c.folio}|${c.codigo}`, c);
+    index.set(`${c.folio}|${c.codigo}|${c.bodega}`, c);
   }
 
   // 3. Movimientos tipo='entrada' sin hijos en movimiento_visaciones
   const huerfanos = await sql`
-    SELECT m.id, m.folio, p.codigo
+    SELECT m.id, m.folio, p.codigo, b.nombre AS bodega
     FROM movimientos m
     JOIN productos p ON p.id = m.producto_id
+    LEFT JOIN bodegas b ON b.id = m.bodega_origen_id
     WHERE m.tipo = 'entrada'
       AND NOT EXISTS (
         SELECT 1 FROM movimiento_visaciones v WHERE v.movimiento_id = m.id
       )
-  ` as unknown as { id: number; folio: string; codigo: string }[];
+  ` as unknown as { id: number; folio: string; codigo: string; bodega: string | null }[];
 
   let procesados = 0;
   let sinMatch = 0;
   let filasInsertadas = 0;
 
   for (const mov of huerfanos) {
-    const key = `${mov.folio}|${mov.codigo}`;
+    const key = `${mov.folio}|${mov.codigo}|${mov.bodega}`;
     const compra = index.get(key);
 
     if (!compra || compra.visaciones.length === 0) {

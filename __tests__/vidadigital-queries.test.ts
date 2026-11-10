@@ -61,6 +61,18 @@ describe("getComprasAnilDesde()", () => {
     const sinFecha = rows.filter((r) => !r.fechanvt);
     expect(sinFecha.length).toBe(0);
   });
+
+  // T5 (fix 3, read-only): el mismo producto en dos bodegas de la misma nota
+  // sale como dos filas independientes, cada una con su cantidad.
+  it("T5: 002331 / MK0-216 trae Bodega 1 (2) y Bodega 2 (13)", async () => {
+    const filas = (await getComprasAnilDesde("2026-06-01")).filter(
+      (r) => r.folio === "002331" && r.codigo === "MK0-216",
+    );
+    const porBodega = new Map(filas.map((r) => [r.bodega, r.cantidad]));
+    expect(porBodega.get("Bodega 1 Vida Digital")).toBe(2);
+    expect(porBodega.get("Bodega 2 Vida Digital")).toBe(13);
+    expect(filas).toHaveLength(2);
+  });
 });
 
 // ── R4, R5: Buscador histórico ────────────────────────────────────────

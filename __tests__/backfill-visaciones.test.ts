@@ -27,13 +27,18 @@ import { getComprasAnilDesde } from "@/db/vidadigital/queries";
 
 const mockGet = getComprasAnilDesde as ReturnType<typeof vi.fn>;
 
-type Huerfano = { id: number; folio: string; codigo: string };
+type Huerfano = { id: number; folio: string; codigo: string; bodega: string };
 
 let huerfanos: Huerfano[] = [];
 // Simula la unique (movimiento_id, nro_ingreso): la segunda inserción vuelve vacía.
 const insertados = new Set<string>();
 
-function compra(folio: string, codigo: string) {
+function compra(
+  folio: string,
+  codigo: string,
+  bodega = "Bodega 1 Vida Digital",
+  nroIngreso = `NRO-${folio}`,
+) {
   return {
     folio,
     codigo,
@@ -42,8 +47,8 @@ function compra(folio: string, codigo: string) {
     cantidad: 5,
     cantcaja: 1,
     imagenUrl: null,
-    bodega: "Bodega 1 Vida Digital",
-    visaciones: [{ nroIngreso: `NRO-${folio}`, cantidad: 5 }],
+    bodega,
+    visaciones: [{ nroIngreso, cantidad: 5 }],
   };
 }
 
@@ -75,8 +80,8 @@ describe("backfillVisaciones", () => {
 
   it("T2: (folio, codigo) sin match → sinMatch=1, no aborta", async () => {
     huerfanos = [
-      { id: 1, folio: "BF-A", codigo: "COD-A" },
-      { id: 2, folio: "BF-B", codigo: "COD-B" },
+      { id: 1, folio: "BF-A", codigo: "COD-A", bodega: "Bodega 1 Vida Digital" },
+      { id: 2, folio: "BF-B", codigo: "COD-B", bodega: "Bodega 1 Vida Digital" },
     ];
     mockGet.mockResolvedValue([compra("BF-A", "COD-A")]);
 
@@ -86,7 +91,9 @@ describe("backfillVisaciones", () => {
   });
 
   it("T3: doble ejecución → segunda corrida 0 filas, sin duplicados", async () => {
-    huerfanos = [{ id: 1, folio: "BF-A", codigo: "COD-A" }];
+    huerfanos = [
+      { id: 1, folio: "BF-A", codigo: "COD-A", bodega: "Bodega 1 Vida Digital" },
+    ];
     mockGet.mockResolvedValue([compra("BF-A", "COD-A")]);
 
     const r1 = await backfillVisaciones();
@@ -99,5 +106,33 @@ describe("backfillVisaciones", () => {
       .map(([s]) => (s as TemplateStringsArray).join("?"))
       .find((t) => t.includes("INSERT INTO movimiento_visaciones"));
     expect(insert).toContain("ON CONFLICT (movimiento_id, nro_ingreso) DO NOTHING");
+  });
+
+  // Fix 3: mismo folio+código en dos bodegas. Cada movimiento debe recibir
+  // sus propias visaciones, no las de la última compra del índice.
+  it("T4: dos movimientos mismo folio/código en bodegas distintas", async () => {
+    huerfanos = [
+      { id: 1, folio: "BF-X", codigo: "COD-X", bodega: "Bodega 1 Vida Digital" },
+      { id: 2, folio: "BF-X", codigo: "COD-X", bodega: "Bodega 2 Vida Digital" },
+    ];
+    mockGet.mockResolvedValue([
+      compra("BF-X", "COD-X", "Bodega 1 Vida Digital", "NRO-1"),
+      compra("BF-X", "COD-X", "Bodega 2 Vida Digital", "NRO-2"),
+    ]);
+
+    const result = await backfillVisaciones();
+
+    expect(result).toEqual({ procesados: 2, sinMatch: 0, filasInsertadas: 2 });
+
+    const insertadas = mockSql.mock.calls
+      .filter(([s]) =>
+        (s as TemplateStringsArray).join("?").includes("INSERT INTO movimiento_visaciones"),
+      )
+      .map(([, movimientoId, nroIngreso]) => [movimientoId, nroIngreso]);
+    // Cada movimiento recibió la visación de SU bodega.
+    expect(insertadas).toContainEqual([1, "NRO-1"]);
+    expect(insertadas).toContainEqual([2, "NRO-2"]);
+    expect(insertadas).not.toContainEqual([1, "NRO-2"]);
+    expect(insertadas).not.toContainEqual([2, "NRO-1"]);
   });
 });

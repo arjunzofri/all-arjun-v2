@@ -94,14 +94,14 @@ beforeAll(async () => {
   await sql`
     INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id)
     VALUES (${`${TEST_PREFIX}-ENTRADA`}, ${productoIdEnt}, 'entrada', 10, 1, 1)
-    ON CONFLICT (folio, producto_id) DO NOTHING
+    ON CONFLICT DO NOTHING
   `;
 
   // Movimiento de tipo ajuste para test 3
   await sql`
     INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, modulo_destino_id, usuario_id)
     VALUES (${`${TEST_PREFIX}-AJTPREV`}, ${productoId}, 'ajuste', -1, 1, 1, 1)
-    ON CONFLICT (folio, producto_id) DO NOTHING
+    ON CONFLICT DO NOTHING
   `;
 });
 
