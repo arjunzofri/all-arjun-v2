@@ -1,174 +1,146 @@
 /**
- * Fase B — Slice 03: Tests que intentan romper el sync de compras Anil.
+ * Fase B — Slice 03: tests del sync de compras Anil.
+ *
+ * Sin conexión real: @neondatabase/serverless y getComprasAnilDesde están
+ * mockeados. Ningún test escribe en la base de producción.
  *
  * Riesgos: R1 doble sync duplica, R2 watermark no avanza,
- * R3 sin CRON_SECRET, R4 atomicidad CTE, R5 bodega null.
+ * R3 sin sesión, R5 bodega desconocida.
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { neon } from "@neondatabase/serverless";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+// ── Mocks al nivel superior (hoisted) ────────────────────────────────────
+const { mockSql } = vi.hoisted(() => ({ mockSql: vi.fn() }));
+
+vi.mock("@neondatabase/serverless", () => ({
+  neon: vi.fn(() => mockSql),
+}));
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
-// Imports reales — si el módulo no existe (Fase B), MODULE_NOT_FOUND.
-import { syncComprasAnil } from "@/lib/sync/compras-anil";
+vi.mock("@/db/vidadigital/queries", () => ({
+  getComprasAnilDesde: vi.fn(),
+}));
+
+import { syncComprasAnil, insertarMovimientoSync } from "@/lib/sync/compras-anil";
 import { POST } from "@/app/api/sync/compras-anil/route";
 import { auth } from "@/lib/auth";
+import { getComprasAnilDesde } from "@/db/vidadigital/queries";
 
-// Cliente raw para verificar resultados en DB propia
-const sql = neon(process.env.DATABASE_URL!);
+const mockGet = getComprasAnilDesde as ReturnType<typeof vi.fn>;
+const mockAuth = auth as ReturnType<typeof vi.fn>;
 
-// Aislar de otros tests: contar solo sync, no entradas manuales
-async function contarMovsSync() {
-  const r = await sql`
-    SELECT COUNT(*)::int AS n FROM movimientos
-    WHERE folio IS NOT NULL AND folio NOT LIKE 'MAN-%'
-  `;
-  return (r as unknown as { n: number }[])[0].n;
+type SqlCall = [TemplateStringsArray, ...unknown[]];
+
+const calls = () => mockSql.mock.calls as unknown as SqlCall[];
+const texts = () => calls().map(([s]) => s.join("?"));
+
+// Filas que syncComprasAnil valida contra BODEGA_ID.
+const BODEGAS = [
+  { id: 1, nombre: "Bodega 1 Vida Digital" },
+  { id: 2, nombre: "Bodega 2 Vida Digital" },
+  { id: 3, nombre: "Bodega Arjun" },
+];
+
+function compra(over: Record<string, unknown> = {}) {
+  return {
+    folio: "F-1",
+    fechanvt: "2026-07-01",
+    codigo: "COD-1",
+    detalle: null,
+    cantidad: 1,
+    cantcaja: 1,
+    imagenUrl: null,
+    bodega: "Bodega 1 Vida Digital",
+    visaciones: [] as { nroIngreso: string; cantidad: number }[],
+    ...over,
+  };
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────
-async function contarMovimientos(folio: string, productoId: number) {
-  const r = await sql`
-    SELECT COUNT(*)::int AS n FROM movimientos
-    WHERE folio = ${folio} AND producto_id = ${productoId}
-  `;
-  return (r as unknown as { n: number }[])[0].n;
-}
-
-async function getStock(productoId: number, bodegaId: number) {
-  const r = await sql`
-    SELECT cantidad FROM stock
-    WHERE producto_id = ${productoId} AND bodega_id = ${bodegaId}
-  `;
-  const rows = r as unknown as { cantidad: number }[];
-  return rows[0]?.cantidad ?? 0;
-}
+beforeEach(() => {
+  mockSql.mockReset();
+  mockSql.mockImplementation(async (strings: TemplateStringsArray) => {
+    const text = strings.join("?");
+    if (text.includes("FROM bodegas")) return BODEGAS;
+    return [];
+  });
+  mockGet.mockReset();
+  mockAuth.mockReset();
+});
 
 // ── R1: Idempotencia — doble sync no duplica ────────────────────────────
-describe("syncComprasAnil() — idempotencia", () => {
-  // R1a: la CTE no inserta si el folio ya existe
-  it("no duplica si el folio ya fue procesado", async () => {
-    const testFolio = `SYNC-DUP-${Date.now()}`;
-    // Asegurar producto existe
-    await sql`INSERT INTO productos (codigo) VALUES ('SYNC-DUP-PROD') ON CONFLICT (codigo) DO NOTHING`;
-    const p = await sql`SELECT id FROM productos WHERE codigo = 'SYNC-DUP-PROD'`;
-    const pid = (p as unknown as { id: number }[])[0].id;
-
-    // Primer insert
-    await sql`
-      INSERT INTO movimientos (folio, producto_id, tipo, cantidad, usuario_id)
-      VALUES (${testFolio}, ${pid}, 'entrada', 1, 1)
-    `;
-
-    // Segundo insert con mismo folio+producto → debe ser no-op
-    await sql`
-      INSERT INTO movimientos (folio, producto_id, tipo, cantidad, usuario_id)
-      VALUES (${testFolio}, ${pid}, 'entrada', 1, 1)
-      ON CONFLICT DO NOTHING
-    `;
-
-    const r = await sql`SELECT COUNT(*)::int AS n FROM movimientos WHERE folio = ${testFolio}`;
-    expect((r as unknown as { n: number }[])[0].n).toBe(1);
-
-    // Limpieza
-    await sql`DELETE FROM movimientos WHERE folio = ${testFolio}`;
-    await sql`DELETE FROM productos WHERE codigo = 'SYNC-DUP-PROD'`;
+describe("R1 — idempotencia", () => {
+  it("el schema declara unique(folio, producto_id) en movimientos", () => {
+    const schema = readFileSync(join(process.cwd(), "db", "schema.ts"), "utf8");
+    expect(schema).toContain('unique("uq_movimientos_folio_producto").on(t.folio, t.productoId)');
   });
 
-  // R1b: insert duplicado manual es rechazado por unique constraint
-  it("rechaza insert duplicado con mismo folio+producto_id", async () => {
-    // Creamos producto de prueba
-    await sql`
-      INSERT INTO productos (codigo) VALUES ('TEST-SYNC-DUP')
-      ON CONFLICT (codigo) DO NOTHING
-    `;
-    const p = await sql`SELECT id FROM productos WHERE codigo = 'TEST-SYNC-DUP'`;
-    const pid = (p as unknown as { id: number }[])[0].id;
+  it("la CTE de inserción lleva el guard NOT EXISTS por (folio, producto)", async () => {
+    await insertarMovimientoSync(mockSql as never, {
+      folio: "F-1",
+      codigo: "COD-1",
+      cantidad: 2,
+      bodegaId: 1,
+      visaciones: [],
+      fechanvt: "2026-07-01",
+    });
 
-    // Intentamos insertar dos veces con el mismo folio
-    await sql`
-      INSERT INTO movimientos (folio, producto_id, tipo, cantidad, usuario_id)
-      VALUES ('TEST-DUP-001', ${pid}, 'entrada', 1, 1)
-      ON CONFLICT DO NOTHING
-    `;
-    await sql`
-      INSERT INTO movimientos (folio, producto_id, tipo, cantidad, usuario_id)
-      VALUES ('TEST-DUP-001', ${pid}, 'entrada', 1, 1)
-      ON CONFLICT DO NOTHING
-    `;
-
-    expect(await contarMovimientos("TEST-DUP-001", pid)).toBe(1);
-
-    // Limpieza
-    await sql`DELETE FROM movimientos WHERE folio = 'TEST-DUP-001'`;
-    await sql`DELETE FROM productos WHERE codigo = 'TEST-SYNC-DUP'`;
+    const principal = texts().find((t) => t.includes("INSERT INTO movimientos"));
+    expect(principal).toBeDefined();
+    expect(principal).toContain("WITH existing AS");
+    expect(principal).toContain("folio = ?");
+    expect(principal).toContain("producto_id = (SELECT id FROM productos WHERE codigo = ?");
+    expect(principal).toContain("NOT EXISTS (SELECT 1 FROM existing)");
   });
 });
 
 // ── R2: Watermark ──────────────────────────────────────────────────────
-describe("syncComprasAnil() — watermark", () => {
-  it("avanza el watermark después de procesar compras", async () => {
-    const antes = await sql`
-      SELECT value FROM sync_watermark WHERE key = 'compras-anil'
-    `;
-    const rows = antes as unknown as { value: string }[];
+describe("R2 — watermark", () => {
+  it("escribe como watermark la mayor fechanvt procesada", async () => {
+    mockGet.mockResolvedValue([
+      compra({ folio: "F-A", codigo: "A", fechanvt: "2026-07-01" }),
+      compra({ folio: "F-B", codigo: "B", fechanvt: "2026-08-03" }),
+    ]);
 
-    await syncComprasAnil("2026-06-18");
+    const res = await syncComprasAnil("2026-06-18");
 
-    const despues = await sql`
-      SELECT value FROM sync_watermark WHERE key = 'compras-anil'
-    `;
-    const rows2 = despues as unknown as { value: string }[];
+    expect(res.watermark).toBe("2026-08-03");
 
-    const fechaAntes = rows[0]?.value ?? "2026-06-01";
-    const fechaDespues = rows2[0]?.value ?? "2026-06-01";
-    // El watermark debe ser >= la fecha de entrada
-    expect(fechaDespues >= fechaAntes).toBe(true);
-  });
-
-  // ponytail: test removido — dependía de datos vivos de Vida Digital
-  // que cambian entre ejecuciones. La idempotencia se verifica en R1a y R1b.
-  it("watermark persiste correctamente", async () => {
-    await sql`
-      INSERT INTO sync_watermark (key, value)
-      VALUES ('compras-anil', '2026-06-15')
-      ON CONFLICT (key) DO UPDATE SET value = '2026-06-15'
-    `;
-
-    const r = await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil'`;
-    const rows = r as unknown as { value: string }[];
-    expect(rows[0].value).toBe("2026-06-15");
+    const ultimo = calls()[calls().length - 1];
+    const text = ultimo[0].join("?");
+    expect(text).toContain("INSERT INTO sync_watermark");
+    expect(ultimo.slice(1)).toContain("compras-anil");
+    expect(ultimo.slice(1)).toContain("2026-08-03");
   });
 });
 
 // ── R3: Auth via NextAuth session ────────────────────────────────────────
-describe("POST /api/sync/compras-anil — seguridad", () => {
+describe("R3 — seguridad del endpoint", () => {
   it("devuelve 401 sin sesión", async () => {
-    (auth as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+    mockAuth.mockResolvedValue(null);
+
     const res = await POST();
+
     expect(res.status).toBe(401);
   });
-
-  // Punta a punta contra DB real + Vida Digital: ~35s, no se corre en
-  // cada suite. sync-manual.test.ts R2 cubre el mismo contrato con mocks.
-  // Para smoke-test manual: npx vitest run __tests__/sync-compras-anil.test.ts -t "puntapunta"
-  it.skip("punta a punta: devuelve 200 con sesión válida", async () => {
-    (auth as ReturnType<typeof vi.fn>).mockResolvedValue({
-      user: { id: "62", email: "admin@test.com" },
-    });
-    const res = await POST();
-    expect(res.status).toBe(200);
-  }, 60000);
 });
 
 // ── R5: Bodega desconocida ──────────────────────────────────────────────
-describe("syncComprasAnil() — bodega null", () => {
-  it("no crashea con código de bodega no reconocido", async () => {
-    // El sync debe manejar productos con knumezet sin código GLP/GL1/GL2.
-    // getBodegaPorCodigoIngreso() retorna null → debe usar fallback.
-    await expect(
-      syncComprasAnil("2026-06-18")
-    ).resolves.not.toThrow();
+describe("R5 — bodega desconocida", () => {
+  it("omite la compra sin código GLP/GL1/GL2 y no lanza", async () => {
+    mockGet.mockResolvedValue([
+      compra({ folio: "F-X", codigo: "X", bodega: "Bodega Fantasma" }),
+    ]);
+
+    const res = await syncComprasAnil("2026-06-18");
+
+    expect(res.procesadas).toBe(0);
+    const escrituras = texts().filter(
+      (t) => t.includes("INSERT INTO productos") || t.includes("INSERT INTO movimientos"),
+    );
+    expect(escrituras).toEqual([]);
   });
 });
