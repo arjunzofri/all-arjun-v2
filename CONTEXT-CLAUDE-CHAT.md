@@ -185,3 +185,19 @@ Pendiente operativo: cargar `GEMINI_API_KEY_1/2/3` en las variables de entorno d
 
 ### Cotizacion enviada al cliente
 Artifact "Cotizacion App Arjun — Identificacion por foto e Inversion en mercaderia": 120 UF total (Modulo 1 = 65 UF con Etapa 0 PoC de 10 UF y clausula de salida; Modulo 2 = 55 UF).
+
+### ACTUALIZACION 2026-11-10 tarde (Director Tecnico, nueva sesion)
+
+**Modulo 2 — slice 6 HECHO `e4cb0ff`** (pendientes 1-4 de Pablo):
+- Regla de lineas validas en `inversion-lotes.ts`: `i.pestadot = '3'` + DISTINCT ON por kdocitem normalizado. Patron B = lineas en borrador (pestadot '1', knumdocu/knumorde NULL) que no salen en el documento impreso. Validado: 214/215 notas de Anil (vida+sanjh desde 2023-09-01) cuadran al centavo con `movidcto.val_doc`; unica excluida vida 002515 (nota completa en borrador, 632 u. / USD 8.682,80). 001986 = 1.536 u. / USD 9.080,30 (HR-6 = 1.000, dos lineas legitimas); 001987 = 952 u. / USD 3.578,00.
+- `origen: "vida" | "sanjh"` en LoteCompra/PartidaValorizada; columna "Empresa" y encabezado "Nota de Venta" en DetalleCodigo; menu "Inversión".
+- Test real opt-in `INVERSION_REAL=1` (`__tests__/inversion-notas-reales.test.ts`) con reconciliacion completa.
+- Diagnosticos: `_poc_tmp\dup_cols.cjs`, `pestado_global.cjs`, `regla_combinada.cjs` (+ .out).
+- **PENDIENTE (bug aparte, protocolo de debugging):** el sync (`getComprasAnilDesde`) tampoco filtra `pestadot` ni deduplica por kdocitem, y no relee notas editadas. Probable causa de las 10+10 diferencias de la comparacion global del 2026-11-09. Requiere hipotesis aprobada por Pablo antes de tocar.
+
+**Modulo 1 — slice 2 HECHO** (catalogo + tabla fichas):
+- `getCatalogoVidaDigital()` (db/vidadigital/queries.ts): lee todas las filas de public.productos y deduplica en TS (detalle mas frecuente; imagen_url es unica por codigo, verificado). 5.318 filas -> 2.542 codigos con imagen, ~0,5 s.
+- `lib/identificacion/catalogo.ts`: `agruparCatalogo` (clave base sin `(ANIL)` ni `VD-`, gate por descripcion: primer token o Jaccard >= 0,5, politica conservadora) y `getCatalogoIdentificacion()`. Real: 2.419 grupos, 115 multi-codigo, 5 pares rechazados (`_poc_tmp\m1_s2_grupos.txt`; 1161A/VD-1161A es falso negativo aceptado).
+- Tabla `producto_fichas_visuales` creada en la base propia con CREATE TABLE IF NOT EXISTS (drizzle-kit push queda vetado: ver Zonas de riesgo del PRD, desfase `uq_users_username`).
+- CLAUDE.md declara los 4 usos read-only de Vida Digital.
+- **SIGUIENTE: Slice 3** (script local generador de fichas, lotes de 16 imagenes, incremental por hash).
