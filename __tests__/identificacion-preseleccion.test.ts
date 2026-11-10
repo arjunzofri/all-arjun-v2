@@ -144,7 +144,7 @@ describe("buscarPorPalabras()", () => {
 });
 
 describe("lineaCatalogo()", () => {
-  it("arma el LIST de la PoC y quita textos genéricos de código/caja", () => {
+  it("arma la línea liviana: codigo | descripcion | tipo_es, sin colores ni textos", () => {
     const linea = lineaCatalogo(
       item({
         codigo: "A",
@@ -157,11 +157,11 @@ describe("lineaCatalogo()", () => {
       })
     );
 
-    expect(linea).toBe("A | Foo Bar | audifonos; negro/rojo; Bluetooth");
+    expect(linea).toBe("A | Foo Bar | audifonos");
   });
 
   it("tolera detalle y ficha nulos", () => {
-    expect(lineaCatalogo(item({ codigo: "A" }))).toBe("A |  | ; ; ");
+    expect(lineaCatalogo(item({ codigo: "A" }))).toBe("A |  | ");
   });
 });
 
@@ -193,7 +193,8 @@ describe("preseleccionarConModelo()", () => {
 
     const [parts, opciones] = geminiMock.mock.calls[0];
     const texto = (parts[0] as { text: string }).text;
-    expect(texto).toContain("Catalogo (codigo | descripcion | ficha visual");
+    expect(texto).toContain("Catalogo (codigo | descripcion | tipo de producto):");
+    expect(texto).not.toContain("Usa colores y textos de la caja");
     expect(texto).toContain(lineaCatalogo(items[0]));
     expect(texto).toContain('"marca":"ACME"');
     expect(texto).toContain("30 codigos mas probables");

@@ -237,6 +237,52 @@ describe("mapeo de errores", () => {
   });
 });
 
+describe("carrera contra el presupuesto", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("si describir cuelga, vence el plazo → tiempo y no preselecciona", async () => {
+    mocks.describir.mockImplementation(() => new Promise(() => {}));
+
+    const promesa = identificarProducto(IMAGEN, { presupuestoMs: 1_000 });
+    const fallo = expect(promesa).rejects.toMatchObject({ tipo: "tiempo" });
+    await vi.advanceTimersByTimeAsync(1_000);
+    await fallo;
+    expect(mocks.preseleccionar).not.toHaveBeenCalled();
+  });
+
+  it("si preseleccionar cuelga, cae a palabras y sin tiempo restante → tiempo", async () => {
+    mocks.catalogo.mockResolvedValue(
+      codigos(3).map((c) => ({
+        codigo: c,
+        codigos: [c],
+        detalle: `audifonos ${c}`,
+        imagenUrl: `https://cdn.test/${c}.jpg`,
+      }))
+    );
+    mocks.preseleccionar.mockImplementation(() => new Promise(() => {}));
+
+    const promesa = identificarProducto(IMAGEN, { presupuestoMs: 1_000 });
+    const fallo = expect(promesa).rejects.toMatchObject({ tipo: "tiempo" });
+    await vi.advanceTimersByTimeAsync(1_000);
+    await fallo;
+    expect(mocks.rerank).not.toHaveBeenCalled();
+  });
+
+  it("si el rerank cuelga, vence el plazo → tiempo", async () => {
+    mocks.rerank.mockImplementation(() => new Promise(() => {}));
+
+    const promesa = identificarProducto(IMAGEN, { presupuestoMs: 1_000 });
+    const fallo = expect(promesa).rejects.toMatchObject({ tipo: "tiempo" });
+    await vi.advanceTimersByTimeAsync(1_000);
+    await fallo;
+  });
+});
+
 describe("guarda estática", () => {
   function archivos(dir: string): string[] {
     try {

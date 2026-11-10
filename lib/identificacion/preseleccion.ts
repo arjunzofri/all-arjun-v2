@@ -81,14 +81,13 @@ export function buscarPorPalabras(
     .map((x) => x.item.codigo);
 }
 
-/** Línea del LIST de poc2.cjs. */
+/** Línea del LIST de poc2.cjs, sin ficha pesada: 189k chars vs 307k a ~4 s. */
 export function lineaCatalogo(item: ItemCatalogo): string {
-  const f = item.ficha;
-  return `${item.codigo} | ${(item.detalle ?? "").replace(/\s+/g, " ").trim()} | ${f?.tipo_es ?? ""}; ${(f?.colores ?? []).join("/")}; ${(f?.textos ?? []).filter((t) => !/c[oó]digo|x caja/i.test(t)).join(", ")}`;
+  return `${item.codigo} | ${(item.detalle ?? "").replace(/\s+/g, " ").trim()} | ${item.ficha?.tipo_es ?? ""}`;
 }
 
 function promptB(lista: string, info: InfoFoto, n: number): string {
-  return `Catalogo (codigo | descripcion | ficha visual: tipo; colores; textos de la caja):\n${lista}\n\nLa imagen es una foto de bodega de UN producto. Descripcion extraida: ${JSON.stringify(info)}.\nDevuelve SOLO JSON {"candidatos":["codigo",...]} con los ${n} codigos mas probables, del mas al menos probable. Usa colores y textos de la caja. Solo codigos de la lista.`;
+  return `Catalogo (codigo | descripcion | tipo de producto):\n${lista}\n\nLa imagen es una foto de bodega de UN producto. Descripcion extraida: ${JSON.stringify(info)}.\nDevuelve SOLO JSON {"candidatos":["codigo",...]} con los ${n} codigos mas probables, del mas al menos probable. Solo codigos de la lista.`;
 }
 
 /** Prompt B de poc2.cjs; mapea variantes al código del grupo. */

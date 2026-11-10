@@ -1,7 +1,7 @@
 // server-only: usa DB (Neon) vía catalogo/fichas. No importar desde client components.
 import { getCatalogoIdentificacion } from "./catalogo";
 import { getFichasVisuales } from "./fichas";
-import { armarItemsCatalogo, preseleccionar, type ItemCatalogo } from "./preseleccion";
+import { armarItemsCatalogo, buscarPorPalabras, preseleccionar, type ItemCatalogo } from "./preseleccion";
 import { describirFoto, type ImagenEntrada } from "./describir";
 import { rerankPorTandas } from "./rerank";
 
@@ -61,12 +61,21 @@ function comoError(e: unknown): ErrorIdentificacion {
   return new ErrorIdentificacion("ia", e instanceof Error ? e.message : String(e));
 }
 
+/** Corre la etapa contra el presupuesto restante; al vencer lanza error "tiempo". */
+function conPlazo<T>(promesa: Promise<T>, ms: number): Promise<T> {
+  let rechazar!: (e: ErrorIdentificacion) => void;
+  const limite = new Promise<never>((_, r) => { rechazar = r; });
+  const t = setTimeout(() => rechazar(new ErrorIdentificacion("tiempo", "Presupuesto agotado")), Math.max(0, ms));
+  return Promise.race([promesa, limite]).finally(() => clearTimeout(t));
+}
+
 export async function identificarProducto(
   img: ImagenEntrada,
   opciones: { presupuestoMs?: number } = {}
 ): Promise<ResultadoIdentificacion> {
   const presupuestoMs = opciones.presupuestoMs ?? 45_000;
   const inicio = Date.now();
+  const restante = () => presupuestoMs - (Date.now() - inicio);
   const avisos: string[] = [];
 
   const tCatalogo = Date.now();
@@ -76,18 +85,25 @@ export async function identificarProducto(
 
   const tDescribir = Date.now();
   let info;
-  try { info = await describirFoto(img); } catch (e) { throw comoError(e); }
+  try { info = await conPlazo(describirFoto(img), restante()); } catch (e) { throw comoError(e); }
   const describirMs = Date.now() - tDescribir;
 
   const tPreseleccion = Date.now();
-  const pre = await preseleccionar(img, info, items);
+  let pre;
+  try {
+    pre = await conPlazo(preseleccionar(img, info, items), restante());
+  } catch (e) {
+    const kw = e instanceof ErrorIdentificacion && e.tipo === "tiempo" ? buscarPorPalabras(info, items) : [];
+    if (!kw.length) throw comoError(e);
+    pre = { candidatos: kw, llm: [], kw, errorModelo: "Presupuesto agotado" };
+  }
   const preseleccionMs = Date.now() - tPreseleccion;
   if (pre.errorModelo) avisos.push("preseleccion por modelo fallo; se uso busqueda por palabras");
 
-  const restante = presupuestoMs - (Date.now() - inicio);
-  if (restante <= 0) throw new ErrorIdentificacion("tiempo", "Presupuesto agotado");
+  const restanteTrasPreseleccion = restante();
+  if (restanteTrasPreseleccion <= 0) throw new ErrorIdentificacion("tiempo", "Presupuesto agotado");
   let candidatos = pre.candidatos;
-  if (restante < UMBRAL_RECORTE_MS) {
+  if (restanteTrasPreseleccion < UMBRAL_RECORTE_MS) {
     candidatos = candidatos.slice(0, MAX_RECORTE);
     avisos.push("candidatos recortados por tiempo");
   }
@@ -97,9 +113,8 @@ export async function identificarProducto(
 
   const tRerank = Date.now();
   let identificadas;
-  try { identificadas = await rerankPorTandas(img, itemsRerank); } catch (e) { throw comoError(e); }
+  try { identificadas = await conPlazo(rerankPorTandas(img, itemsRerank), restante()); } catch (e) { throw comoError(e); }
   const rerankMs = Date.now() - tRerank;
-  if (Date.now() - inicio >= presupuestoMs) throw new ErrorIdentificacion("tiempo", "Presupuesto agotado");
 
   const resultado = identificadas.flatMap((o): OpcionResultado[] => {
     const item = porCodigo.get(o.codigo);
