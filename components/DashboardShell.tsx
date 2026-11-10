@@ -18,6 +18,12 @@ const NAV = [
   { href: "/usuarios",    label: "Usuarios",    icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" },
 ];
 
+const ITEM_IDENTIFICACION = {
+  href: "/entradas/identificar",
+  label: "Identificar por foto",
+  icon: "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+};
+
 const ITEM_INVERSION = {
   href: "/inversion-mercaderia",
   label: "Inversión",
@@ -34,9 +40,15 @@ function NavIcon({ d }: { d: string }) {
   );
 }
 
-function Sidebar({ onClose, showInversion }: { onClose?: () => void; showInversion: boolean }) {
+function Sidebar({ onClose, showIdentificacion, showInversion }: {
+  onClose?: () => void; showIdentificacion: boolean; showInversion: boolean;
+}) {
   const pathname = usePathname();
-  const nav = showInversion ? [...NAV, ITEM_INVERSION] : NAV;
+  const nav = [
+    ...NAV,
+    ...(showIdentificacion ? [ITEM_IDENTIFICACION] : []),
+    ...(showInversion ? [ITEM_INVERSION] : []),
+  ];
   return (
     <aside className="flex flex-col h-full w-56 bg-[#0f172a]">
       {/* Logo */}
@@ -79,9 +91,11 @@ function Sidebar({ onClose, showInversion }: { onClose?: () => void; showInversi
 
 export default function DashboardShell({
   children,
+  showIdentificacion,
   showInversion,
 }: {
   children: React.ReactNode;
+  showIdentificacion: boolean;
   showInversion: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -90,7 +104,7 @@ export default function DashboardShell({
     <div className="flex min-h-screen bg-[#f8fafc]">
       {/* Sidebar desktop */}
       <div className="hidden lg:flex lg:flex-col lg:shrink-0">
-        <Sidebar showInversion={showInversion} />
+        <Sidebar showIdentificacion={showIdentificacion} showInversion={showInversion} />
       </div>
 
       {/* Overlay mobile */}
@@ -108,7 +122,7 @@ export default function DashboardShell({
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <Sidebar onClose={() => setOpen(false)} showInversion={showInversion} />
+        <Sidebar onClose={() => setOpen(false)} showIdentificacion={showIdentificacion} showInversion={showInversion} />
       </div>
 
       {/* Main */}

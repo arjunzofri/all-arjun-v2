@@ -26,7 +26,8 @@ const children = React.createElement("div", null, "contenido");
 
 function renderShell(showInversion: boolean) {
   return renderToStaticMarkup(
-    React.createElement(DashboardShell, { showInversion, children })
+    // eslint-disable-next-line react/no-children-prop
+    React.createElement(DashboardShell, { showInversion, showIdentificacion: false, children })
   );
 }
 

@@ -11,8 +11,11 @@ export default async function DashboardLayout({
   const role = (session?.user as { role?: string } | undefined)?.role;
   const showInversion =
     role === "admin" && flagActivo("inversion_mercaderia");
+  const showIdentificacion = flagActivo("identificacion_foto");
 
   return (
-    <DashboardShell showInversion={showInversion}>{children}</DashboardShell>
+    <DashboardShell showIdentificacion={showIdentificacion} showInversion={showInversion}>
+      {children}
+    </DashboardShell>
   );
 }
