@@ -208,3 +208,9 @@ Artifact "Cotizacion App Arjun — Identificacion por foto e Inversion en mercad
 - Regularizacion aplicada: sync real (+17 movs / +1.913 u.) y 25 ajustes AJT-REGSYNC (-634 u.). Pendientes 5 codigos de 001653 (ver BUGS.md) esperando decision de Pablo.
 - REGLA OPERATIVA: no correr `npx vitest run` completo: ~13 archivos de test aun escriben en la base de produccion (con limpieza). Correr solo archivos puntuales que usen mocks o sean solo lectura. Pendiente: base de pruebas separada (rama Neon).
 - Tablas de prueba en produccion detectadas: movimientos TRF-TRF-SMOKE-*/TRF-TRF-NEW-* (TEST-TRF-001) y usuarios test-user2, test-dup, test-login (admin).
+
+### ACTUALIZACION 2026-11-10 14:10 — Base de pruebas aislada
+- Rama Neon "test" (br-polished-union-adik8tfv, proyecto blue-art-37644995) creada desde production. `TEST_DATABASE_URL` en .env.local; vitest.setup.ts la exige y aborta si su host coincide con produccion. Verificado: suite completa (552 tests) con huella de produccion identica antes/despues. Ya se puede correr `npx vitest run` completo.
+- Fallos conocidos de la suite: smoke-e2e tsc (timeout 5 s) y vistas-unificacion nextCursor (asume < 100 filas en bodega 1).
+- Datos de prueba borrados de produccion (aprobado por Pablo): 7 productos TEST-*, 10 movimientos, 9 filas de stock, usuarios test-user2, test-dup, test-login.
+- Pendiente (decision de Pablo, en espera): 5 codigos de 001653 en Bodega 1 (ver BUGS.md).

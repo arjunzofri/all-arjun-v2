@@ -27,3 +27,21 @@ try {
 } catch {
   // .env.local no existe — los tests que requieren DB fallarán con error claro.
 }
+
+// Los tests NUNCA usan la base de producción: se apunta a la rama Neon "test".
+const testUrl = process.env.TEST_DATABASE_URL;
+const prodUrl = process.env.DATABASE_URL;
+if (!testUrl) {
+  throw new Error(
+    "TEST_DATABASE_URL requerido: los tests nunca usan la base de produccion",
+  );
+}
+const host = (url: string) => new URL(url).host;
+if (host(testUrl) === host(prodUrl!)) {
+  throw new Error(
+    "TEST_DATABASE_URL apunta al mismo host que DATABASE_URL (produccion): los tests nunca usan la base de produccion",
+  );
+}
+process.env.PROD_DATABASE_URL_HOST = host(prodUrl!);
+// Reemplazo incondicional: aunque DATABASE_URL ya estuviera definida.
+process.env.DATABASE_URL = testUrl;

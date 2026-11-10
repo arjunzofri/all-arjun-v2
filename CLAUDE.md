@@ -42,6 +42,11 @@ npx vitest run         # tests
 npx drizzle-kit push   # aplicar cambios de schema a Neon
 ```
 
+`npx vitest run` usa la rama Neon **"test"** vía `TEST_DATABASE_URL`
+(`vitest.setup.ts` la exige y aborta si falta o si coincide con el host de
+producción). Para refrescar la rama desde production:
+Neon Console > Branches > test > Reset from parent.
+
 ## Estructura de carpetas
 
 Ver sección 10 de PRD.md — estructura completa documentada ahí. Resumen:
