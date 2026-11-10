@@ -125,3 +125,63 @@ nunca cantidad).
 ## Último slice completado
 
 2026-06-19 — refQ: botón "Volver" en detalle preserva filtro de búsqueda (`d4f3105`)
+
+
+---
+
+## ESTADO AL 2026-11-10 11:20 (Chile) — LEER PRIMERO PARA RETOMAR
+
+Handoff escrito por el Director Tecnico (Claude) antes de cambiar de cuenta. Todo lo de abajo esta verificado con codigo, tests o queries reales.
+
+### Como se trabaja (instrucciones vigentes de Pablo)
+- Director Tecnico = Claude (chat, a menudo desde la app Android de Pablo). Programador = **claude-deep** (funcion del perfil PowerShell que configura DeepSeek y lanza `claude`). NO usar `claude` a secas.
+- El Director tiene autorizacion de Pablo para commit + push a GitHub (`arjunzofri/all-arjun-v2`, rama `main`), que despliega a Vercel (https://all-arjun-v2.vercel.app).
+- "Siempre revisa por tu cuenta lo que te informe claude-deep": el Director lee el codigo, corre los tests y `npx tsc --noEmit` el mismo antes de cada commit.
+- A Pablo solo se le avisa por notificacion push cuando se necesita algo; si no, se avanza.
+- Ciclo PBT-IA por slice: Fase A (contrato, revision de impacto lateral, riesgos) -> el Director aprueba/ajusta -> Fase B (tests en rojo) -> C (implementacion <=200 lineas) -> D (tsc, vitest completo, build, flag) -> el Director verifica y hace commit.
+
+### Como se invoca claude-deep en modo headless (desde PowerShell del PC)
+- Script: `C:\Users\pablo\Documents\app-arjun-v2\_poc_tmp\deep.ps1 -Prompt <archivo.md> -Log <archivo.log> -Tools <lista>`. Extrae las variables de entorno de la funcion `claude-deep` del `$PROFILE` y corre `claude -p` en el repo.
+- Fase A solo lectura: `-Tools Read,Glob,Grep`. Fases B-C-D: `-Tools "Read,Glob,Grep,Edit,Write,Bash"`. Siempre "SIN commit".
+- Lanzar detached (la tool de PowerShell corta a los 60 s): `New-Object System.Diagnostics.ProcessStartInfo 'powershell.exe', "-NoLogo -ExecutionPolicy Bypass -File ..."` con WindowStyle Hidden. El log termina con `=== FIN ===`.
+- Prompts y logs de cada slice quedan en `_poc_tmp\` (m2_s*.md/.log, m1_*.md/.log).
+- Ojo: claude-deep a veces se aparta del contrato (cambio ubicacion de archivos, quito filtros, dejo un `next dev` vivo en el puerto 3123). Revisar siempre.
+
+### Fallos preexistentes de la suite (NO son de los modulos nuevos; no tocar sin abrir bug)
+`smoke-e2e > tsc --noEmit` (timeout), `sync-compras-anil` x2 (timeouts 5 s contra DB), `vistas-unificacion > nextCursor` (depende de datos vivos). A veces `ajuste-entrada` por timeout bajo carga.
+
+### MODULO 2 — Inversion en mercaderia (FIFO): TERMINADO Y ENCENDIDO EN PRODUCCION
+Commits: `e6fba50` (FIFO puro), `1a58f7b` (lotes por codigo + dedup), `82d4383` (GET /api/inversion/por-codigo), `7656334` (resumen global), `676d77c` (pagina 5a), `eca819c` (modal detalle 5b), `bef2d80` (nav admin 5c), `d645c09` (flag `inversion_mercaderia=true`, aprobado por Pablo).
+- `lib/utils/inversion-fifo.ts`: `calcularInversionFifo(lotes, stock)` asigna el stock a las compras MAS RECIENTES.
+- `lib/utils/inversion-lotes.ts`: lee Vida Digital (solo SELECT), `tipomovi='V' AND kcodcli2 IN (2,20,218)`, `fechanvt >= '2023-09-01'`, una query por esquema (vida, sanjh) sin mezclarlos. Dedup `DISTINCT ON (codunico, knumfoli, NULLIF(TRIM(kdocitem),'')::int)`. Stock propio sumado sin clamp.
+- `lib/utils/inversion-resumen.ts`, `lib/utils/inversion-formato.ts` (formato sin Intl), `lib/feature-flags.ts`.
+- Rutas: `GET /api/inversion/por-codigo?codigo=`, `GET /api/inversion/resumen` (401 sin sesion, 404 flag off, 403 si no es admin, 502 si falla Vida Digital). Pagina `/inversion-mercaderia` (solo admin) + `components/inversion/{TablaInversion,DetalleCodigo}.tsx`. Menu: `components/DashboardShell.tsx` (cliente) + `app/(dashboard)/layout.tsx` (server, `showInversion = admin && flag`). Todas las paginas del dashboard pasaron a Dynamic.
+- Verificado en produccion el 2026-11-10 con usuario admin: USD 156.845,81, 22.389 unidades, 269 codigos (32 sin compras desde sep-2023); el modal de HR-6 carga bien.
+
+#### Pendientes del Modulo 2 (pedidos por Pablo el 2026-11-10)
+1. **Etiqueta**: "Folio" = numero de **Nota de Venta** (documento "NOTA DE VENTA", tipo 203-VENTA TRASPASO DE MERCANCIAS, `knumfoli`). Cambiar el texto "Folio" por "Nota de Venta" en `DetalleCodigo.tsx` (y donde aparezca en la UI de inversion).
+2. **Empresa**: mostrar en cada partida si viene de **Vida Digital** (esquema `vida`) o **Sanjh** (esquema `sanjh`). Requiere agregar `origen` a lo que devuelve `getLotesCompraPorCodigos`/`LoteCompra` o a la respuesta del endpoint (hoy se pierde al juntar esquemas). Los mismos numeros de nota existen en ambas empresas con distinto cliente (ej. sanjh 001986 es de kcodcli2=542, no de Anil).
+3. **Menu**: dice "Inversion" sin tilde; corregir a "Inversión" en `components/DashboardShell.tsx`.
+4. **Lineas repetidas en itemdcto — INVESTIGACION ABIERTA, no resuelta.** Hechos:
+   - Patron A (ya corregido con el DISTINCT ON): misma linea dos veces con igual `kdocitem` (una en formato antiguo `' 13'`, otra normalizada `'13'`). sanjh: 1.993 lineas / 1.017 unicas; vida: 590 / 487.
+   - Patron B (NO corregido): misma linea con distinto `kdocitem`, mismo `knumezet` (zeta) y misma cantidad. Ej. vida nota 001986, HR-6: kdocitem 1 y 11, ambas 500 u., zeta 101-26-047568-013.
+   - Pablo envio fotos de las notas impresas 001986 y 001987 (guardadas en docs/evidencia/) (fecha 03/08/2026, emisor IMPORT EXPORT VIDA DIGITAL LTDA). La **001986 impresa SI muestra HR-6 dos veces** (500 + 500, USD 1.550 cada una) y su total cuadra con eso: 1.536 unidades, USD 9.080,30. Lineas impresas 001986: HR-6 500, 582-2 50, 4500 15, 4500 20, A-16 36, BL-8801 36, MK0-216 30, EGD-100 5, HN-1 200, HN-2 144, HR-6 500. Lineas impresas 001987: HN-3 250, HN-5 90, KH-10 100, MK-RQ63 60, IP-01 12, IP-02 20, T-501 120, S-266 300 (total 952 u., USD 3.578,00).
+   - La app Arjun (sync) registro para 001986: HR-6 500 (fecha_compra 2026-07-17, sync del 2026-07-25), y para 001987 S-266 300, T-501 120. El calculo deduplicado de inversion da para 001987 S-266 600 y T-501 240 (el doble de lo impreso) y para 001986 HN-1 400, HN-2 288 (el doble de lo impreso).
+   - Conclusion parcial: el documento impreso es la verdad. Para 001986/HR-6 la verdad es 1.000 (dos lineas impresas) y a la app le faltan 500. Para HN-1/HN-2/S-266/T-501 la verdad es la cantidad impresa y el calculo de inversion esta duplicando. Hay que encontrar una regla de deduplicacion que reproduzca exactamente el documento impreso (comparar todas las columnas de las filas repetidas de 001986 y 001987 en vida.itemdcto: knumdocu, empresaa, adulegal, pestadot, etc.) y validarla contra ambas notas. Luego: (a) aplicarla en inversion-lotes.ts; (b) evaluar con el protocolo de debugging si el sync (`getComprasAnilDesde` + `lib/sync/compras-anil.ts`) pierde lineas legitimas (HR-6) — el sync agrupa por folio+codigo y no relee notas ya sincronizadas aunque Vida Digital las edite (la 001986 cambio de fecha 17-07 a 03-08 despues del sync).
+   - Comparacion global hecha el 2026-11-09 (181 movimientos sincronizados vs Vida Digital deduplicado): 161 iguales, 0 inflados, 10 con menos en Arjun (8 exactamente la mitad), 10 sin contraparte.
+   - Scripts de diagnostico (solo lectura) en `_poc_tmp\`: vdcheck.cjs, vdcheck2.cjs, synccheck.cjs, fechacheck.cjs, f2.cjs. Uso: `$env:NODE_PATH="<repo>\node_modules"; node <script> <repo>`.
+
+### MODULO 1 — Identificacion de productos por foto: EN CURSO (slice 1 de 10 hecho)
+Prueba de concepto (fuera del repo, `_poc_tmp\poc\`): 27 fotos de bodega en `_poc_tmp\bodega\`, catalogo `catalog.json`, miniaturas `thumbs\`, fichas visuales `captions.json` (2.235 de 2.267), scripts `poc.cjs`, `poc2.cjs`, `caption.cjs`, `sheets.cjs`, resultados `result_*.json`. Resultado v2: codigo correcto entre las 3 opciones en ~25-26 de 27; la IA a veces se equivoca con 95-100% de confianza -> no mostrar porcentaje. Codigos reales confirmados por Pablo: 02/04: 1067 o 1045; 05: A-610; 07: DPKK-1000; 10: YQ10011; 15: 1044; 23: R.2839B; 24: QAN-2414; 26: 1044 (la IA insiste en 2767-1; Pablo no respondio si esta seguro).
+
+Plan aprobado (10 slices), flag `identificacion_foto=false`:
+1. Cliente Gemini JSON — **HECHO** `0d33595`: `lib/identificacion/gemini.ts` `llamarGeminiJson<T>(parts)`, modelo `gemini-3.5-flash-lite`, `thinkingConfig.thinkingLevel:'low'`, clave en header `x-goog-api-key`, rota en 429/5xx (2 rondas con backoff) y en 401/403, 400/404 sin reintento, timeout 20 s. Test real opt-in (`GEMINI_REAL=1`) verificado OK.
+2. Catalogo read-only desde Vida Digital `public.productos` (tercer uso autorizado: actualizar la regla en CLAUDE.md) + tabla `producto_fichas_visuales` (codigo PK, ficha jsonb, imagen_hash, modelo, generado_en; sin FK) aplicada con `npx drizzle-kit push` + agrupacion de codigos duplicados. **SIGUIENTE: lanzar Fase A.**
+3. Script local generador de fichas (lotes de 16 imagenes, incremental por hash).
+4. Etapa A describir foto. 5. Etapa B preseleccion (palabras + modelo con catalogo completo, union max 48). 6. Etapa C rerank por tandas de 24 miniaturas -> top 3. 7. `POST /api/identificacion` (maxDuration 60, presupuesto 45 s, auth cualquier sesion, flag). 8. UI `/entradas/identificar` (reutiliza `components/CamaraBoton.tsx`). 9. Codigo alternativo `ARJ-` via `upsertProducto`. 10. Activacion.
+
+Decisiones del Director ya comunicadas a claude-deep: catalogo leido directo de Vida Digital sin copia; duplicados (1124 / 1124(ANIL), QAN-2414 / VD-QAN-2414) se muestran como un grupo con los codigos variantes seleccionables, preseleccionando el que exista en la tabla productos propia; lo usa cualquier usuario (operador y admin).
+Pendiente operativo: cargar `GEMINI_API_KEY_1/2/3` en las variables de entorno de Vercel antes de activar (hoy solo estan en `.env.local`). `zod` se usa pero no esta declarado en package.json (corregir al llegar al slice 4).
+
+### Cotizacion enviada al cliente
+Artifact "Cotizacion App Arjun — Identificacion por foto e Inversion en mercaderia": 120 UF total (Modulo 1 = 65 UF con Etapa 0 PoC de 10 UF y clausula de salida; Modulo 2 = 55 UF).
