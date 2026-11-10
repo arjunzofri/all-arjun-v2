@@ -544,3 +544,13 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 1. Sync real ejecutado con el codigo corregido (corte 2026-06-15 por fechconf): +17 movimientos / +1.913 u. legitimas (002228, 002040 incl. KF-108 Bodega 2, 002331 MK0-216 Bodega 2 + SF54 + TY-26, sanjh 003738). Watermark -> 2026-11-10.
 2. 25 ajustes auditados (folio `AJT-REGSYNC-<id movimiento original>`, usuario admin, causa en observaciones; misma representacion que crearAjuste de entrada: tipo ajuste, 1 punta, cantidad con signo): neto -634 u. (HR-6 001986 +500; 001653 lineas en borrador; 001986/001987/001976 productos que no estan en la nota confirmada). Script `_poc_tmp/regul_aplicar.cjs`, residuos en `_poc_tmp/regul_residuos_aplicados.json`.
 3. PENDIENTE decision de Pablo: 5 codigos de 001653 en Bodega 1 (A2 -400, GBKI-5 -120, HJ-80092-8 -30, HM-9038 -120, ZTCH-013 -120; total -790) cuyo exceso es mayor que el stock actual de Bodega 1. Las lineas en borrador de 001653 son copia de lineas de la nota confirmada 001691 (mismas cantidades, Bodega 2). La diferencia viene de salidas V1-SAL (migradas de la v1, 29-05 a 06-06) que descontaron de Bodega 1 mercaderia anterior nunca ingresada en la v2. Restar todo deja la bodega negativa.
+
+## 2026-11-10 — Conciliacion en produccion mostro 203 diferencias falsas
+
+**Sintoma:** primer "Sincronizar" con `conciliacion_compras=true`: "203 diferencias en 27 notas (app 20386 u. vs VD 632 u.)".
+
+**Causa raiz:** ventanas distintas en cada lado. `syncComprasAnil` inicializa la key `compras-anil-desde` con el `corte` del sync (`ON CONFLICT DO NOTHING`), y el watermark ya estaba en 2026-11-10: el lado VD compara solo notas confirmadas desde hoy (002515, 632 u.), mientras `getLineasApp` trae TODAS las entradas sincronizadas de la app (desde 2026-06-23). La prueba previa en produccion uso `desde=2026-05-01` y no lo revelo.
+
+**Fix de datos (Director):** `UPDATE sync_watermark SET value='2026-05-01' WHERE key='compras-anil-desde'` (inicio de los datos sincronizados). Resultado esperado: 5 diferencias (los 5 codigos pendientes de 001653), igual que `_poc_tmp/conciliacion_prod_0501.json`.
+
+**Pendiente (fix de codigo, requiere aprobacion):** acotar el lado app a la misma ventana para que no dependa de como se inicializa la key, e inicializar la key con el inicio real de los datos y no con el corte incremental. Tras el corte de inventario (app vacia + key = fecha de corte) el problema no se presenta, pero el codigo no debe depender de eso.
