@@ -13,5 +13,24 @@
   "preview": [],
   "preparar": "node .pbravot/qa-preparar.mjs",
   "restaurar": ["next-env.d.ts"],
-  "timeoutSeg": 180
+  "timeoutSeg": 180,
+  "humoProd": {
+    "url": "https://all-arjun-v2.vercel.app",
+    "publicas": [ { "ruta": "/login", "debeVerse": ["Arjun v2", "Iniciar sesión"] } ],
+    "privadas": [
+      { "ruta": "/", "debeVerse": ["Dashboard"] },
+      { "ruta": "/bodegas", "debeVerse": ["Bodegas"] },
+      { "ruta": "/productos", "debeVerse": ["Productos"] },
+      { "ruta": "/movimientos", "debeVerse": ["Historial de movimientos"] },
+      { "ruta": "/modulos", "debeVerse": ["Módulos"] },
+      { "ruta": "/inversion-mercaderia", "debeVerse": ["Inversión en mercadería"] },
+      { "ruta": "/entradas", "debeVerse": ["Nueva entrada"] },
+      { "ruta": "/salidas", "debeVerse": ["Salida de bodega"] },
+      { "ruta": "/retornos", "debeVerse": ["Nuevo retorno"] },
+      { "ruta": "/transferencias", "debeVerse": ["Transferencia entre bodegas"] }
+    ],
+    "excluir": "^/usuarios",
+    "enlacesExtra": 8,
+    "esperaSeg": 240
+  }
 }
