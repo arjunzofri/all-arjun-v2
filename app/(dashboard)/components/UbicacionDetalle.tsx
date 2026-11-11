@@ -7,12 +7,23 @@ import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { AjusteModal } from "@/components/AjusteModal";
 import { formatearFechaISO } from "@/lib/utils/fecha-chile";
 
-type Item = { id: number; codigo: string; detalle: string | null; imagenUrl: string | null; packing: number | null; cantidad: number; totalEntradas: number; totalSalidas: number };
+type Item = { id: number; codigo: string; detalle: string | null; imagenUrl: string | null; packing: number | null; cantidad: number; totalEntradas: number; totalSalidas: number; totalAjustes: number };
 type Tipo = "bodega" | "modulo";
 type Page = { items: Item[]; nextCursor: number | null };
 type Entrada = { id: number; folio: string | null; fecha: string | null; cantidad: number; precioUnitario: number | null; usuario: string };
 type Salida  = { id: number; tipo: string; fecha: string; cantidad: number; destino: string | null; usuario: string };
-type MovDetalle = { entradas: Entrada[]; salidas: Salida[] };
+type Ajuste  = { id: number; folio: string | null; fecha: string; cantidad: number; usuario: string };
+type MovDetalle = { entradas: Entrada[]; salidas: Salida[]; ajustes: Ajuste[] };
+// Entro - Salida + Ajustes = Saldo: el ajuste se muestra con su efecto real.
+function formatAjuste(n: number): string {
+  if (n === 0) return "---";
+  return n > 0 ? "+" + n : String(n);
+}
+// Folio de ajuste es un UUID; mostrarlo entero ensancha la tabla.
+function folioCorto(f: string | null): string {
+  if (!f) return "---";
+  return f.length > 12 ? f.slice(0, 12) + "…" : f;
+}
 
 export function createDebounce(fn: () => void, ms: number) {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -32,11 +43,12 @@ function ChevronIcon({ open }: { open: boolean }) {
   return (<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={"transition-transform duration-200 " + (open ? "rotate-90" : "")}><path d="M9 18l6-6-6-6"/></svg>);
 }
 function SubFilasMovimientos({ mov }: { mov: MovDetalle }) {
-  // 9 columnas: chevron | imagen | codigo | detalle | packing | entro | salida | saldo | accion
+  // 10 columnas: chevron | imagen | codigo | detalle | packing | entro | salida | ajustes | saldo | accion
   const hayEntradas = mov.entradas.length > 0;
   const haySalidas  = mov.salidas.length > 0;
-  const COLS = 9;
-  if (!hayEntradas && !haySalidas) return (
+  const hayAjustes  = mov.ajustes.length > 0;
+  const COLS = 10;
+  if (!hayEntradas && !haySalidas && !hayAjustes) return (
     <tr className="bg-slate-50">
       <td colSpan={COLS} className="py-3 pl-12 pr-4 text-xs text-slate-400 italic">Sin movimientos registrados</td>
     </tr>
@@ -56,7 +68,7 @@ function SubFilasMovimientos({ mov }: { mov: MovDetalle }) {
             {/* col2: imagen — vacio */}
             <td className="py-2 px-2"></td>
             {/* col3: codigo — NV folio */}
-            <td className="py-2 px-3 text-xs font-semibold text-slate-700 tabular-nums whitespace-nowrap">{e.folio && !e.folio.startsWith("V1-SAL") && !e.folio.startsWith("MAN-") ? e.folio : "---"}</td>
+            <td className="py-2 px-3 text-xs font-semibold text-slate-700 tabular-nums"><span className="block max-w-[16rem] truncate" title={e.folio ?? undefined}>{e.folio && !e.folio.startsWith("V1-SAL") && !e.folio.startsWith("MAN-") ? e.folio : "---"}</span></td>
             {/* col4: detalle — fecha */}
             <td className="py-2 px-3 text-xs text-slate-500 tabular-nums whitespace-nowrap">{formatFecha(e.fecha)}</td>
             {/* col5: packing — costo */}
@@ -65,10 +77,12 @@ function SubFilasMovimientos({ mov }: { mov: MovDetalle }) {
             <td className="py-2 px-3 text-right text-xs font-bold text-green-600 tabular-nums">+{e.cantidad}</td>
             {/* col7: salida — vacio */}
             <td className="py-2 px-3"></td>
-            {/* col8: saldo — vacio */}
+            {/* col8: ajustes — vacio */}
             <td className="py-2 px-3"></td>
-            {/* col9: accion — usuario */}
-            <td className="py-2 pl-3 pr-4 text-xs text-slate-400 text-right whitespace-nowrap">{e.usuario}</td>
+            {/* col9: saldo — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col10: accion — usuario */}
+            <td className="py-2 pl-3 pr-4 text-xs text-slate-400 text-right"><span className="block max-w-[12rem] truncate" title={e.usuario}>{e.usuario}</span></td>
           </tr>
         ))}
       </>)}
@@ -89,17 +103,52 @@ function SubFilasMovimientos({ mov }: { mov: MovDetalle }) {
             {/* col3: codigo — fecha */}
             <td className="py-2 px-3 text-xs text-slate-500 tabular-nums whitespace-nowrap">{formatFecha(s.fecha)}</td>
             {/* col4: detalle — destino */}
-            <td className="py-2 px-3 text-xs text-slate-500 truncate max-w-xs">{s.destino ?? "---"}</td>
+            <td className="py-2 px-3 text-xs text-slate-500"><span className="block max-w-[16rem] truncate" title={s.destino ?? undefined}>{s.destino ?? "---"}</span></td>
             {/* col5: packing — vacio */}
             <td className="py-2 px-3"></td>
             {/* col6: entro — vacio */}
             <td className="py-2 px-3"></td>
             {/* col7: salida — cantidad */}
             <td className="py-2 px-3 text-right text-xs font-bold text-red-500 tabular-nums">{s.cantidad}</td>
-            {/* col8: saldo — vacio */}
+            {/* col8: ajustes — vacio */}
             <td className="py-2 px-3"></td>
-            {/* col9: accion — usuario */}
-            <td className="py-2 pl-3 pr-4 text-xs text-slate-400 text-right whitespace-nowrap">{s.usuario}</td>
+            {/* col9: saldo — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col10: accion — usuario */}
+            <td className="py-2 pl-3 pr-4 text-xs text-slate-400 text-right"><span className="block max-w-[12rem] truncate" title={s.usuario}>{s.usuario}</span></td>
+          </tr>
+        ))}
+      </>)}
+      {hayAjustes && (<>
+        <tr className="bg-amber-50">
+          <td colSpan={COLS} className="py-1.5 pl-12 pr-4">
+            <span className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Ajustes</span>
+          </td>
+        </tr>
+        {mov.ajustes.map(a => (
+          <tr key={"a-" + a.id} className="bg-amber-50 border-t border-amber-100">
+            {/* col1: chevron — indent */}
+            <td className="py-2 pl-4 pr-2"></td>
+            {/* col2: imagen — badge ajuste */}
+            <td className="py-2 px-2">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">ajuste</span>
+            </td>
+            {/* col3: codigo — fecha */}
+            <td className="py-2 px-3 text-xs text-slate-500 tabular-nums whitespace-nowrap">{formatFecha(a.fecha)}</td>
+            {/* col4: detalle — folio */}
+            <td className="py-2 px-3 text-xs text-slate-500"><span className="block max-w-[16rem] truncate" title={a.folio ?? undefined}>{folioCorto(a.folio)}</span></td>
+            {/* col5: packing — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col6: entro — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col7: salida — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col8: ajustes — cantidad con signo */}
+            <td className="py-2 px-3 text-right text-xs font-bold text-amber-600 tabular-nums">{formatAjuste(a.cantidad)}</td>
+            {/* col9: saldo — vacio */}
+            <td className="py-2 px-3"></td>
+            {/* col10: accion — usuario */}
+            <td className="py-2 pl-3 pr-4 text-xs text-slate-400 text-right"><span className="block max-w-[12rem] truncate" title={a.usuario}>{a.usuario}</span></td>
           </tr>
         ))}
       </>)}
@@ -151,7 +200,7 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
     try {
       const data = await getMovimientosPorProductoUbicacion({ productoId, tipo, ubicacionId });
       setMovDetalle(prev => new Map(prev).set(productoId, data));
-    } catch { setMovDetalle(prev => new Map(prev).set(productoId, { entradas: [], salidas: [] })); }
+    } catch { setMovDetalle(prev => new Map(prev).set(productoId, { entradas: [], salidas: [], ajustes: [] })); }
     finally { setLoadingMov(prev => { const s = new Set(prev); s.delete(productoId); return s; }); }
   };
   return (
@@ -177,6 +226,7 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
               <th className="py-3 px-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide w-20">Packing</th>
               <th className="py-3 px-3 text-right text-xs font-semibold text-green-600 uppercase tracking-wide w-20">Entro</th>
               <th className="py-3 px-3 text-right text-xs font-semibold text-red-500 uppercase tracking-wide w-20">Salida</th>
+              <th className="py-3 px-3 text-right text-xs font-semibold text-amber-600 uppercase tracking-wide w-20">Ajustes</th>
               <th className="py-3 px-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide w-20">Saldo</th>
               <th className="py-3 pl-3 pr-4 w-24"></th>
             </tr>
@@ -196,20 +246,21 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
                     <td className="py-2.5 px-3 text-right text-slate-500 tabular-nums text-xs">{item.packing ?? "---"}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums text-xs font-semibold text-green-600">{item.totalEntradas > 0 ? item.totalEntradas : "---"}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums text-xs font-semibold text-red-500">{item.totalSalidas > 0 ? item.totalSalidas : "---"}</td>
+                    <td className="py-2.5 px-3 text-right tabular-nums text-xs font-semibold text-amber-600">{formatAjuste(item.totalAjustes)}</td>
                     <td className="py-2.5 px-3 text-right font-bold text-slate-800 tabular-nums">{item.cantidad}</td>
                     <td className="py-2.5 pl-3 pr-4 text-center" onClick={e => e.stopPropagation()}>
                       <button onClick={() => setProductoParaAjustar({ id: item.id, codigo: item.codigo })} className="text-xs px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-violet-100 hover:text-violet-700 transition-colors font-medium">Corregir</button>
                     </td>
                   </tr>
                   {isExpanded && (isLoadingMov
-                    ? <tr key={item.id + "-loading"} className="bg-slate-50 border-t border-slate-100"><td colSpan={9} className="py-3 pl-12 pr-4 text-xs text-slate-400 animate-pulse">Cargando movimientos...</td></tr>
+                    ? <tr key={item.id + "-loading"} className="bg-slate-50 border-t border-slate-100"><td colSpan={10} className="py-3 pl-12 pr-4 text-xs text-slate-400 animate-pulse">Cargando movimientos...</td></tr>
                     : mov ? <SubFilasMovimientos key={item.id + "-mov"} mov={mov} /> : null
                   )}
                 </Fragment>
               );
             })}
-            {items.length === 0 && !loading && !error && <tr><td colSpan={9} className="py-12 text-center text-slate-400 text-sm">Sin productos</td></tr>}
-            {loading && items.length === 0 && <tr><td colSpan={9} className="py-12 text-center text-slate-400 text-sm">Cargando...</td></tr>}
+            {items.length === 0 && !loading && !error && <tr><td colSpan={10} className="py-12 text-center text-slate-400 text-sm">Sin productos</td></tr>}
+            {loading && items.length === 0 && <tr><td colSpan={10} className="py-12 text-center text-slate-400 text-sm">Cargando...</td></tr>}
           </tbody>
         </table>
       </div>

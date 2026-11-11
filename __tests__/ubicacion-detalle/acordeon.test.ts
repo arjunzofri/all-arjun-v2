@@ -115,3 +115,22 @@ describe("UbicacionDetalle.tsx — acordeon expandible", () => {
     expect(src).toContain("salidas");
   });
 });
+
+describe("UbicacionDetalle.tsx — QA-05: folio largo no ensancha la tabla", () => {
+  const src = readFileSync(
+    join(process.cwd(), "app", "(dashboard)", "components", "UbicacionDetalle.tsx"),
+    "utf-8"
+  );
+
+  it("ajustes muestra folio corto con el completo en title", () => {
+    expect(src).toContain("folioCorto(a.folio)");
+    expect(src).toContain('title={a.folio ?? undefined}');
+  });
+
+  it("las celdas de texto largo de las sub-filas truncan su contenido", () => {
+    expect(src).toContain('max-w-[16rem] truncate" title={a.folio');
+    expect(src).toContain('max-w-[16rem] truncate" title={s.destino');
+    expect(src).toContain('max-w-[16rem] truncate" title={e.folio');
+    expect(src).toContain('max-w-[12rem] truncate" title={e.usuario}');
+  });
+});

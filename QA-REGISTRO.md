@@ -22,7 +22,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - [x] P-20261110-2158-7 (baja) HALLAZGO: EXP-1 — Formato de miles inconsistente -> 
 - [x] P-20261110-2158-8 (media) HALLAZGO: EXP-2 — Tipo "ajuste" ausente en el filtro de /movimientos -> 
 - [x] P-20261110-2158-9 (media) HALLAZGO: EXP-3 — Tras "Corregir", el detalle no coincide con el saldo -> BACKLOG UX: "Corregir" funciona segun diseno; mejorar como se muestra el detalle
-- [x] P-20261110-2158-10 (media) HALLAZGO: EXP-4 — Saldos de salida sin entrada en /bodegas/1 -> 
+- [x] P-20261110-2158-10 (media) HALLAZGO: EXP-4 — Saldos de salida sin entrada en /bodegas/1 ->  | ACTUALIZADO 2026-11-11: ARREGLADO (decision de Pablo): retornos suman en Entro de la bodega y columna Ajustes con signo; QA columnas + columnas2 PASA
 - [x] P-20261110-2158-11 (baja) HALLAZGO: EXP-5 — Textos y avisos inconsistentes -> 
 - [x] P-20261110-2158-12 (baja) HALLAZGO: EXP-6 — Búsquedas lentas y errores de consola ->  | MEDIDO en produccion 2026-11-11 (commit bede189, 4 rondas x 4 busquedas): primera llamada fria 1,3 s; despues 0,3-0,4 s en buscar-historico, por-bodega y productos. No se toca
 - [x] P-20261110-2158-13 (baja) HALLAZGO: EXP-7 — Columna "Bodegas" sin nombres en /productos -> 
@@ -54,7 +54,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\arjun-barrido-c2
 - [x] P-20261110-2207-1 (baja) HALLAZGO: EXP-1 — Sugerencias de producto no aparecen al rellenar el campo de golpe -> 
 - [x] P-20261110-2207-2 (baja) HALLAZGO: EXP-2 — Consola: error de React por claves duplicadas -> DESCARTADO duplicado de P-20261110-2158-15
-- [x] P-20261110-2207-3 (baja) HALLAZGO: EXP-3 — Cuadro de /modulos/1 para TEST-RET-001 no suma -> 
+- [x] P-20261110-2207-3 (baja) HALLAZGO: EXP-3 — Cuadro de /modulos/1 para TEST-RET-001 no suma ->  | ACTUALIZADO 2026-11-11: ARREGLADO (decision de Pablo): retornos suman en Entro de la bodega y columna Ajustes con signo; QA columnas + columnas2 PASA
 
 ## 2026-11-10 22:55 - prod-prueba1 - commit 1b99433 - PRODUCCION PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-prueba1
@@ -144,4 +144,12 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 
 ## 2026-11-11 07:55 - prod-deploy-bede189-operador - commit bede189 - PRODUCCION PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-deploy-bede189-operador
-- [ ] P-20261111-0755-1 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 () (/usuarios)
+- [x] P-20261111-0755-1 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 () (/usuarios) -> DESCARTADO: es el 403 esperado del caso "operador no ve /usuarios" del humo; qa-prod-mecanico.js ya no cuenta errores de consola de casos oculta
+
+## 2026-11-11 08:25 - columnas - commit 5ad313d - FALLA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\columnas
+- [x] P-20261111-0825-1 (media) FALLA: QA-05 — Con un ajuste en el detalle, la tabla se desborda y el botón "Corregir" queda cortado -> ARREGLADO: folios largos truncados con title en el detalle; QA columnas2 PASA
+
+## 2026-11-11 08:36 - columnas2 - commit 5ad313d - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\columnas2
+- Sin pendientes nuevos.

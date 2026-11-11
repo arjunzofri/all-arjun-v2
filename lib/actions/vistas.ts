@@ -86,9 +86,10 @@ export async function getStockPorUbicacion(params: {
   const totalesRows = productoIds.length > 0
     ? await db
         .select({
-          productoId: movimientos.productoId,
-          tipo:       movimientos.tipo,
-          total:      sql<number>`SUM(${movimientos.cantidad})`.mapWith(Number),
+          productoId:      movimientos.productoId,
+          tipo:            movimientos.tipo,
+          moduloDestinoId: movimientos.moduloDestinoId,
+          total:           sql<number>`SUM(${movimientos.cantidad})`.mapWith(Number),
         })
         .from(movimientos)
         .where(
@@ -97,18 +98,26 @@ export async function getStockPorUbicacion(params: {
             eq(columnaMovimiento, ubicacionId),
           )
         )
-        .groupBy(movimientos.productoId, movimientos.tipo)
+        .groupBy(movimientos.productoId, movimientos.tipo, movimientos.moduloDestinoId)
     : [];
 
-  const totalesMap = new Map<number, { entradas: number; salidas: number }>();
+  // Entro - Salida + Ajustes = Saldo. Los ajustes se muestran con su efecto
+  // real sobre la ubicación, no con la cantidad cruda guardada:
+  //  - bodega, ajuste de 2 puntas: bodega_origen_id = bodega → efecto -cantidad
+  //  - bodega, ajuste de entrada (1 punta, modulo_destino_id NULL) → efecto +cantidad
+  //  - modulo: modulo_destino_id = módulo → efecto +cantidad
+  const totalesMap = new Map<number, { entradas: number; salidas: number; ajustes: number }>();
   for (const r of totalesRows) {
-    const entry = totalesMap.get(r.productoId) ?? { entradas: 0, salidas: 0 };
-    if (tipo === "modulo") {
+    const entry = totalesMap.get(r.productoId) ?? { entradas: 0, salidas: 0, ajustes: 0 };
+    if (r.tipo === "ajuste") {
+      entry.ajustes += tipo === "bodega" && r.moduloDestinoId !== null ? -r.total : r.total;
+    } else if (tipo === "modulo") {
       if (r.tipo === "salida")  entry.entradas += r.total;
       if (r.tipo === "retorno") entry.salidas  += r.total;
     } else {
-      if (r.tipo === "entrada") entry.entradas += r.total;
-      if (r.tipo === "salida" || r.tipo === "retorno") entry.salidas += r.total;
+      // retorno = módulo → bodega: para la bodega es una ENTRADA
+      if (r.tipo === "entrada" || r.tipo === "retorno") entry.entradas += r.total;
+      if (r.tipo === "salida") entry.salidas += r.total;
     }
     totalesMap.set(r.productoId, entry);
   }
@@ -118,6 +127,7 @@ export async function getStockPorUbicacion(params: {
       ...i,
       totalEntradas: totalesMap.get(i.id)?.entradas ?? 0,
       totalSalidas:  totalesMap.get(i.id)?.salidas  ?? 0,
+      totalAjustes:  totalesMap.get(i.id)?.ajustes  ?? 0,
     })),
     nextCursor: hasMore ? items[items.length - 1].id : null,
   };
@@ -198,7 +208,7 @@ export async function getMovimientosPorProductoUbicacion(params: {
   const moduloMap = new Map(moduloRows.map(m => [m.id, m.nombre]));
 
   const entradas = rows
-    .filter(r => tipo === "modulo" ? (r.tipo === "salida") : (r.tipo === "entrada"))
+    .filter(r => tipo === "modulo" ? (r.tipo === "salida") : (r.tipo === "entrada" || r.tipo === "retorno"))
     .map(r => ({
       id:             r.id,
       folio:          r.folio,
@@ -209,7 +219,7 @@ export async function getMovimientosPorProductoUbicacion(params: {
     }));
 
   const salidas = rows
-    .filter(r => tipo === "modulo" ? (r.tipo === "retorno") : (r.tipo === "salida" || r.tipo === "retorno"))
+    .filter(r => tipo === "modulo" ? (r.tipo === "retorno") : (r.tipo === "salida"))
     .map(r => ({
       id:       r.id,
       tipo:     r.tipo as string,
@@ -220,5 +230,16 @@ export async function getMovimientosPorProductoUbicacion(params: {
       usuario:  r.usuario,
     }));
 
-  return { entradas, salidas };
+  // Ajustes con su efecto sobre la ubicación (ver signo en los totales).
+  const ajustes = rows
+    .filter(r => r.tipo === "ajuste")
+    .map(r => ({
+      id:       r.id,
+      folio:    r.folio,
+      fecha:    fechaChileDeTimestamp(r.createdAt),
+      cantidad: tipo === "bodega" && r.moduloId !== null ? -r.cantidad : r.cantidad,
+      usuario:  r.usuario,
+    }));
+
+  return { entradas, salidas, ajustes };
 }
