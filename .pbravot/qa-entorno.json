@@ -1,36 +1,136 @@
 {
   "url": "http://localhost:3123",
   "comando": "npm run dev -- -p 3123",
-  "envArchivos": [".env.local", ".env"],
-  "envDesde": { "DATABASE_URL": "TEST_DATABASE_URL" },
+  "envArchivos": [
+    ".env.local",
+    ".env"
+  ],
+  "envDesde": {
+    "DATABASE_URL": "TEST_DATABASE_URL"
+  },
   "env": {
     "NEXTAUTH_URL": "http://localhost:3123",
     "AUTH_URL": "http://localhost:3123",
     "AUTH_TRUST_HOST": "true"
   },
-  "guardas": [ { "var": "DATABASE_URL", "distintoDe": "DATABASE_URL" } ],
-  "produccion": ["all-arjun-v2.vercel.app"],
+  "guardas": [
+    {
+      "var": "DATABASE_URL",
+      "distintoDe": "DATABASE_URL"
+    }
+  ],
+  "produccion": [
+    "all-arjun-v2.vercel.app"
+  ],
   "preview": [],
   "preparar": "node .pbravot/qa-preparar.mjs",
-  "restaurar": ["next-env.d.ts"],
+  "restaurar": [
+    "next-env.d.ts"
+  ],
   "timeoutSeg": 180,
   "humoProd": {
     "url": "https://all-arjun-v2.vercel.app",
-    "publicas": [ { "ruta": "/login", "debeVerse": ["Arjun v2", "Iniciar sesión"] } ],
-    "privadas": [
-      { "ruta": "/", "debeVerse": ["Dashboard"] },
-      { "ruta": "/bodegas", "debeVerse": ["Bodegas"] },
-      { "ruta": "/productos", "debeVerse": ["Productos"] },
-      { "ruta": "/movimientos", "debeVerse": ["Historial de movimientos"] },
-      { "ruta": "/modulos", "debeVerse": ["Módulos"] },
-      { "ruta": "/entradas", "debeVerse": ["Nueva entrada"] },
-      { "ruta": "/salidas", "debeVerse": ["Salida de bodega"] },
-      { "ruta": "/retornos", "debeVerse": ["Nuevo retorno"] },
-      { "ruta": "/transferencias", "debeVerse": ["Transferencia entre bodegas"] }
+    "roles": {
+      "admin": {
+        "debeVer": [
+          "Inversión",
+          "Usuarios"
+        ]
+      },
+      "operador": {
+        "noDebeVer": [
+          "Inversión",
+          "Usuarios"
+        ]
+      }
+    },
+    "publicas": [
+      {
+        "ruta": "/login",
+        "debeVerse": [
+          "Arjun v2",
+          "Iniciar sesión"
+        ]
+      }
     ],
-    "excluir": "^/(usuarios|inversion-mercaderia)",
-    "permitirPost": "^/(movimientos|bodegas/\\d+|modulos/\\d+)$",
+    "privadas": [
+      {
+        "ruta": "/",
+        "debeVerse": [
+          "Dashboard"
+        ]
+      },
+      {
+        "ruta": "/bodegas",
+        "debeVerse": [
+          "Bodegas"
+        ]
+      },
+      {
+        "ruta": "/productos",
+        "debeVerse": [
+          "Productos"
+        ]
+      },
+      {
+        "ruta": "/movimientos",
+        "debeVerse": [
+          "Historial de movimientos"
+        ]
+      },
+      {
+        "ruta": "/modulos",
+        "debeVerse": [
+          "Módulos"
+        ]
+      },
+      {
+        "ruta": "/entradas",
+        "debeVerse": [
+          "Nueva entrada"
+        ]
+      },
+      {
+        "ruta": "/salidas",
+        "debeVerse": [
+          "Salida de bodega"
+        ]
+      },
+      {
+        "ruta": "/retornos",
+        "debeVerse": [
+          "Nuevo retorno"
+        ]
+      },
+      {
+        "ruta": "/transferencias",
+        "debeVerse": [
+          "Transferencia entre bodegas"
+        ]
+      },
+      {
+        "ruta": "/inversion-mercaderia",
+        "roles": [
+          "admin"
+        ],
+        "debeVerse": [
+          "Inversión en mercadería"
+        ]
+      },
+      {
+        "ruta": "/usuarios",
+        "roles": [
+          "admin"
+        ],
+        "debeVerse": [
+          "Usuarios"
+        ]
+      }
+    ],
+    "permitirPost": "^/(movimientos|bodegas/\\d+|modulos/\\d+|inversion-mercaderia)$",
     "enlacesExtra": 8,
-    "esperaSeg": 240
+    "esperaSeg": 240,
+    "sesionUrl": "/api/auth/session",
+    "rolCampo": "user.role"
   }
 }
