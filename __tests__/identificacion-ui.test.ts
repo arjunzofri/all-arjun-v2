@@ -28,6 +28,7 @@ import DashboardShell from "@/components/DashboardShell";
 import DashboardLayout from "@/app/(dashboard)/layout";
 import IdentificarPage, { dynamic } from "@/app/(dashboard)/entradas/identificar/page";
 import { codigoDesdeQuery } from "@/app/(dashboard)/entradas/page";
+import { AvisoAnalizando, segundosTranscurridos } from "@/components/identificacion/IdentificarProducto";
 
 const mockAuth = vi.mocked(auth);
 const mockFlag = vi.mocked(flagActivo);
@@ -141,6 +142,41 @@ describe("IdentificarProducto — opción de preselección", () => {
     expect(src).toContain("comparación visual no disponible");
     expect(src).toContain("Resultado rápido: la comparación por imagen no alcanzó a terminar. Revisa bien antes de elegir.");
     expect(src).toMatch(/avisos\?: string\[\]/);
+  });
+});
+
+describe("animación mientras analiza la foto", () => {
+  it("segundosTranscurridos: trunca, nunca negativo", () => {
+    expect(segundosTranscurridos(1000, 1000)).toBe(0);
+    expect(segundosTranscurridos(1000, 13900)).toBe(12);
+    expect(segundosTranscurridos(5000, 1000)).toBe(0);
+  });
+
+  it("AvisoAnalizando muestra spinner, contador y límite de 45 s", () => {
+    const html = renderToStaticMarkup(React.createElement(AvisoAnalizando, { segundos: 12 }));
+    expect(html).toContain('role="status"');
+    expect(html).toContain("Analizando la foto...");
+    expect(html).toContain("Llevamos 12 s");
+    expect(html).toContain("45 s");
+    expect(html).toContain("animate-spin");
+    expect(html).toContain('aria-hidden="true"');
+  });
+
+  it("globals.css tiene el rayo láser verde y respeta prefers-reduced-motion", () => {
+    const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8");
+    expect(css).toContain("@keyframes");
+    expect(css).toContain("#39ff14");
+    expect(css).toMatch(/prefers-reduced-motion:\s*reduce/);
+    expect(css).toMatch(/prefers-reduced-motion[\s\S]*animation:\s*none/);
+  });
+
+  it("el intervalo se limpia al terminar y al desmontar", () => {
+    const src = readFileSync(join(process.cwd(), "components/identificacion/IdentificarProducto.tsx"), "utf8");
+    expect(src).toContain("setInterval");
+    expect(src).toContain("clearInterval");
+    expect(src).toMatch(/\},\s*\[analizando\]\)/);
+    expect(src).toContain("escaner-laser");
+    expect(src).toContain("segundosTranscurridos");
   });
 });
 

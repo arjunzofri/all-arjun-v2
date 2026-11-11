@@ -13,6 +13,22 @@ type Resultado = { opciones: Opcion[]; avisos?: string[] };
 const ERROR_GENERICO = "No se pudo identificar el producto. Intenta de nuevo.";
 const BOTON_USAR = "mt-2 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700 transition-colors";
 
+export function segundosTranscurridos(inicioMs: number, ahoraMs: number): number {
+  return Math.max(0, Math.floor((ahoraMs - inicioMs) / 1000));
+}
+
+export function AvisoAnalizando({ segundos }: { segundos: number }) {
+  return (
+    <div role="status" className="mt-4 flex items-center gap-3 rounded-lg bg-violet-50 border border-violet-200 px-4 py-3 text-sm text-violet-700">
+      <span aria-hidden="true" className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-violet-300 border-t-violet-600" />
+      <div>
+        <p>Analizando la foto...</p>
+        <p className="text-xs text-violet-500">Llevamos {segundos} s · puede tardar hasta 45 s</p>
+      </div>
+    </div>
+  );
+}
+
 export default function IdentificarProducto() {
   const router = useRouter();
   const [foto, setFoto] = useState<string | null>(null);
@@ -22,14 +38,22 @@ export default function IdentificarProducto() {
   const [elegidos, setElegidos] = useState<Record<number, string>>({});
   const [creandoCodigo, setCreandoCodigo] = useState(false);
   const [errorCodigo, setErrorCodigo] = useState("");
+  const [segundos, setSegundos] = useState(0);
   const fotoRef = useRef<string | null>(null);
   useEffect(() => () => { if (fotoRef.current) URL.revokeObjectURL(fotoRef.current); }, []);
+
+  useEffect(() => {
+    if (!analizando) return;
+    const inicio = Date.now();
+    const id = setInterval(() => setSegundos(segundosTranscurridos(inicio, Date.now())), 250);
+    return () => clearInterval(id);
+  }, [analizando]);
 
   const handleFoto = async (file: File) => {
     if (analizando) return;
     if (fotoRef.current) URL.revokeObjectURL(fotoRef.current);
     fotoRef.current = URL.createObjectURL(file);
-    setFoto(fotoRef.current); setError(""); setResultado(null); setAnalizando(true);
+    setFoto(fotoRef.current); setError(""); setResultado(null); setSegundos(0); setAnalizando(true);
     try {
       const { data, mimeType } = await comprimirImagen(file);
       const res = await fetch("/api/identificacion", {
@@ -65,16 +89,17 @@ export default function IdentificarProducto() {
     <div className="max-w-lg">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Identificar producto</h1>
       <div className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-dashed border-slate-300 bg-white">
-        {foto && <img src={foto} alt="Foto del producto" className="w-40 h-40 rounded-xl object-cover border border-slate-200" />}
+        {foto && (
+          <div className="relative w-40 h-40 overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <img src={foto} alt="Foto del producto" className="w-full h-full object-cover" />
+            {analizando && <div aria-hidden="true" className="escaner-laser" />}
+          </div>
+        )}
         <CamaraBoton onFoto={handleFoto} disabled={analizando} className="!p-5 rounded-2xl bg-violet-600 !text-white hover:!bg-violet-700" />
         <span className="text-sm font-medium text-slate-700">Sacar foto del producto</span>
       </div>
 
-      {analizando && (
-        <div role="status" className="mt-4 rounded-lg bg-violet-50 border border-violet-200 px-4 py-3 text-sm text-violet-700">
-          Analizando la foto... puede tardar hasta 45 segundos
-        </div>
-      )}
+      {analizando && <AvisoAnalizando segundos={segundos} />}
       {error && (
         <div role="alert" className="mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
       )}

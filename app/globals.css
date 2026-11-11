@@ -18,3 +18,24 @@ body {
   font-family: Inter, Arial, Helvetica, sans-serif;
   background-color: var(--color-body-bg);
 }
+
+/* Rayo láser que recorre la foto mientras se identifica el producto. */
+.escaner-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #39ff14;
+  box-shadow: 0 0 8px 2px #39ff14;
+  animation: escaner-barrer 1s ease-in-out infinite alternate;
+}
+
+@keyframes escaner-barrer {
+  from { top: 0; }
+  to   { top: calc(100% - 3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .escaner-laser { animation: none; top: 50%; }
+  .animate-spin { animation: none; }
+}
