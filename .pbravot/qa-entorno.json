@@ -127,7 +127,7 @@
         ]
       }
     ],
-    "permitirPost": "^/(movimientos|bodegas/\\d+|modulos/\\d+|inversion-mercaderia)$",
+    "permitirPost": "^/(movimientos|bodegas/\\d+|modulos/\\d+|inversion-mercaderia|usuarios)$",
     "enlacesExtra": 8,
     "esperaSeg": 240,
     "sesionUrl": "/api/auth/session",
