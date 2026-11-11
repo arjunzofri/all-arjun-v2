@@ -23,13 +23,13 @@
       { "ruta": "/productos", "debeVerse": ["Productos"] },
       { "ruta": "/movimientos", "debeVerse": ["Historial de movimientos"] },
       { "ruta": "/modulos", "debeVerse": ["Módulos"] },
-      { "ruta": "/inversion-mercaderia", "debeVerse": ["Inversión en mercadería"] },
       { "ruta": "/entradas", "debeVerse": ["Nueva entrada"] },
       { "ruta": "/salidas", "debeVerse": ["Salida de bodega"] },
       { "ruta": "/retornos", "debeVerse": ["Nuevo retorno"] },
       { "ruta": "/transferencias", "debeVerse": ["Transferencia entre bodegas"] }
     ],
-    "excluir": "^/usuarios",
+    "excluir": "^/(usuarios|inversion-mercaderia)",
+    "permitirPost": "^/(movimientos|bodegas/\\d+|modulos/\\d+)$",
     "enlacesExtra": 8,
     "esperaSeg": 240
   }

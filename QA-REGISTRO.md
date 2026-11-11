@@ -8,7 +8,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-10 21:44 - arjun-barrido - commit 8c15d08 - INVALIDO
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\arjun-barrido
 - [ ] P-20261110-2144-1 (media) FALTA: FALTA-1 — Fecha en la entrada manual
-- [ ] P-20261110-2144-2 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 (Forbidden) (/usuarios)
+- [x] P-20261110-2144-2 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 (Forbidden) (/usuarios) -> DESCARTADO duplicado de P-20261110-2327-1
 - [ ] P-20261110-2144-3 (media) CONSOLA: Each child in a list should have a unique "key" prop. See https://react.dev/link/warning-keys for more information.
 
 ## 2026-11-10 21:58 - arjun-barrido-c1 - commit 8c15d08 - FALLA
@@ -59,3 +59,9 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-10 22:55 - prod-prueba1 - commit 1b99433 - PRODUCCION PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-prueba1
 - Sin pendientes nuevos.
+
+## 2026-11-10 23:27 - prod-sesion2 - commit bde7ddb - PRODUCCION FALLA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-sesion2
+- [ ] P-20261110-2327-1 (media) FALLA: QA-P01 a QA-P10 — Error 403 en consola al cargar cualquier pantalla con sesión [Director: severidad critica->media; causa verificada: components/DashboardShell.tsx muestra "Usuarios" a todos los roles y proxy.ts responde 403 a no-admin; sin exposicion de datos]
+- [x] P-20261110-2327-2 (media) HALLAZGO: EXP-6 — `/usuarios` responde 403 "No autorizado" -> DESCARTADO duplicado de P-20261110-2327-1
+- [x] P-20261110-2327-3 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 () (/usuarios) -> DESCARTADO duplicado de P-20261110-2327-1
