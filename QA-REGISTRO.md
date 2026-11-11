@@ -157,3 +157,15 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-11 09:32 - ciclo-prueba - commit 37ff5e9 - FALLA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\ciclo-prueba
 - [x] P-20261111-0932-1 (baja) FALLA: QA-02 — El título de /bodegas es "Bodegas", no "Bodegas ZZZ-PRUEBA-QA-CICLO" -> DESCARTADO: caso que falla a proposito para probar qa-ciclo.ps1 (re-prueba confirmo la falla como se esperaba)
+
+## 2026-11-11 11:32 - animacion-identificar - commit cbe8f9e - INVALIDO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\animacion-identificar
+- Sin pendientes nuevos.
+
+## 2026-11-11 11:44 - animacion-identificar-2 - commit e7cb99b - BLOQUEADO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\animacion-identificar-2
+- Sin pendientes nuevos.
+
+## 2026-11-11 11:47 - animacion-identificar-3 - commit e7cb99b - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\animacion-identificar-3
+- Sin pendientes nuevos.
