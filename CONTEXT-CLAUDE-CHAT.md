@@ -238,3 +238,5 @@ Fotos de 10 notas de venta impresas del WinFac enviadas por Pablo (5 Vida Digita
 - Precision real (banco `_poc_tmp/eval_identificacion.ts`, 27 fotos de bodega, 3 corridas): 19, 21 y 20 aciertos (codigo correcto entre las 3-4 opciones); version final 20/27 sin errores, mediana 21 s. 25/27 acertadas en al menos una corrida. Fallos: productos casi identicos (termos, cajas parecidas). Mejora posible: la comparacion visual (etapa C).
 - Claves GEMINI_API_KEY_1/2/3 cargadas en Vercel por Pablo (2026-11-10).
 - Lineas de produccion por slice declaradas en cada commit; slices 3 y 8 divididos en dos commits por el limite de 200.
+
+### ACTUALIZACION 2026-11-11 05:15 — ver AUTO-LOG.md (cierre de QA, 8 commits sin push esperando UAT de Pablo)
