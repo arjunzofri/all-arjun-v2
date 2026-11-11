@@ -65,3 +65,15 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - [ ] P-20261110-2327-1 (media) FALLA: QA-P01 a QA-P10 — Error 403 en consola al cargar cualquier pantalla con sesión [Director: severidad critica->media; causa verificada: components/DashboardShell.tsx muestra "Usuarios" a todos los roles y proxy.ts responde 403 a no-admin; sin exposicion de datos]
 - [x] P-20261110-2327-2 (media) HALLAZGO: EXP-6 — `/usuarios` responde 403 "No autorizado" -> DESCARTADO duplicado de P-20261110-2327-1
 - [x] P-20261110-2327-3 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 () (/usuarios) -> DESCARTADO duplicado de P-20261110-2327-1
+
+## 2026-11-10 23:52 - prod-roles1-anon - commit 8e10081 - PRODUCCION PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-roles1-anon
+- Sin pendientes nuevos.
+
+## 2026-11-10 23:52 - prod-roles1-admin - commit 8e10081 - PRODUCCION INVALIDO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-roles1-admin
+- [ ] P-20261110-2352-1 (media) CONSOLA: Manifest: Line: 1, column: 1, Syntax error. (/manifest.json) [Director: causa verificada: proxy.ts matcher no excluye /manifest.json; prod responde 307 a /login (HTML) y el manifest se pide sin cookies, falla con y sin sesion; PWA no instalable]
+
+## 2026-11-10 23:52 - prod-roles1-operador - commit 8e10081 - PRODUCCION INVALIDO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-roles1-operador
+- Sin pendientes nuevos.
