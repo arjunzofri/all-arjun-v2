@@ -15,7 +15,12 @@ const retornoSchema = z.object({
 
 export type CrearRetornoInput = z.infer<typeof retornoSchema>;
 
-export async function crearRetorno(input: CrearRetornoInput) {
+export type CrearRetornoResult =
+  | { movimientoId: number; ok: true }
+  | { movimientoId: null; ok: false; reason: "idempotente" }
+  | { movimientoId: null; ok: false; reason: "stock_insuficiente"; mensaje: string };
+
+export async function crearRetorno(input: CrearRetornoInput): Promise<CrearRetornoResult> {
   const session = await auth();
   if (!session?.user?.id) throw new Error("No autenticado");
   const userId = Number(session.user.id);
@@ -78,7 +83,13 @@ export async function crearRetorno(input: CrearRetornoInput) {
     if ((dup as unknown[]).length > 0) {
       return { movimientoId: null, ok: false, reason: "idempotente" };
     }
-    throw new Error("Stock insuficiente en módulo");
+    // Error esperado como valor: un throw es 500 y Next oculta el mensaje en prod.
+    return {
+      movimientoId: null,
+      ok: false,
+      reason: "stock_insuficiente",
+      mensaje: "Stock insuficiente en módulo",
+    };
   }
 
   return { movimientoId: rows[0].id, ok: true };

@@ -57,7 +57,7 @@ export default function RetornosPage() {
     setOk("");
 
     if (!codigo || !cantidad || !moduloId || !bodegaId) {
-      setError("Completá todos los campos");
+      setError("Completa todos los campos");
       return;
     }
 
@@ -73,7 +73,9 @@ export default function RetornosPage() {
       });
 
       if (result.ok === false) {
-        setError("Retorno ya registrado (idempotente)");
+        setError(
+          result.reason === "stock_insuficiente" ? result.mensaje : "Retorno ya registrado (idempotente)"
+        );
       } else {
         setOk("Retorno registrado");
         setCodigo("");
@@ -91,7 +93,7 @@ export default function RetornosPage() {
     <div className="max-w-lg bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Nuevo retorno</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} onChange={() => { setError(""); setOk(""); }} className="space-y-4">
         {/* Módulo origen */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -122,7 +124,7 @@ export default function RetornosPage() {
             type="text"
             value={codigo}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
             placeholder="Buscar producto..."
             disabled={!moduloId}
           />
@@ -192,7 +194,7 @@ export default function RetornosPage() {
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 text-sm text-red-600">{error}</div>}
         {ok && <p className="text-sm text-green-600">{ok}</p>}
 
         <button

@@ -3,6 +3,7 @@
 import { db } from "@/db";
 import { bodegas, modulos, stock, productos, movimientos, users } from "@/db/schema";
 import { eq, lt, desc, and, gt, or, ilike, sql, inArray } from "drizzle-orm";
+import { fechaChileDeTimestamp } from "@/lib/utils/fecha-chile";
 
 // ── Resumen de bodegas ──────────────────────────────────────────────────
 export async function getBodegas() {
@@ -201,7 +202,7 @@ export async function getMovimientosPorProductoUbicacion(params: {
     .map(r => ({
       id:             r.id,
       folio:          r.folio,
-      fecha:          r.fechaCompra ?? r.createdAt.toISOString().split("T")[0],
+      fecha:          r.fechaCompra ?? fechaChileDeTimestamp(r.createdAt),
       cantidad:       r.cantidad,
       precioUnitario: r.precioUnitario !== null ? Number(r.precioUnitario) : null,
       usuario:        r.usuario,
@@ -212,7 +213,7 @@ export async function getMovimientosPorProductoUbicacion(params: {
     .map(r => ({
       id:       r.id,
       tipo:     r.tipo as string,
-      fecha:    r.createdAt.toISOString().split("T")[0],
+      fecha:    fechaChileDeTimestamp(r.createdAt),
       cantidad: r.cantidad,
       destino:  r.moduloId ? (moduloMap.get(r.moduloId) ?? null)
                            : r.bodegaId ? (bodegaMap.get(r.bodegaId) ?? null) : null,

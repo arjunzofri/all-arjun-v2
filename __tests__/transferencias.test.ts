@@ -54,15 +54,28 @@ beforeAll(async () => {
 // ── R1: Stock insuficiente en bodega origen ────────────────────────────
 describe("transferirEntreBodegas() — stock insuficiente", () => {
   it("rechaza si cantidad > stock en bodega origen", async () => {
-    await expect(
-      transferirEntreBodegas({
-        codigo: TEST_CODIGO,
-        cantidad: 999,
-        bodegaOrigenId: 1,
-        bodegaDestinoId: 2,
-        idempotencyKey: "test-r1-stock-insuf",
-      })
-    ).rejects.toThrow(/stock|insuficiente|disponible/i);
+    const result = await transferirEntreBodegas({
+      codigo: TEST_CODIGO,
+      cantidad: 999,
+      bodegaOrigenId: 1,
+      bodegaDestinoId: 2,
+      idempotencyKey: "test-r1-stock-insuf",
+    });
+
+    // Error esperado como VALOR, no como throw (un throw es 500 en prod).
+    expect(result).toEqual({
+      ok: false,
+      reason: "stock_insuficiente",
+      mensaje: expect.stringMatching(/stock|insuficiente|disponible/i),
+    });
+
+    // No descuenta ni acredita stock
+    const pid = await sql`SELECT id FROM productos WHERE codigo = ${TEST_CODIGO}`;
+    const pId = (pid as unknown as { id: number }[])[0].id;
+    const origen = await sql`SELECT cantidad FROM stock WHERE producto_id = ${pId} AND bodega_id = 1`;
+    expect((origen as unknown as { cantidad: number }[])[0].cantidad).toBe(10);
+    const destino = await sql`SELECT cantidad FROM stock WHERE producto_id = ${pId} AND bodega_id = 2`;
+    expect((destino as unknown as { cantidad: number }[]).length).toBe(0);
   });
 
   it("rechaza cantidad 0 o negativa", async () => {
@@ -81,15 +94,25 @@ describe("transferirEntreBodegas() — stock insuficiente", () => {
 // ── R2: Producto sin stock en bodega origen ────────────────────────────
 describe("transferirEntreBodegas() — producto sin stock en origen", () => {
   it("rechaza si el producto no tiene fila en stock para la bodega origen", async () => {
-    await expect(
-      transferirEntreBodegas({
-        codigo: TEST_CODIGO_SIN_STOCK,
-        cantidad: 1,
-        bodegaOrigenId: 1,
-        bodegaDestinoId: 2,
-        idempotencyKey: "test-r2-sin-stock",
-      })
-    ).rejects.toThrow(/stock|insuficiente|disponible|producto/i);
+    const result = await transferirEntreBodegas({
+      codigo: TEST_CODIGO_SIN_STOCK,
+      cantidad: 1,
+      bodegaOrigenId: 1,
+      bodegaDestinoId: 2,
+      idempotencyKey: "test-r2-sin-stock",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      reason: "stock_insuficiente",
+      mensaje: expect.stringMatching(/stock|insuficiente|disponible|producto/i),
+    });
+
+    // No crea filas de stock
+    const pid = await sql`SELECT id FROM productos WHERE codigo = ${TEST_CODIGO_SIN_STOCK}`;
+    const pId = (pid as unknown as { id: number }[])[0].id;
+    const stockRows = await sql`SELECT cantidad FROM stock WHERE producto_id = ${pId}`;
+    expect((stockRows as unknown as { cantidad: number }[]).length).toBe(0);
   });
 });
 

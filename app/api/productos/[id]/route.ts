@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { getProducto, updateProducto } from "@/lib/actions/productos";
-
-const patchSchema = z.object({
-  codigoPersonal: z.string().max(50).optional(),
-  packing: z.number().int().positive().optional(),
-  ubicacion: z.string().max(100).optional(),
-  observaciones: z.string().optional(),
-});
+import { updateProductoSchema } from "@/lib/validations/producto";
 
 export async function GET(
   request: Request,
@@ -40,7 +33,7 @@ export async function PATCH(
   const { id } = await params;
   const body: unknown = await request.json().catch(() => ({}));
 
-  const parsed = patchSchema.safeParse(body);
+  const parsed = updateProductoSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Campos inválidos", details: parsed.error.flatten() },
@@ -52,9 +45,10 @@ export async function PATCH(
   const usuarioId = (session.user as { id?: number }).id;
   const updated = await updateProducto(Number(id), parsed.data, usuarioId);
 
-  if (!updated) {
-    return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  // La ruta ya validó el body: un ok:false acá significa producto inexistente.
+  if (!updated.ok) {
+    return NextResponse.json({ error: updated.error }, { status: 404 });
   }
 
-  return NextResponse.json(updated);
+  return NextResponse.json(updated.producto);
 }

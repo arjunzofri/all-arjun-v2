@@ -4,13 +4,12 @@ import { db } from "@/db";
 import { productos, movimientos, activityLog, stock, bodegas, modulos, movimientoVisaciones } from "@/db/schema";
 import { eq, and, lt, gt, desc, or, ilike, inArray, sql } from "drizzle-orm";
 import { mergeProductStock } from "@/lib/utils/merge-product-stock";
+import { fechaChileDeTimestamp } from "@/lib/utils/fecha-chile";
+import { updateProductoSchema, type UpdateProductoInput } from "@/lib/validations/producto";
 
-type UpdateProductoInput = {
-  codigoPersonal?: string;
-  packing?: number;
-  ubicacion?: string;
-  observaciones?: string;
-};
+export type UpdateProductoResult =
+  | { ok: true; producto: typeof productos.$inferSelect }
+  | { ok: false; error: string };
 
 // ── Listado paginado ─────────────────────────────────────────────────────
 export async function getProductos(params: {
@@ -104,7 +103,8 @@ export async function getProducto(id: number) {
       .select({
         id: movimientos.id,
         folio: movimientos.folio,
-        fecha: movimientos.fechaCompra,
+        fechaCompra: movimientos.fechaCompra,
+        createdAt: movimientos.createdAt,
         cantidad: movimientos.cantidad,
         precioUnitario: movimientos.precioUnitario,
         bodega: bodegas.nombre,
@@ -161,7 +161,7 @@ export async function getProducto(id: number) {
   const compras = comprasRows.map((c) => ({
     id: c.id,
     folio: c.folio,
-    fecha: c.fecha,
+    fecha: c.fechaCompra ?? fechaChileDeTimestamp(c.createdAt),
     cantidad: c.cantidad,
     precioUnitario: c.precioUnitario !== null ? Number(c.precioUnitario) : null,
     bodega: c.bodega,
@@ -184,29 +184,42 @@ export async function updateProducto(
   id: number,
   input: UpdateProductoInput,
   usuarioId?: number
-) {
+): Promise<UpdateProductoResult> {
+  // Mismo schema que la ruta PATCH: la ficha no puede saltarse la validacion.
+  const parsed = updateProductoSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Datos invalidos",
+    };
+  }
+
   const [updated] = await db
     .update(productos)
     .set({
-      ...input,
+      ...parsed.data,
       updatedAt: new Date(),
     })
     .where(eq(productos.id, id))
     .returning();
 
+  if (!updated) {
+    return { ok: false, error: "Producto no encontrado" };
+  }
+
   // R3: auditoría si se modificó codigo_personal
-  if (updated && input.codigoPersonal !== undefined && usuarioId) {
+  if (parsed.data.codigoPersonal !== undefined && usuarioId) {
     await db.insert(activityLog).values({
       usuarioId,
       accion: "update_codigo_personal",
       entidad: "producto",
       entidadId: id,
       detalles: {
-        valor_nuevo: input.codigoPersonal,
+        valor_nuevo: parsed.data.codigoPersonal,
         valor_anterior: null, // ponytail: no leemos valor anterior para mantener 1 query
       },
     });
   }
 
-  return updated;
+  return { ok: true, producto: updated };
 }

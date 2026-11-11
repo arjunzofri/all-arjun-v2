@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     title: "Arjun",
   },
   icons: {
+    icon: "/icon-192.png",
     apple: "/icon-192.png",
   },
 };

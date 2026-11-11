@@ -2,6 +2,11 @@
 
 type StockUbicacion = { id: number; nombre: string; cantidad: number };
 
+/** Texto de la columna "Bodegas" de /productos: nombre + cantidad. */
+export function etiquetaStockBodega(s: StockUbicacion): string {
+  return `${s.nombre}: ${s.cantidad}`;
+}
+
 export function mergeProductStock<T extends { id: number }>(
   items: T[],
   bodegaRows: { productoId: number; id: number; nombre: string; cantidad: number }[],

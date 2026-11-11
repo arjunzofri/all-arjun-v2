@@ -50,15 +50,27 @@ beforeAll(async () => {
 // ── R1: Stock insuficiente en módulo ───────────────────────────────────
 describe("crearRetorno() — stock insuficiente", () => {
   it("rechaza si cantidad > stock en módulo", async () => {
-    await expect(
-      crearRetorno({
-        codigo: TEST_CODIGO,
-        cantidad: 999,
-        moduloOrigenId: 1,
-        bodegaDestinoId: 1,
-        idempotencyKey: "test-r1-mod-stock",
-      })
-    ).rejects.toThrow(/stock|insuficiente|disponible/i);
+    const result = await crearRetorno({
+      codigo: TEST_CODIGO,
+      cantidad: 999,
+      moduloOrigenId: 1,
+      bodegaDestinoId: 1,
+      idempotencyKey: "test-r1-mod-stock",
+    });
+
+    // Error esperado como VALOR, no como throw (un throw es 500 en prod).
+    expect(result).toEqual({
+      movimientoId: null,
+      ok: false,
+      reason: "stock_insuficiente",
+      mensaje: expect.stringMatching(/stock|insuficiente|disponible/i),
+    });
+
+    // No descuenta stock del módulo
+    const pid = await sql`SELECT id FROM productos WHERE codigo = ${TEST_CODIGO}`;
+    const pId = (pid as unknown as { id: number }[])[0].id;
+    const sm = await sql`SELECT cantidad FROM stock WHERE producto_id = ${pId} AND modulo_id = 1`;
+    expect((sm as unknown as { cantidad: number }[])[0].cantidad).toBe(10);
   });
 
   it("rechaza cantidad 0", async () => {

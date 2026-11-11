@@ -7,6 +7,7 @@ import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { CamaraBoton } from "@/components/CamaraBoton";
 import { createProductoSearch } from "@/components/useProductoSearch";
 import { esCodigoArj } from "@/lib/utils/codigo-alternativo";
+import { fechaHoyChile } from "@/lib/utils/fecha-chile";
 
 type Sugerencia = {
   codigo: string;
@@ -53,6 +54,7 @@ export default function EntradasPage() {
   const [imagenError, setImagenError] = useState(false);
   const [cantidad, setCantidad] = useState("");
   const [bodegaId, setBodegaId] = useState("");
+  const [fecha, setFecha] = useState(() => fechaHoyChile());
   const [ubicacion, setUbicacion] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [error, setError] = useState("");
@@ -186,7 +188,7 @@ export default function EntradasPage() {
     if (uploadingFoto) { setError("Espera que la foto termine de subirse"); return; }
     setLoading(true);
     try {
-      await crearEntrada({
+      const result = await crearEntrada({
         codigo: codigo.trim().toUpperCase(),
         detalle: detalle.trim() || undefined,
         cantidad: parseInt(cantidad, 10),
@@ -196,10 +198,13 @@ export default function EntradasPage() {
         packing: packing ?? undefined,
         ubicacion: ubicacion.trim() || undefined,
         observaciones: observaciones.trim() || undefined,
+        fecha: fecha || undefined,
       });
+      if ("error" in result && result.error) { setError(result.error); return; }
       setOk("Entrada registrada");
       setCodigo(""); setDetalle(""); setImagenUrl(null); setPacking(null);
       setObservaciones(""); setImagenError(false); setCantidad(""); setBodegaId(""); setUbicacion("");
+      setFecha(fechaHoyChile());
       setEsDeCatalogo(false); limpiarFoto(); setNuevoArj(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar");
@@ -217,7 +222,7 @@ export default function EntradasPage() {
           Código nuevo ARJ: completa el detalle del producto y registra la entrada.
         </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} onChange={() => { setError(""); setOk(""); }} className="space-y-4">
         <div className="relative">
           <div className="flex items-center justify-between mb-1.5">
             <label className="block text-sm font-medium text-slate-700">Codigo</label>
@@ -282,6 +287,11 @@ export default function EntradasPage() {
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Cantidad</label>
           <input type="number" min="1" value={cantidad} onChange={(e) => setCantidad(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha de ingreso</label>
+          <input type="date" value={fecha} max={fechaHoyChile()} onChange={(e) => setFecha(e.target.value)}
             className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
         </div>
         <div>

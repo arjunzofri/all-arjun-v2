@@ -15,7 +15,12 @@ const salidaSchema = z.object({
 
 export type CrearSalidaInput = z.infer<typeof salidaSchema>;
 
-export async function crearSalida(input: CrearSalidaInput) {
+export type CrearSalidaResult =
+  | { movimientoId: number; ok: true }
+  | { movimientoId: null; ok: false; reason: "idempotente" }
+  | { movimientoId: null; ok: false; reason: "stock_insuficiente"; mensaje: string };
+
+export async function crearSalida(input: CrearSalidaInput): Promise<CrearSalidaResult> {
   const session = await auth();
   if (!session?.user?.id) throw new Error("No autenticado");
   const userId = Number(session.user.id);
@@ -79,7 +84,13 @@ export async function crearSalida(input: CrearSalidaInput) {
     if ((dup as unknown[]).length > 0) {
       return { movimientoId: null, ok: false, reason: "idempotente" };
     }
-    throw new Error("Stock insuficiente");
+    // Error esperado como valor: un throw es 500 y Next oculta el mensaje en prod.
+    return {
+      movimientoId: null,
+      ok: false,
+      reason: "stock_insuficiente",
+      mensaje: "Stock insuficiente",
+    };
   }
 
   return { movimientoId: rows[0].id, ok: true };

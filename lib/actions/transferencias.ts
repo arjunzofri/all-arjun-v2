@@ -15,7 +15,14 @@ const transferenciaSchema = z.object({
 
 export type TransferirEntreBodegasInput = z.infer<typeof transferenciaSchema>;
 
-export async function transferirEntreBodegas(input: TransferirEntreBodegasInput) {
+export type TransferirEntreBodegasResult =
+  | { ok: true; outId: number; inId: number | null }
+  | { ok: false; reason: "idempotente" }
+  | { ok: false; reason: "stock_insuficiente"; mensaje: string };
+
+export async function transferirEntreBodegas(
+  input: TransferirEntreBodegasInput
+): Promise<TransferirEntreBodegasResult> {
   const session = await auth();
   if (!session?.user?.id) throw new Error("No autenticado");
   const userId = Number(session.user.id);
@@ -102,7 +109,12 @@ export async function transferirEntreBodegas(input: TransferirEntreBodegasInput)
     if ((dup as unknown[]).length > 0) {
       return { ok: false, reason: "idempotente" as const };
     }
-    throw new Error("Stock insuficiente en bodega origen");
+    // Error esperado como valor: un throw es 500 y Next oculta el mensaje en prod.
+    return {
+      ok: false,
+      reason: "stock_insuficiente",
+      mensaje: "Stock insuficiente en bodega origen",
+    };
   }
 
   return { ok: true as const, outId: rows[0].out_id, inId: rows[0].in_id };

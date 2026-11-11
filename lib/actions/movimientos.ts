@@ -1,8 +1,11 @@
 "use server";
 
 import { db } from "@/db";
-import { movimientos, productos, users } from "@/db/schema";
-import { eq, lt, desc, and, gte, lte, sql } from "drizzle-orm";
+import { movimientos, productos, users, tipoMovimientoEnum } from "@/db/schema";
+import { eq, lt, desc, and, gte, lte } from "drizzle-orm";
+
+// Tipo real del enum de la DB: evita casts a mano en el filtro.
+type TipoMovimiento = (typeof tipoMovimientoEnum.enumValues)[number];
 
 export type MovimientoItem = {
   id: number;
@@ -28,7 +31,7 @@ export async function getMovimientos(params: {
 
   const where = and(
     cursor !== undefined ? lt(movimientos.id, cursor) : undefined,
-    tipo ? eq(movimientos.tipo, tipo as "entrada" | "salida" | "retorno") : undefined,
+    tipo ? eq(movimientos.tipo, tipo as TipoMovimiento) : undefined,
     productoId ? eq(movimientos.productoId, productoId) : undefined,
     desde ? gte(movimientos.createdAt, new Date(desde)) : undefined,
     hasta ? lte(movimientos.createdAt, new Date(hasta + "T23:59:59")) : undefined

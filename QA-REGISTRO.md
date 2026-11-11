@@ -7,27 +7,27 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 
 ## 2026-11-10 21:44 - arjun-barrido - commit 8c15d08 - INVALIDO
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\arjun-barrido
-- [ ] P-20261110-2144-1 (media) FALTA: FALTA-1 — Fecha en la entrada manual
+- [x] P-20261110-2144-1 (media) FALTA: FALTA-1 — Fecha en la entrada manual -> 
 - [x] P-20261110-2144-2 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 (Forbidden) (/usuarios) -> DESCARTADO duplicado de P-20261110-2327-1
-- [ ] P-20261110-2144-3 (media) CONSOLA: Each child in a list should have a unique "key" prop. See https://react.dev/link/warning-keys for more information.
+- [x] P-20261110-2144-3 (media) CONSOLA: Each child in a list should have a unique "key" prop. See https://react.dev/link/warning-keys for more information. -> 
 
 ## 2026-11-10 21:58 - arjun-barrido-c1 - commit 8c15d08 - FALLA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\arjun-barrido-c1
 - [x] P-20261110-2158-1 (media) FALLA: BAR-DEF-1 — Packing negativo se acepta y se guarda -> DESCARTADO duplicado de P-20261110-2158-5 (verificado por el Director: lib/actions/productos.ts no valida packing)
-- [ ] P-20261110-2158-2 (alta) FALLA: BAR-DEF-2 — /movimientos "Cargar mas" repite filas
+- [x] P-20261110-2158-2 (alta) FALLA: BAR-DEF-2 — /movimientos "Cargar mas" repite filas -> 
 - [x] P-20261110-2158-3 (baja) FALLA: BAR-DEF-3 — /inversion-mercaderia: el código parece enlace y no hace nada -> DESCARTADO falso positivo (verificado por el Director: el clic en el codigo abre el modal)
 - [x] P-20261110-2158-4 (alta) ROTO: /movimientos - button "Cargar mas": -> DESCARTADO duplicado de P-20261110-2158-2
-- [ ] P-20261110-2158-5 (alta) ROTO: /productos/:id - spinbutton "Packing (unids/caja)" y button "Guardar cambios":
+- [x] P-20261110-2158-5 (alta) ROTO: /productos/:id - spinbutton "Packing (unids/caja)" y button "Guardar cambios": -> 
 - [x] P-20261110-2158-6 (alta) ROTO: /inversion-mercaderia - button de fila (en filas): -> DESCARTADO falso positivo (verificado por el Director: el clic en el codigo abre el modal)
-- [ ] P-20261110-2158-7 (baja) HALLAZGO: EXP-1 — Formato de miles inconsistente
-- [ ] P-20261110-2158-8 (media) HALLAZGO: EXP-2 — Tipo "ajuste" ausente en el filtro de /movimientos
+- [x] P-20261110-2158-7 (baja) HALLAZGO: EXP-1 — Formato de miles inconsistente -> 
+- [x] P-20261110-2158-8 (media) HALLAZGO: EXP-2 — Tipo "ajuste" ausente en el filtro de /movimientos -> 
 - [x] P-20261110-2158-9 (media) HALLAZGO: EXP-3 — Tras "Corregir", el detalle no coincide con el saldo -> BACKLOG UX: "Corregir" funciona segun diseno; mejorar como se muestra el detalle
-- [ ] P-20261110-2158-10 (media) HALLAZGO: EXP-4 — Saldos de salida sin entrada en /bodegas/1
-- [ ] P-20261110-2158-11 (baja) HALLAZGO: EXP-5 — Textos y avisos inconsistentes
-- [ ] P-20261110-2158-12 (baja) HALLAZGO: EXP-6 — Búsquedas lentas y errores de consola
-- [ ] P-20261110-2158-13 (baja) HALLAZGO: EXP-7 — Columna "Bodegas" sin nombres en /productos
-- [ ] P-20261110-2158-14 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 () (/dxkidwxjl/image/upload/productos/87086-5(ANIL))
-- [ ] P-20261110-2158-15 (media) CONSOLA: [probable misma causa que P-20261110-2158-2, filas repetidas] Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 7200
+- [x] P-20261110-2158-10 (media) HALLAZGO: EXP-4 — Saldos de salida sin entrada en /bodegas/1 -> 
+- [x] P-20261110-2158-11 (baja) HALLAZGO: EXP-5 — Textos y avisos inconsistentes -> 
+- [x] P-20261110-2158-12 (baja) HALLAZGO: EXP-6 — Búsquedas lentas y errores de consola -> 
+- [x] P-20261110-2158-13 (baja) HALLAZGO: EXP-7 — Columna "Bodegas" sin nombres en /productos -> 
+- [x] P-20261110-2158-14 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 () (/dxkidwxjl/image/upload/productos/87086-5(ANIL)) -> 
+- [x] P-20261110-2158-15 (media) CONSOLA: [probable misma causa que P-20261110-2158-2, filas repetidas] Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 7200 -> 
 - [x] P-20261110-2158-16 (media) CONSOLA: Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 7199 -> DESCARTADO duplicado de P-20261110-2158-15
 - [x] P-20261110-2158-17 (media) CONSOLA: Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 7198 -> DESCARTADO duplicado de P-20261110-2158-15
 - [x] P-20261110-2158-18 (media) CONSOLA: Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 7197 -> DESCARTADO duplicado de P-20261110-2158-15
@@ -47,14 +47,14 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - [x] P-20261110-2158-32 (media) CONSOLA: Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 7180 -> DESCARTADO duplicado de P-20261110-2158-15
 - [x] P-20261110-2158-33 (media) CONSOLA: Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 5728 -> DESCARTADO duplicado de P-20261110-2158-15
 - [x] P-20261110-2158-34 (media) CONSOLA: Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 5727 -> DESCARTADO duplicado de P-20261110-2158-15
-- [ ] P-20261110-2158-35 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 () (/dxkidwxjl/image/upload/productos/1130-5)
-- [ ] P-20261110-2158-36 (alta) CONSOLA: Failed to load resource: the server responded with a status of 500 (Internal Server Error) (/salidas)
+- [x] P-20261110-2158-35 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 () (/dxkidwxjl/image/upload/productos/1130-5) -> 
+- [x] P-20261110-2158-36 (alta) CONSOLA: Failed to load resource: the server responded with a status of 500 (Internal Server Error) (/salidas) -> 
 
 ## 2026-11-10 22:07 - arjun-barrido-c2 - commit 8c15d08 - INVALIDO
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\arjun-barrido-c2
-- [ ] P-20261110-2207-1 (baja) HALLAZGO: EXP-1 — Sugerencias de producto no aparecen al rellenar el campo de golpe
+- [x] P-20261110-2207-1 (baja) HALLAZGO: EXP-1 — Sugerencias de producto no aparecen al rellenar el campo de golpe -> 
 - [x] P-20261110-2207-2 (baja) HALLAZGO: EXP-2 — Consola: error de React por claves duplicadas -> DESCARTADO duplicado de P-20261110-2158-15
-- [ ] P-20261110-2207-3 (baja) HALLAZGO: EXP-3 — Cuadro de /modulos/1 para TEST-RET-001 no suma
+- [x] P-20261110-2207-3 (baja) HALLAZGO: EXP-3 — Cuadro de /modulos/1 para TEST-RET-001 no suma -> 
 
 ## 2026-11-10 22:55 - prod-prueba1 - commit 1b99433 - PRODUCCION PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-prueba1
@@ -72,7 +72,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 
 ## 2026-11-10 23:52 - prod-roles1-admin - commit 8e10081 - PRODUCCION INVALIDO
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-roles1-admin
-- [ ] P-20261110-2352-1 (media) CONSOLA: Manifest: Line: 1, column: 1, Syntax error. (/manifest.json) [Director: causa verificada: proxy.ts matcher no excluye /manifest.json; prod responde 307 a /login (HTML) y el manifest se pide sin cookies, falla con y sin sesion; PWA no instalable]
+- [x] P-20261110-2352-1 (media) CONSOLA: Manifest: Line: 1, column: 1, Syntax error. (/manifest.json) [Director: causa verificada: proxy.ts matcher no excluye /manifest.json; prod responde 307 a /login (HTML) y el manifest se pide sin cookies, falla con y sin sesion; PWA no instalable] -> 
 
 ## 2026-11-10 23:52 - prod-roles1-operador - commit 8e10081 - PRODUCCION INVALIDO
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-roles1-operador
@@ -90,7 +90,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-mec2-operador
 - [x] P-20261111-0031-1 (critica) FALLA: QA-OPE10 - /inversion-mercaderia: termino en /inversion-mercaderia (status 200) -> DESCARTADO falso positivo: la captura muestra "404 This page could not be found" (notFound() con loading.tsx responde 200); el script ahora juzga lo que se ve
 - [x] P-20261111-0031-2 (media) FALLA: QA-OPE12 - /: termino en / (status 200); SE VE: Usuarios [Director: severidad critica->media; mismo defecto que P-20261110-2327-1 (DashboardShell.tsx sin filtro de rol); sin exposicion de datos: /usuarios responde 403] -> DESCARTADO duplicado de P-20261111-0039-1
-- [ ] P-20261111-0031-3 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 () (/usuarios) [Director: consecuencia de P-20261111-0039-1; se cierra con el]
+- [x] P-20261111-0031-3 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 () (/usuarios) [Director: consecuencia de P-20261111-0039-1; se cierra con el] -> 
 
 ## 2026-11-11 00:33 - prod-mec3-admin - commit fad4b0f - PRODUCCION PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-mec3-admin
@@ -110,4 +110,34 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 
 ## 2026-11-11 00:39 - cob2-operador - commit fa2219d - PRODUCCION FALLA
 - Evidencia: C:\Users\pablo\AppData\Local\Temp\pbt-dt-prueba3\qa\cob2-operador
-- [ ] P-20261111-0039-1 (media) FALLA: / (menuNoVe): termino en / (status 200); SE VE: Usuarios [Director: severidad critica->media; causa verificada: components/DashboardShell.tsx muestra "Usuarios" a todos los roles; sin exposicion de datos: /usuarios responde 403 al operador]
+- [x] P-20261111-0039-1 (media) FALLA: / (menuNoVe): termino en / (status 200); SE VE: Usuarios [Director: severidad critica->media; causa verificada: components/DashboardShell.tsx muestra "Usuarios" a todos los roles; sin exposicion de datos: /usuarios responde 403 al operador] -> 
+
+## 2026-11-11 02:38 - ia1-admin-ia - commit fa063d3 - PRODUCCION FALLA
+- Evidencia: C:\Users\pablo\AppData\Local\Temp\pbt-dt-ia1\qa\ia1-admin-ia
+- [x] P-20261111-0238-1 (critica) FALLA: QA-ADM01 — Error de consola: manifest.json con error de sintaxis -> 
+- [x] P-20261111-0238-2 (critica) FALLA: QA-ADM02 — Error de consola: manifest.json con error de sintaxis -> 
+- [x] P-20261111-0238-3 (media) HALLAZGO: EXP-1 — `/salidas`: error de consola de manifest.json -> 
+- [x] P-20261111-0238-4 (media) HALLAZGO: EXP-2 — `/retornos`: error de consola de manifest.json -> 
+- [x] P-20261111-0238-5 (media) HALLAZGO: Observación sobre `/productos` -> 
+
+## 2026-11-11 02:40 - fix-noche - commit fa063d3 - INVALIDO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\fix-noche
+- [x] P-20261111-0240-1 (media) FALLA: QA-08 — La fecha de ingreso se guarda y se muestra un día antes -> 
+- [x] P-20261111-0240-2 (media) HALLAZGO: EXP-1 — Envío vacío en /salidas (sin hallazgo) -> 
+- [x] P-20261111-0240-3 (baja) HALLAZGO: EXP-2 — El mensaje de error anterior sigue visible con el formulario ya completado -> 
+- [x] P-20261111-0240-4 (baja) HALLAZGO: EXP-3 — Consola con error de React "unique key" en la ficha de producto -> 
+- [x] P-20261111-0240-5 (baja) HALLAZGO: EXP-4 — Fecha de la fila expandida en /bodegas/1 distinta de la de /movimientos -> 
+- [x] P-20261111-0240-6 (media) HALLAZGO: EXP-5 — Abrir y cerrar filas en /bodegas/1 (sin hallazgo) -> 
+- [x] P-20261111-0240-7 (baja) HALLAZGO: EXP-6 — /favicon.ico responde 404 -> 
+
+## 2026-11-11 03:07 - fix-noche2 - commit fa063d3 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\fix-noche2
+- [x] P-20261111-0307-1 (baja) HALLAZGO: EXP-1 — La ficha muestra "---" como fecha donde /bodegas/1 muestra una fecha -> 
+
+## 2026-11-11 05:02 - fix-noche3 - commit fa063d3 - BLOQUEADO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\fix-noche3
+- Sin pendientes nuevos.
+
+## 2026-11-11 05:05 - fix-noche3 - commit fa063d3 - INVALIDO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\fix-noche3
+- Sin pendientes nuevos.

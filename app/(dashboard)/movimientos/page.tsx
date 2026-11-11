@@ -4,12 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { getMovimientos } from "@/lib/actions/movimientos";
 import type { MovimientoItem } from "@/lib/actions/movimientos";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
-
-const TIPOS = ["todas", "entrada", "salida", "retorno"] as const;
+import { parametrosPagina } from "@/lib/utils/paginacion";
+import { TIPOS_MOVIMIENTO } from "@/lib/constants";
 
 export default function MovimientosPage() {
   const [items, setItems] = useState<MovimientoItem[]>([]);
-  const [cursor, setCursor] = useState<number | null>(null);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [tipo, setTipo] = useState("todas");
   const [desde, setDesde] = useState("");
@@ -17,15 +16,11 @@ export default function MovimientosPage() {
   const [loading, setLoading] = useState(false);
 
   const cargar = useCallback(
-    async (reset?: boolean) => {
+    async (cursorArg?: number | null, reset = false) => {
       setLoading(true);
-      const page = await getMovimientos({
-        tipo: tipo === "todas" ? undefined : tipo,
-        desde: desde || undefined,
-        hasta: hasta || undefined,
-        limit: 20,
-        cursor: reset ? undefined : (cursor ?? undefined),
-      });
+      const page = await getMovimientos(
+        parametrosPagina({ tipo, desde, hasta }, reset ? undefined : cursorArg)
+      );
       if (reset) {
         setItems(page.items);
       } else {
@@ -34,13 +29,12 @@ export default function MovimientosPage() {
       setNextCursor(page.nextCursor);
       setLoading(false);
     },
-    [tipo, desde, hasta, cursor]
+    [tipo, desde, hasta]
   );
 
   useEffect(() => {
     setItems([]);
-    setCursor(null);
-    cargar(true);
+    cargar(undefined, true);
   }, [tipo, desde, hasta]);
 
   return (
@@ -56,9 +50,9 @@ export default function MovimientosPage() {
           onChange={(e) => setTipo(e.target.value)}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition bg-white"
         >
-          {TIPOS.map((t) => (
-            <option key={t} value={t}>
-              {t === "todas" ? "Todos los tipos" : t}
+          {TIPOS_MOVIMIENTO.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
             </option>
           ))}
         </select>
@@ -149,7 +143,7 @@ export default function MovimientosPage() {
 
       {nextCursor && (
         <button
-          onClick={() => { setCursor(nextCursor); cargar(); }}
+          onClick={() => cargar(nextCursor)}
           disabled={loading}
           className="mt-4 w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:border-violet-300 transition-colors disabled:opacity-50"
         >

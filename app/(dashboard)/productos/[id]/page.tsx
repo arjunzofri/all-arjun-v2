@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { getProducto } from "@/lib/actions/productos";
+import { formatearFechaISO } from "@/lib/utils/fecha-chile";
 import { notFound } from "next/navigation";
 import { EditarProductoForm } from "./form";
 import { ImagenProducto } from "./imagen";
@@ -127,11 +129,11 @@ export default async function ProductoDetallePage({
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {compras.map((c) => (
-                  <>
-                    <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                  <Fragment key={c.id}>
+                    <tr className="hover:bg-slate-50 transition-colors">
                       <td className="py-3 pl-5 pr-3 font-semibold text-slate-800">{c.folio}</td>
                       <td className="py-3 px-3 text-slate-500 tabular-nums">
-                        {c.fecha ? new Date(c.fecha).toLocaleDateString("es-CL") : "---"}
+                        {c.fecha ? formatearFechaISO(c.fecha) : "---"}
                       </td>
                       <td className="py-3 px-3 text-slate-600">{c.bodega}</td>
                       <td className="py-3 px-3 text-right tabular-nums text-slate-700">
@@ -157,7 +159,7 @@ export default async function ProductoDetallePage({
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>

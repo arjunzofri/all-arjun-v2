@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { mergeProductStock } from "@/lib/utils/merge-product-stock";
+import { mergeProductStock, etiquetaStockBodega } from "@/lib/utils/merge-product-stock";
 
 type ItemBase = { id: number; codigo: string };
 
@@ -25,6 +25,20 @@ const items: ItemBase[] = [
   { id: 2, codigo: "B002" },
   { id: 3, codigo: "C003" },
 ];
+
+describe("etiquetaStockBodega", () => {
+  it("nombra la bodega junto a su cantidad", () => {
+    expect(etiquetaStockBodega({ id: 10, nombre: "Bodega 1", cantidad: 4 })).toBe(
+      "Bodega 1: 4"
+    );
+  });
+
+  it("mantiene el nombre aunque la cantidad sea 0", () => {
+    expect(etiquetaStockBodega({ id: 3, nombre: "Bodega Arjun", cantidad: 0 })).toBe(
+      "Bodega Arjun: 0"
+    );
+  });
+});
 
 describe("mergeProductStock", () => {
   it("el archivo exporta mergeProductStock", () => {

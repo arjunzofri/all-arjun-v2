@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import type { ResultadoConciliacion } from "@/lib/sync/conciliacion-compras";
+import { etiquetaStockBodega } from "@/lib/utils/merge-product-stock";
 
 // ── Tipos ──────────────────────────────────────────────────────────────
 
@@ -454,8 +455,7 @@ export default function ProductosPage() {
                     <div className="flex flex-col gap-0.5">
                       {p.stockBodegas.map((s) => (
                         <span key={s.id} className="text-xs text-slate-600 whitespace-nowrap">
-                          <span className="font-medium text-slate-700">{s.cantidad}</span>
-                          <span className="text-slate-400"> uds</span>
+                          {etiquetaStockBodega(s)}
                         </span>
                       ))}
                     </div>

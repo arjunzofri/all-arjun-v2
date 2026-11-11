@@ -23,4 +23,8 @@ describe("layout.tsx viewport y metadata PWA", () => {
     expect(src).toContain("apple");
     expect(src).toContain("/icon-192.png");
   });
+
+  it("metadata declara el favicon (evita 404 de /favicon.ico)", () => {
+    expect(src).toContain('icon: "/icon-192.png"');
+  });
 });

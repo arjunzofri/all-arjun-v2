@@ -247,7 +247,7 @@ export function AjusteModal({
                       </span>
                     </span>
                     <span className="text-gray-500 text-xs">
-                      {new Date(m.createdAt).toLocaleDateString()}
+                      {new Date(m.createdAt).toLocaleDateString("es-CL")}
                     </span>
                   </div>
                   <span className="font-medium">
@@ -273,7 +273,7 @@ export function AjusteModal({
               {seleccion.tipo}
             </span>
             <span className="text-gray-500">
-              {new Date(seleccion.createdAt).toLocaleDateString()}
+              {new Date(seleccion.createdAt).toLocaleDateString("es-CL")}
             </span>
             <span className="ml-2">
               Cantidad actual: <strong>{seleccion.cantidadNeta}</strong>
@@ -291,7 +291,7 @@ export function AjusteModal({
           <>
             <div className="mb-3">
               <label className="block text-sm text-gray-700 mb-1">
-                Cantidad real que llegó
+                Cantidad real devuelta
               </label>
               <input
                 type="number"

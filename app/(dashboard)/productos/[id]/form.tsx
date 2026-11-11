@@ -25,12 +25,16 @@ export function EditarProductoForm({ producto }: Props) {
     e.preventDefault();
     setError(""); setOk("");
     try {
-      await updateProducto(producto.id, {
+      const result = await updateProducto(producto.id, {
         codigoPersonal: codigoPersonal || undefined,
         packing: packing ? parseInt(packing, 10) : undefined,
         ubicacion: ubicacion || undefined,
         observaciones: observaciones || undefined,
       });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
       setOk("Guardado");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");

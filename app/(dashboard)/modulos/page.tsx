@@ -18,7 +18,7 @@ export default async function ModulosPage() {
           >
             <h2 className="font-semibold text-slate-700 text-sm mb-3">{m.nombre}</h2>
             <p className="text-3xl font-bold text-violet-600">
-              {m.totalStock.toLocaleString()}
+              {m.totalStock.toLocaleString("es-CL")}
             </p>
             <p className="text-xs text-slate-400 mt-1">unidades en stock</p>
           </Link>

@@ -11,3 +11,13 @@ export const MODULOS = [
   { id: 4, nombre: "Módulo 184" },
   { id: 5, nombre: "Módulo 193" },
 ];
+
+// Opciones del filtro de /movimientos. Debe cubrir todo tipoMovimientoEnum.
+export const TIPOS_MOVIMIENTO = [
+  { value: "todas", label: "Todos los tipos" },
+  { value: "entrada", label: "Entrada" },
+  { value: "salida", label: "Salida" },
+  { value: "retorno", label: "Retorno" },
+  { value: "ajuste", label: "Ajuste" },
+] as const;
+

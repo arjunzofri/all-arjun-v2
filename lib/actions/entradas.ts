@@ -4,6 +4,7 @@ import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { upsertProducto } from "@/lib/sync/compras-anil";
+import { fechaHoyChile, esFechaISOValida } from "@/lib/utils/fecha-chile";
 
 const entradaSchema = z.object({
   codigo: z.string().min(1, "Código requerido"),
@@ -15,6 +16,7 @@ const entradaSchema = z.object({
   packing: z.number().int().nonnegative().nullable().optional(),
   ubicacion: z.string().max(100).optional(),
   observaciones: z.string().max(500).optional(),
+  fecha: z.string().optional(),
 });
 
 export type CrearEntradaInput = z.infer<typeof entradaSchema>;
@@ -25,7 +27,17 @@ export async function crearEntrada(input: CrearEntradaInput) {
   const userId = Number(session.user.id);
 
   const parsed = entradaSchema.parse(input);
-  const { codigo, detalle, cantidad, bodegaId, idempotencyKey, imagenUrl, packing, ubicacion, observaciones } = parsed;
+  const { codigo, detalle, cantidad, bodegaId, idempotencyKey, imagenUrl, packing, ubicacion, observaciones, fecha } = parsed;
+
+  // Fecha de ingreso: por defecto hoy (Chile). Inválida o futura → error como
+  // valor, sin tocar la DB.
+  const fechaCompra = fecha ?? fechaHoyChile();
+  if (!esFechaISOValida(fechaCompra)) {
+    return { movimientoId: null, error: "Fecha de ingreso inválida" };
+  }
+  if (fechaCompra > fechaHoyChile()) {
+    return { movimientoId: null, error: "La fecha de ingreso no puede ser futura" };
+  }
 
   const sql = neon(process.env.DATABASE_URL!);
 
@@ -61,8 +73,8 @@ export async function crearEntrada(input: CrearEntradaInput) {
       ON CONFLICT (producto_id, bodega_id)
       DO UPDATE SET cantidad = stock.cantidad + ${cantidad}
     )
-    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id, observaciones)
-    SELECT ${folio}, p.id, 'entrada', ${cantidad}, ${bodegaId}, ${userId}, ${observaciones ?? null}
+    INSERT INTO movimientos (folio, producto_id, tipo, cantidad, bodega_origen_id, usuario_id, fecha_compra, observaciones)
+    SELECT ${folio}, p.id, 'entrada', ${cantidad}, ${bodegaId}, ${userId}, ${fechaCompra}, ${observaciones ?? null}
     FROM productos p
     WHERE p.codigo = ${codigo}
       AND NOT EXISTS (SELECT 1 FROM existing)

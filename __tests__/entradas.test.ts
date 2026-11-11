@@ -26,8 +26,12 @@ beforeAll(async () => {
   for (const nombre of ["Bodega 1 Vida Digital", "Bodega 2 Vida Digital", "Bodega Arjun"]) {
     await sql`INSERT INTO bodegas (nombre) VALUES (${nombre}) ON CONFLICT (nombre) DO NOTHING`;
   }
-  // Limpiar datos de tests anteriores
-  await sql`DELETE FROM movimientos WHERE folio LIKE 'MAN-ENT-TEST-%' OR folio LIKE 'MAN-TEST-%' OR folio LIKE 'MAN-ENT-OBS-%'`;
+  // Limpiar datos de tests anteriores (hijos primero: FK movimiento_original_id)
+  await sql`DELETE FROM movimientos WHERE movimiento_original_id IN (
+    SELECT id FROM movimientos
+    WHERE folio LIKE 'MAN-ENT-TEST-%' OR folio LIKE 'MAN-TEST-%' OR folio LIKE 'MAN-ENT-OBS-%' OR folio LIKE 'MAN-ENT-FECHA-%'
+  )`;
+  await sql`DELETE FROM movimientos WHERE folio LIKE 'MAN-ENT-TEST-%' OR folio LIKE 'MAN-TEST-%' OR folio LIKE 'MAN-ENT-OBS-%' OR folio LIKE 'MAN-ENT-FECHA-%'`;
   await sql`DELETE FROM stock WHERE producto_id IN (SELECT id FROM productos WHERE codigo LIKE 'TEST-ENT-%')`;
   await sql`DELETE FROM productos WHERE codigo LIKE 'TEST-ENT-%'`;
 });
@@ -186,5 +190,87 @@ describe("crearEntrada() — observaciones", () => {
         observaciones: larga,
       })
     ).rejects.toThrow(/observaciones|500/);
+  });
+});
+
+// ── Fecha de ingreso (PRD 5.4) ──────────────────────────────────────────
+describe("crearEntrada() — fecha de ingreso", () => {
+  const hoyChile = () =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "America/Santiago" }).format(new Date());
+
+  it("guarda en fecha_compra la fecha enviada", async () => {
+    const key = `ENT-FECHA-${Date.now()}-a`;
+    await crearEntrada({
+      codigo: "TEST-ENT-006",
+      detalle: "Fecha explicita",
+      cantidad: 2,
+      bodegaId: 1,
+      idempotencyKey: key,
+      fecha: "2026-10-01",
+    });
+
+    const rows = await sql`
+      SELECT fecha_compra::text AS fecha FROM movimientos WHERE folio = ${`MAN-${key}`}
+    `;
+    expect((rows as unknown as { fecha: string | null }[])[0]?.fecha).toBe("2026-10-01");
+  });
+
+  it("sin fecha guarda la de hoy en Chile", async () => {
+    const key = `ENT-FECHA-${Date.now()}-b`;
+    await crearEntrada({
+      codigo: "TEST-ENT-007",
+      detalle: "Fecha por defecto",
+      cantidad: 2,
+      bodegaId: 1,
+      idempotencyKey: key,
+    });
+
+    const rows = await sql`
+      SELECT fecha_compra::text AS fecha FROM movimientos WHERE folio = ${`MAN-${key}`}
+    `;
+    expect((rows as unknown as { fecha: string | null }[])[0]?.fecha).toBe(hoyChile());
+  });
+
+  it("fecha futura → error como valor y no crea nada", async () => {
+    const key = `ENT-FECHA-${Date.now()}-c`;
+    const res = await crearEntrada({
+      codigo: "TEST-ENT-008",
+      detalle: "Fecha futura",
+      cantidad: 3,
+      bodegaId: 1,
+      idempotencyKey: key,
+      fecha: "2999-01-01",
+    });
+
+    expect((res as { error?: string }).error).toMatch(/fecha/i);
+
+    const movs = await sql`
+      SELECT COUNT(*)::int AS n FROM movimientos WHERE folio = ${`MAN-${key}`}
+    `;
+    expect((movs as unknown as { n: number }[])[0].n).toBe(0);
+
+    const stock = await sql`
+      SELECT COUNT(*)::int AS n FROM stock
+      WHERE producto_id IN (SELECT id FROM productos WHERE codigo = 'TEST-ENT-008')
+    `;
+    expect((stock as unknown as { n: number }[])[0].n).toBe(0);
+  });
+
+  it("fecha inválida → error como valor y no crea nada", async () => {
+    const key = `ENT-FECHA-${Date.now()}-d`;
+    const res = await crearEntrada({
+      codigo: "TEST-ENT-009",
+      detalle: "Fecha invalida",
+      cantidad: 1,
+      bodegaId: 1,
+      idempotencyKey: key,
+      fecha: "2026-02-31",
+    });
+
+    expect((res as { error?: string }).error).toMatch(/fecha/i);
+    const movs = await sql`
+      SELECT COUNT(*)::int AS n FROM movimientos WHERE folio = ${`MAN-${key}`}
+    `;
+    expect((movs as unknown as { n: number }[])[0].n).toBe(0);
   });
 });

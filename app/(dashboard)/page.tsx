@@ -17,7 +17,7 @@ function StatCard({
   tipo: "bodega" | "modulo";
 }) {
   const color = tipo === "bodega" ? "bg-violet-600" : "bg-slate-700";
-  const label = tipo === "bodega" ? "bodega" : "modulo";
+  const label = tipo === "bodega" ? "bodega" : "módulo";
 
   return (
     <Link
@@ -98,9 +98,9 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Modulos */}
+      {/* Módulos */}
       <div>
-        <SectionHeader title="Modulos" href="/modulos" count={modulos.length} />
+        <SectionHeader title="Módulos" href="/modulos" count={modulos.length} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {modulos.map((m) => (
             <StatCard
@@ -114,9 +114,9 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Accesos rapidos */}
+      {/* Accesos rápidos */}
       <div>
-        <h2 className="text-lg font-bold text-slate-800 mb-4">Accesos rapidos</h2>
+        <h2 className="text-lg font-bold text-slate-800 mb-4">Accesos rápidos</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { href: "/entradas",    label: "Nueva entrada",  icon: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12", color: "text-green-600 bg-green-50 border-green-200 hover:bg-green-100" },

@@ -18,7 +18,7 @@ export default async function BodegasPage() {
           >
             <h2 className="font-semibold text-slate-700 text-sm mb-3">{b.nombre}</h2>
             <p className="text-3xl font-bold text-violet-600">
-              {b.totalStock.toLocaleString()}
+              {b.totalStock.toLocaleString("es-CL")}
             </p>
             <p className="text-xs text-slate-400 mt-1">unidades en stock</p>
           </Link>

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { Fragment, useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getStockPorUbicacion, getMovimientosPorProductoUbicacion } from "@/lib/actions/vistas";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { AjusteModal } from "@/components/AjusteModal";
+import { formatearFechaISO } from "@/lib/utils/fecha-chile";
 
 type Item = { id: number; codigo: string; detalle: string | null; imagenUrl: string | null; packing: number | null; cantidad: number; totalEntradas: number; totalSalidas: number };
 type Tipo = "bodega" | "modulo";
@@ -25,7 +26,7 @@ export async function executeLoad(config: ExecuteLoadConfig) {
 }
 function formatFecha(iso: string | null): string {
   if (!iso) return "---";
-  return new Date(iso).toLocaleDateString("es-CL", { dateStyle: "short" });
+  return formatearFechaISO(iso);
 }
 function ChevronIcon({ open }: { open: boolean }) {
   return (<svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={"transition-transform duration-200 " + (open ? "rotate-90" : "")}><path d="M9 18l6-6-6-6"/></svg>);
@@ -186,8 +187,8 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
               const isLoadingMov = loadingMov.has(item.id);
               const mov = movDetalle.get(item.id);
               return (
-                <>
-                  <tr key={item.id} onClick={() => toggleExpand(item.id)} className={"border-t border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer" + (isExpanded ? " bg-slate-50" : "")}>
+                <Fragment key={item.id}>
+                  <tr onClick={() => toggleExpand(item.id)} className={"border-t border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer" + (isExpanded ? " bg-slate-50" : "")}>
                     <td className="py-2 pl-4 pr-2 text-slate-400"><ChevronIcon open={isExpanded} /></td>
                     <td className="py-2 px-2"><ProductoThumbnail src={item.imagenUrl} alt={item.codigo} size="sm" /></td>
                     <td className="py-2.5 px-3"><span className="font-semibold text-xs text-violet-600">{item.codigo}</span></td>
@@ -204,7 +205,7 @@ export function UbicacionDetalle({ tipo, nombre: nombreProp }: { tipo: Tipo; nom
                     ? <tr key={item.id + "-loading"} className="bg-slate-50 border-t border-slate-100"><td colSpan={9} className="py-3 pl-12 pr-4 text-xs text-slate-400 animate-pulse">Cargando movimientos...</td></tr>
                     : mov ? <SubFilasMovimientos key={item.id + "-mov"} mov={mov} /> : null
                   )}
-                </>
+                </Fragment>
               );
             })}
             {items.length === 0 && !loading && !error && <tr><td colSpan={9} className="py-12 text-center text-slate-400 text-sm">Sin productos</td></tr>}

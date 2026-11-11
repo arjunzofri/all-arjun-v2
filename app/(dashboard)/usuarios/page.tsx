@@ -72,7 +72,7 @@ export default function UsuariosPage() {
                   </span>
                 </td>
                 <td className="py-3 text-slate-500 text-sm">
-                  {new Date(u.createdAt).toLocaleDateString()}
+                  {new Date(u.createdAt).toLocaleDateString("es-CL")}
                 </td>
               </tr>
             ))}
