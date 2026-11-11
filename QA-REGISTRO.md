@@ -24,7 +24,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - [x] P-20261110-2158-9 (media) HALLAZGO: EXP-3 — Tras "Corregir", el detalle no coincide con el saldo -> BACKLOG UX: "Corregir" funciona segun diseno; mejorar como se muestra el detalle
 - [x] P-20261110-2158-10 (media) HALLAZGO: EXP-4 — Saldos de salida sin entrada en /bodegas/1 -> 
 - [x] P-20261110-2158-11 (baja) HALLAZGO: EXP-5 — Textos y avisos inconsistentes -> 
-- [x] P-20261110-2158-12 (baja) HALLAZGO: EXP-6 — Búsquedas lentas y errores de consola -> 
+- [x] P-20261110-2158-12 (baja) HALLAZGO: EXP-6 — Búsquedas lentas y errores de consola ->  | MEDIDO en produccion 2026-11-11 (commit bede189, 4 rondas x 4 busquedas): primera llamada fria 1,3 s; despues 0,3-0,4 s en buscar-historico, por-bodega y productos. No se toca
 - [x] P-20261110-2158-13 (baja) HALLAZGO: EXP-7 — Columna "Bodegas" sin nombres en /productos -> 
 - [x] P-20261110-2158-14 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 () (/dxkidwxjl/image/upload/productos/87086-5(ANIL)) -> 
 - [x] P-20261110-2158-15 (media) CONSOLA: [probable misma causa que P-20261110-2158-2, filas repetidas] Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 7200 -> 
@@ -141,3 +141,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-11 05:05 - fix-noche3 - commit fa063d3 - INVALIDO
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\fix-noche3
 - Sin pendientes nuevos.
+
+## 2026-11-11 07:55 - prod-deploy-bede189-operador - commit bede189 - PRODUCCION PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\prod-deploy-bede189-operador
+- [ ] P-20261111-0755-1 (baja) CONSOLA: Failed to load resource: the server responded with a status of 403 () (/usuarios)
