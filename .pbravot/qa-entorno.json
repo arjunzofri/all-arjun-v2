@@ -91,6 +91,12 @@
         ]
       },
       {
+        "ruta": "/entradas/identificar",
+        "debeVerse": [
+          "Identificar producto"
+        ]
+      },
+      {
         "ruta": "/salidas",
         "debeVerse": [
           "Salida de bodega"
