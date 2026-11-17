@@ -1,5 +1,23 @@
 # CONTEXT-CLAUDE-CHAT.md — app-arjun-v2
 
+## VIGENTE 2026-11-17 — GO modo inventario
+
+- Pablo aprobo propuesta y maqueta en este chat Codex. Director = Codex; Programador = Claude Code
+  headless mediante ~/.claude/pbravot/deep.ps1, seleccion automatica de proveedor segun hora.
+- Alcance en PRD (cabecera nueva) y docs/plan-inventario-aprobado.md.
+- Conteos fisicos por posicion separados de compras; buscador permanente en ficha;
+  contexto de bodega por sesion de usuario; mismo codigo en ambas bodegas.
+- GLP/GL2/GL1: conservar mapeo reactivable independiente, false en modo nuevo, sin tocar conteos.
+- Bodega 1 y Bodega 2 solamente. No migrar stock actual: reinicio previsto al entregar,
+  nunca durante desarrollo. Respaldo y alcance concreto del borrado antes de ejecutarlo.
+- Rama inicial main, HEAD 7127b82, arbol limpio antes de documentar el GO.
+- Sin push/deploy antes de Senal 3 y UAT. Probar solo en rama Neon test; origen Vida Digital read-only.
+- Auditoria inicial y contrato en ../_dt/logs/inv-plan-A.*; docs del Director pendientes de commit.
+
+## Contador Ponytail
+- Ultimo audit: inv-plan-A solicitado 2026-11-17 (pendiente de resultado).
+- Slices desde ultimo audit: 0 del nuevo modo.
+
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un
 nuevo slice, o resolver un problema que excede el alcance de un ciclo

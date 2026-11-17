@@ -1,5 +1,13 @@
 # CLAUDE.md — app-arjun-v2
 
+## Trabajo vigente (GO 2026-11-17)
+- Director Codex, Programador Claude Code headless, protocolo ~/.claude/PBRAVOT-MODO-POWERSHELL.md.
+- PRD cabecera y docs/plan-inventario-aprobado.md prevalecen sobre alcance historico.
+- Inventario fisico y compras separados; ubicaciones siempre manuales en modo nuevo.
+- No escribir produccion, no drizzle-kit push, no borrado real, no commit/push por el Programador.
+- Prompts/logs ../_dt; AUTO-LOG por slice. QA ~/.claude/PBRAVOT-QA.md.
+- Debugging: ~/.claude/PBRAVOT-DEBUGGING.md; evidencia de causa raiz y registro BUGS.md.
+
 ## Stack decidido
 
 - Next.js 16 (App Router), React 19, TypeScript 5.9

@@ -1,5 +1,85 @@
 # PRD.md — App Arjun v2
 
+## Alcance vigente aprobado — 2026-11-17
+
+Pablo autorizo implementar el modo inventario de bodega. El detalle vigente esta en
+`docs/plan-inventario-aprobado.md`; prevalece sobre el alcance historico de modulos que sigue abajo.
+Maqueta aprobada: copia externa en `../_dt/arjun-mockup-aprobado.html`.
+
+- Inicio con buscador grande; buscador tambien en cada ficha para abrir otro producto directamente.
+- Una lista con imagen, codigo, ubicacion, stock contado y fecha; tarjetas verticales en movil.
+- Conteo absoluto por posicion, incluido cero; historial, usuario y hora automaticos.
+- Bodega de trabajo seleccionada manualmente por el bodeguero y recordada durante su sesion.
+- Solo Bodega 1 (A1-A4, F/M/P) y Bodega 2 (Arriba/Abajo, Izquierda/Derecha, F/M/P).
+- Un codigo puede tener cantidades en ambas bodegas y varias posiciones sin sobrescribirlas.
+- Compras importadas independientes del conteo: catalogo, fotos, packing, documentos y costos.
+- GLP/GL2 -> B1 y GL1 -> B2: conservar regla reversible con interruptor independiente;
+  apagada en modo nuevo. Activarla nunca modifica conteos fisicos previos.
+- ACTUALIZAR y tarea automatica comparten importador seguro e idempotente; origen solo lectura.
+- Inversion segun conteos y compras elegibles a su fecha; no incluye modulos ni compras futuras.
+- Costos/inversion y usuarios siguen solo admin. Identificador, fotos, alias, packing,
+  observaciones, productos manuales/historicos y codigo alternativo siguen disponibles.
+- Entradas/salidas/retornos/transferencias/modulos/movimientos apagados reversiblemente;
+  bloquear tambien operaciones directas, sin bloquear identificacion ni auditoria interna.
+- Feature `inventario_bodega` nace false hasta verificacion/QA/UAT. Sin deploy anticipado.
+- Reinicio de datos al entregar, NO ahora. Preparar respaldo y alcance concreto antes del corte.
+
+## Flujos criticos y criterios de aceptacion — modo inventario
+
+### R1 — Buscar desde inicio y ficha (riesgo: medio)
+- Rol: operador/admin.
+- Dado: sesion iniciada en modo inventario.
+- Cuando: busca por codigo o descripcion y elige un producto, y luego busca otro desde su ficha.
+- Entonces: abre ambas fichas sin volver al listado; no se pierden cambios sin guardar en silencio.
+
+### R2 — Conteo fisico por posicion (riesgo: alto)
+- Rol: operador/admin.
+- Dado: producto con conteo en Bodega 1 y bodega de trabajo Bodega 2.
+- Cuando: registra un conteo en una posicion de Bodega 2, incluso 0.
+- Entonces: ve cantidad, usuario y fecha propios; Bodega 1 queda intacta; la suma y sus fechas son claras.
+
+### R3 — Concurrencia y reintento (riesgo: alto)
+- Rol: operador/admin.
+- Dado: dos sesiones contando la misma posicion o una peticion repetida.
+- Cuando: guardan sobre la misma version o reintentan el mismo registro.
+- Entonces: un conflicto se informa sin sobrescritura silenciosa y un reintento no duplica el conteo.
+
+### R4 — Bodega de trabajo y ubicacion manual (riesgo: alto)
+- Rol: operador/admin.
+- Dado: seleccion manual de Bodega 2 en la sesion.
+- Cuando: abre distintos productos o cambia a Bodega 1.
+- Entonces: conserva bodega de trabajo; ofrece solo planta/pasillos/posiciones validos sin asignar los demas automaticamente; otro usuario mantiene su seleccion.
+
+### R5 — Compras y actualizacion (riesgo: alto)
+- Rol: operador/admin.
+- Dado: compras confirmadas disponibles en Vida Digital/Sanjh.
+- Cuando: se ejecuta importacion manual o automatica, incluso simultaneamente.
+- Entonces: aparecen productos y fotos sin duplicados, sin bodega asignada ni cambios a conteos; fotos propias se conservan; se informa exito/error.
+
+### R6 — Inversion por conteos (riesgo: alto)
+- Rol: admin.
+- Dado: conteos de bodega y compras de distintas fechas.
+- Cuando: muestra los valores o el desglose.
+- Entonces: ve Costo prom. antes de Valor, Saldo en vez de Remanente, sin indicadores eliminados; no se usan compras posteriores al conteo ni se duplican lotes entre posiciones; faltas de costo se advierten.
+
+### R7 — Movil vertical (riesgo: medio)
+- Rol: operador/admin.
+- Dado: pantalla movil vertical.
+- Cuando: consulta listado, ficha, compras e historial.
+- Entonces: lee todos los datos y accede a acciones sin desplazarse lateralmente.
+
+### R8 — Funciones y permisos conservados (riesgo: alto)
+- Rol: operador/admin.
+- Dado: modo inventario activo.
+- Cuando: identifica por foto, edita imagen/alias/packing/observaciones o crea producto manual/historico.
+- Entonces: puede continuar en ficha y contar; usuarios e importes permanecen restringidos a admin; cerrar sesion sigue disponible.
+
+### R9 — Apagado reversible (riesgo: alto)
+- Rol: operador/admin.
+- Dado: modo inventario activo o apagado.
+- Cuando: intenta acceder a antiguas operaciones por menu o URL directa.
+- Entonces: activado no permite operaciones de modulos; apagado conserva el comportamiento anterior y sus datos.
+
 ## 1. Qué es el proyecto
 
 App Arjun v2 es la reconstrucción completa del sistema de control de inventario
