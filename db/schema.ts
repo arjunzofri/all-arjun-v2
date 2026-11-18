@@ -1,6 +1,9 @@
-﻿import {
+﻿import { sql } from "drizzle-orm";
+import {
   pgTable,
   serial,
+  bigserial,
+  smallint,
   varchar,
   integer,
   text,
@@ -9,6 +12,8 @@
   pgEnum,
   jsonb,
   unique,
+  check,
+  index,
   AnyPgColumn,
   numeric,
 } from "drizzle-orm/pg-core";
@@ -159,3 +164,42 @@ export const users = pgTable("users", {
   role: varchar("role", { length: 20 }).notNull().default("operador"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ── Conteos de inventario (append-only) ─────────────────────────────────
+// Espejo exacto de db/migrations/0001_inventario_conteos.sql.
+export const conteosInventario = pgTable(
+  "conteos_inventario",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    productoId: integer("producto_id")
+      .notNull()
+      .references(() => productos.id, { onDelete: "restrict", onUpdate: "restrict" }),
+    bodega: smallint("bodega").notNull(),
+    planta: text("planta").notNull().default(""),
+    pasillo: text("pasillo").notNull(),
+    posicion: text("posicion").notNull(),
+    cantidad: integer("cantidad").notNull(),
+    usuarioId: integer("usuario_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict", onUpdate: "restrict" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    creadoEn: timestamp("creado_en", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    unique("uq_conteos_idempotencia").on(t.idempotencyKey),
+    check("ck_conteos_cantidad", sql`${t.cantidad} >= 0`),
+    check(
+      "ck_conteos_ubicacion",
+      sql`${t.pasillo} IS NOT NULL AND ${t.posicion} IS NOT NULL AND ${t.posicion} IN ('F', 'M', 'P') AND (
+        (${t.bodega} = 1 AND ${t.planta} = '' AND ${t.pasillo} IN ('A1', 'A2', 'A3', 'A4'))
+        OR (${t.bodega} = 2 AND ${t.planta} IN ('ARRIBA', 'ABAJO') AND ${t.pasillo} IN ('IZQUIERDA', 'DERECHA'))
+      )`
+    ),
+    index("idx_conteos_inventario_pos").on(
+      t.productoId, t.bodega, t.planta, t.pasillo, t.posicion, t.id
+    ),
+  ]
+);
+
+export type ConteoInventario = typeof conteosInventario.$inferSelect;
+export type NuevoConteoInventario = typeof conteosInventario.$inferInsert;

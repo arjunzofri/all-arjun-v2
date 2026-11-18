@@ -183,3 +183,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-01-deep2
 - [x] P-20261117-2135-1 (baja) HALLAZGO: EXP-1 — Página "No autorizado" sin navegación al entrar a /usuarios como operador -> BACKLOG BUGS.md 2026-11-17; preexistente, Director reprodujo 403 correcto y acceso a Productos, no causado por contrato inerte de ubicaciones.
 - [x] P-20261117-2135-2 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 (Not Found) (/inversion) -> DESCARTADO: QA probo una ruta inventada; la ruta real es /inversion-mercaderia (ver DashboardShell.tsx), 404 esperado, sin enlace roto demostrado.
+
+## 2026-11-17 21:48 - inv-02 - commit 4d6a914 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-02
+- [x] P-20261117-2148-1 (baja) HALLAZGO: EXP-5 — Acceso directo de operador a /inversion-mercaderia devuelve un 404 crudo en inglés -> BACKLOG BUGS.md 2026-11-17; pagina anterior usa notFound deliberadamente para no-admin, sin fuga de costos. Mejora de texto/localizacion preexistente, sin relacion con la nueva tabla de conteos.
