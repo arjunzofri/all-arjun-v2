@@ -32,7 +32,11 @@
   inv-10 cerrado c5b746c: buscador reutilizable, 21/21, QA1/1 y reproduccion propia.
   inv-11 cerrado c1f57a3: listado responsive, 14/14, QAon3/3+off1/1 y reproduccion propia360/1280.
   Auditoria inv-audit-11-A sin bloqueantes: antes UAT medir queryrepresentativa y formatear miles es-CL.
-  Siguiente inv-12-B shell/inicio, contrato sub11-B aprobado con ajustes inv-12-decisiones.md.
+  inv-12 cerrado acd1ba7, inicio/header/busqueda permanente, suite propia849/0+8skips,
+  QAon4/4+off1/1 y reproduccion compilada con storagebloqueado sinrecarga/errores.
+  Siguiente inv-13-B ficha nueva lectura, contrato13.1 en inv-13-lectura-A.md aprobado con ajustesB.
+  IMPORTANTE: getProducto guard/API DTO se hace DESPUES de rama ficha para no romper callerON.
+  authWRITE y fotos seguras siguen pendientes; no conectar editores antes de esos contratos.
   inv-09-A borradores propuesta lista, se implementara despues del primer UI visible.
   inv-12 shell/inicio corresponde a subcontrato11-B de logs/inv-11-A.md, ajustes inv-12-decisiones.md.
   Sonnet sin cuota: usar -Programador deep
@@ -40,7 +44,7 @@
 
 ## Contador Ponytail
 - Ultimo audit: inv-audit-11-A completado 2026-11-18 tras inv-11; sin bloqueantes, pendientes antes UAT en AUTO-LOG.
-- Slices desde ultimo audit: 0 (siguiente inv-12 shell/inicio).
+- Slices desde ultimo audit: 1 (inv-12; siguiente inv-13 ficha lectura).
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un

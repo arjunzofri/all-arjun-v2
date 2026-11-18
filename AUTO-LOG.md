@@ -1,5 +1,13 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-18 — inv-12 inicio y encabezado cerrado
+- Commit acd1ba7, 200 lineas totales con QA on/off. Inicio centrado en busqueda, encabezado sin sidebar legacy, buscador permanente en interiores, selector de bodega por usuario y logout con limpieza. Enter/Buscar navegan sin recargar documento; clic fuera cierra coincidencias.
+- Director reviso diff, ejecuto 33 pruebas dirigidas y suite completa. Primera suite: cinco fallos por mocks antiguos que activaban todos los flags. Causa comprobada, dos mocks delimitados al flag correspondiente sin debilitar permisos: 31/31 propias y suite final 849 pass, 8 omitidas, 0 fallos. Typecheck/build correctos (aviso root baseline), lint tocados0 sin nuevas supresiones.
+- QA DeepSeek inv-12-on PASA4/4, inv-12-off PASA1/1; sin hallazgos/errores de consola. Confirmados busqueda ficha->ficha, Enter/Buscar, bodega persistente, logout limpia seleccion, Usuarios admin y modo anterior.
+- Director reprodujo en build local con DB TEST y sessionStorage global bloqueado: mismo documento y Bodega2 durante enlaces/Enter/Buscar, blur cierra y movil360 sin overflow; 0 errores. En dev se identifico por trazas un fallo de Next persistDebugChannelToSessionStorage; no se cambio producto ni dependencia, se verifico la compilacion que no incluye ese canal de depuracion.
+- Harness temporal qa-compilado-local.ps1 conserva guardas, restaura bytes de qa-entorno.json y entorno; sin cambio persistente de config. TEST detenido, flagsfalse. Sin reset/push/deploy.
+- Siguiente inv13.1 ficha nueva solo lectura primero, despues guard/API lecturas y authWRITE. Director rechazo diferir caller roto: getProducto guard NO se agrega antes de bifurcar la ficha. Borradores inv09 pendientes antes de formulario de conteo. Contador auditoria1.
+
 ## 2026-11-18 — inv-11 listado responsive cerrado
 - Commit c1f57a3, 192 lineas incluyendo QA on/off. Lista con imagen, codigo, ubicacion y stock; tarjetas verticales en movil, fechas Chile, cero distinto de pendiente y paginacion validada.
 - Director comprobo ROJO y corrigio expectativas de fixture UTC y escape HTML antes de implementar. Revision posterior detecto estado vacio y filtro activo ausentes: ROJO propio 2/8, correccion y VERDE propio 14/14. ESLint0, typecheck0, build0 (aviso root baseline).
