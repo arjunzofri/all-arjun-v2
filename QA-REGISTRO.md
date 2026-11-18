@@ -231,3 +231,17 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-18 03:09 - inv-12-off - commit 8dec764 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-12-off
 - Sin pendientes nuevos.
+
+## 2026-11-18 03:36 - inv-13-on - commit ac6686b - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-13-on
+- [x] P-20261118-0336-1 (baja) HALLAZGO: EXP-1 — URL inválida /productos/abc devuelve 404 crudo en inglés, sin navegación de retorno -> BACKLOG BUGS.md: localizacion de 404, variante del hallazgo inv-02 EXP-5; revisar antes UAT.
+- [x] P-20261118-0336-2 (baja) HALLAZGO: EXP-2 — A 360 px el texto guía del buscador del encabezado aparece cortado -> ARREGLADO b9bd56e: guia corta Codigo o descripcion, label accesible completo; QA inv-13-fix PASA1/1 y Director verifico360px.
+- [x] P-20261118-0336-3 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 (Not Found) (/productos/abc) -> DESCARTADO respuesta HTTP 404 esperada al probar deliberadamente un ID invalido; no es error JavaScript ni fallo adicional. La mejora visual esta en P-20261118-0336-1.
+
+## 2026-11-18 03:45 - inv-13-fix - commit ac6686b - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-13-fix
+- Sin pendientes nuevos.
+
+## 2026-11-18 03:52 - inv-13-off - commit ac6686b - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-13-off
+- Sin pendientes nuevos.

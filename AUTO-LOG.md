@@ -1,5 +1,12 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-18 — inv-13.1 ficha nueva de lectura cerrada
+- Commit b9bd56e, 192 lineas de codigo/pruebas. Rama ON en /productos/[id] usa DTO seguro, muestra posiciones B1/B2 con cantidad/fecha/hora/usuario, datos y foto readonly; OFF conserva ficha anterior. No se conectan editores hasta endurecer escritura e imagen.
+- Director verifico ROJO4/1 y agrego condicion de fallo DB: ROJO1/5, corregida con aviso recuperable y enlace al inventario, sin capturar notFound ni filtrar SQL. VERDE propio40/40, typecheck/lint0, build0 (aviso root baseline). Fuente y DTO revisados.
+- QA DeepSeek inv-13-on PASA3/3; hallazgo bajo guia cortada corregido y reprueba inv-13-fix PASA1/1; inv-13-off PASA1/1. Director reprodujo datos/fecha23:30/autor y estados dual-pendiente-cero a1280/360, overflow0 y erroresJS0. Herramienta propia ajustada a etiquetas CSS en mayusculas; datos y asserts de privacidad conservados.
+- Hallazgo 404 ingles BACKLOG en BUGS (variante preexistente); consola404 por ID deliberadamente invalido DESCARTADO como respuesta correcta. QA-REGISTRO/BUGS se versionan en este cierre documental para conservar toda evidencia sin superar presupuesto de codigo.
+- TEST detenido, flagsfalse, sin reset/push/deploy. Siguiente inv14 guard lectura vieja+GET API seguro; primero ramaUI ya lista para no romper caller. Contador2 desde auditoria11.
+
 ## 2026-11-18 — inv-12 inicio y encabezado cerrado
 - Commit acd1ba7, 200 lineas totales con QA on/off. Inicio centrado en busqueda, encabezado sin sidebar legacy, buscador permanente en interiores, selector de bodega por usuario y logout con limpieza. Enter/Buscar navegan sin recargar documento; clic fuera cierra coincidencias.
 - Director reviso diff, ejecuto 33 pruebas dirigidas y suite completa. Primera suite: cinco fallos por mocks antiguos que activaban todos los flags. Causa comprobada, dos mocks delimitados al flag correspondiente sin debilitar permisos: 31/31 propias y suite final 849 pass, 8 omitidas, 0 fallos. Typecheck/build correctos (aviso root baseline), lint tocados0 sin nuevas supresiones.

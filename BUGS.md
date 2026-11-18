@@ -565,6 +565,7 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 - Pendiente: pantalla de acceso denegado con enlace al inicio; mantener 403 y acceso restringido.
 - QA inv-02 EXP-5: operador en /inversion-mercaderia recibe notFound con texto ingles de Next.js.
   Mejora baja de localizacion, comportamiento previo deliberado de ocultar inversion a no-admin.
+- QA inv-13-on EXP-1: /productos/abc muestra el mismo 404 generico en ingles, dentro del encabezado nuevo pero sin enlace de retorno. Confirmado por Director con notFound de Next; agregar pantalla localizada con retorno antes UAT. El HTTP404 por ese ID invalido es correcto.
 
 ## 2026-11-17 — BACKLOG baja: comodines en buscador anterior
 - QA inv-03 EXP-1: `%` devuelve todo el listado. Causa verificable: getProductos aplica ILIKE

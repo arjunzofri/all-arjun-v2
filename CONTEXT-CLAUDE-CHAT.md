@@ -34,8 +34,10 @@
   Auditoria inv-audit-11-A sin bloqueantes: antes UAT medir queryrepresentativa y formatear miles es-CL.
   inv-12 cerrado acd1ba7, inicio/header/busqueda permanente, suite propia849/0+8skips,
   QAon4/4+off1/1 y reproduccion compilada con storagebloqueado sinrecarga/errores.
-  Siguiente inv-13-B ficha nueva lectura, contrato13.1 en inv-13-lectura-A.md aprobado con ajustesB.
-  IMPORTANTE: getProducto guard/API DTO se hace DESPUES de rama ficha para no romper callerON.
+  inv-13.1 cerrado b9bd56e: fichaON lectura segura porposiciones, fecha/hora/autor, sinprecios/legacy.
+  Director40/40, QAon3/3+fix1/1+off1/1, reproduccion360/1280 y erroresJS0.
+  Siguiente inv-14-B guard getProducto + GET API DTO seguro, contrato13.2 en inv-13-lectura-A.md.
+  Rama ficha ya existe: ahora se puede bloquear lectura vieja sin romper callerON.
   authWRITE y fotos seguras siguen pendientes; no conectar editores antes de esos contratos.
   inv-09-A borradores propuesta lista, se implementara despues del primer UI visible.
   inv-12 shell/inicio corresponde a subcontrato11-B de logs/inv-11-A.md, ajustes inv-12-decisiones.md.
@@ -44,7 +46,7 @@
 
 ## Contador Ponytail
 - Ultimo audit: inv-audit-11-A completado 2026-11-18 tras inv-11; sin bloqueantes, pendientes antes UAT en AUTO-LOG.
-- Slices desde ultimo audit: 1 (inv-12; siguiente inv-13 ficha lectura).
+- Slices desde ultimo audit: 2 (inv-12, inv-13.1; siguiente inv-14 lectura API).
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un
