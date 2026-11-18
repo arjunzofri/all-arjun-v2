@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getProducto, updateProducto } from "@/lib/actions/productos";
-import { updateProductoSchema } from "@/lib/validations/producto";
+import { updateProductoSchema, productoIdSchema } from "@/lib/validations/producto";
+import { flagActivo } from "@/lib/feature-flags";
+import { getFichaInventario } from "@/lib/inventario/consultas";
 
 export async function GET(
   request: Request,
@@ -13,7 +15,27 @@ export async function GET(
   }
 
   const { id } = await params;
-  const producto = await getProducto(Number(id));
+  const parsed = productoIdSchema.safeParse(Number(id));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "ID de producto inválido" }, { status: 400 });
+  }
+
+  if (flagActivo("inventario_bodega")) {
+    try {
+      const ficha = await getFichaInventario(parsed.data);
+      if (!ficha) {
+        return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+      }
+      return NextResponse.json(ficha);
+    } catch {
+      return NextResponse.json(
+        { error: "No se pudo cargar el producto. Intente nuevamente." },
+        { status: 500 }
+      );
+    }
+  }
+
+  const producto = await getProducto(parsed.data);
   if (!producto) {
     return NextResponse.json({ error: "No encontrado" }, { status: 404 });
   }

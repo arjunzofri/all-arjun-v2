@@ -6,6 +6,7 @@ import { eq, and, lt, gt, desc, or, ilike, inArray, sql } from "drizzle-orm";
 import { mergeProductStock } from "@/lib/utils/merge-product-stock";
 import { fechaChileDeTimestamp } from "@/lib/utils/fecha-chile";
 import { updateProductoSchema, type UpdateProductoInput } from "@/lib/validations/producto";
+import { exigirModoOperativo } from "@/lib/inventario/modo";
 
 export type UpdateProductoResult =
   | { ok: true; producto: typeof productos.$inferSelect }
@@ -91,6 +92,7 @@ export async function getProductos(params: {
 
 // ── Ficha individual ─────────────────────────────────────────────────────
 export async function getProducto(id: number) {
+  exigirModoOperativo();
   const [producto] = await db
     .select()
     .from(productos)

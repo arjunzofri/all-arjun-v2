@@ -245,3 +245,13 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-18 03:52 - inv-13-off - commit ac6686b - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-13-off
 - Sin pendientes nuevos.
+
+## 2026-11-18 15:42 - inv-14-on - commit 2de6850 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-14-on
+- [x] P-20261118-1542-1 (baja) HALLAZGO: EXP-1 — La respuesta JSON del API 404 empieza con un carácter BOM (U+FEFF) -> DESCARTADO: Director verifico bytes reales desde fetch/arrayBuffer; respuesta404 comienza con123 (llave), sin BOM. Captura EXP-1 tampoco prueba BOM; no se reproduce el defecto.
+- [x] P-20261118-1542-2 (media) CONSOLA: Failed to load resource: the server responded with a status of 400 (Bad Request) (/api/productos/abc) -> DESCARTADO: HTTP400 esperado para ID deliberadamente invalido; no error JavaScript. Director reprodujo.
+- [x] P-20261118-1542-3 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 (Not Found) (/api/productos/999999999) -> DESCARTADO: HTTP404 esperado para producto inexistente; no error JavaScript. Director reprodujo.
+
+## 2026-11-18 15:47 - inv-14-off - commit 2de6850 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-14-off
+- Sin pendientes nuevos.
