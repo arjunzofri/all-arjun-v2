@@ -259,3 +259,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-18 15:54 - inv-09-1 - commit a39c1ff - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-09-1
 - Sin pendientes nuevos.
+
+## 2026-11-18 16:05 - inv-09-2 - commit 244e635 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-09-2
+- [x] P-20261118-1605-1 (baja) HALLAZGO: EXP-1 — Navegación de retorno desde la ficha -> DESCARTADO: el propio informe observa comportamiento esperado, retorno correcto al inventario sin errores; no describe defecto. Director verifico navegacion y ausencia de erroresJS.
