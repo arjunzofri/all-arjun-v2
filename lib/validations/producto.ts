@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+// ID de producto: entero positivo dentro del rango int4 de Postgres.
+export const productoIdSchema = z.number().int().positive().max(2147483647);
+
 // Unico punto de verdad para editar un producto (ficha + ruta PATCH).
 export const updateProductoSchema = z.object({
   codigoPersonal: z.string().max(50).optional(),

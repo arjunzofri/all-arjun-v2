@@ -68,7 +68,7 @@ export default function BuscadorInventario({ grande = false }: { grande?: boolea
       <label htmlFor={`${id}-q`} className="sr-only">Buscar producto por código, alias o descripción</label>
       <input id={`${id}-q`} name="q" type="search" role="combobox" aria-expanded={mostrarLista} aria-controls={listaId} aria-autocomplete="list" autoComplete="off" maxLength={100} value={q}
         onChange={(e) => cambiar(e.target.value)} onFocus={() => { if (consultado) setAbierto(true); }} onKeyDown={(e) => { if (e.key === "Escape") setAbierto(false); }}
-        placeholder="Buscar por código, alias o descripción" className={`min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-slate-800 placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200 ${grande ? "py-3 text-base" : "py-2 text-sm"}`} />
+        placeholder="Código o descripción" className={`min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-slate-800 placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200 ${grande ? "py-3 text-base" : "py-2 text-sm"}`} />
       <button type="submit" className="shrink-0 rounded-lg bg-violet-600 px-4 text-sm font-medium text-white hover:bg-violet-700">Buscar</button>
       {mostrarLista && (
         <div id={listaId} className="absolute top-full z-20 mt-1 max-h-80 w-full min-w-0 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">

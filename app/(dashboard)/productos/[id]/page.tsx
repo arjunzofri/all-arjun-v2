@@ -3,8 +3,14 @@ import { Fragment } from "react";
 import { getProducto } from "@/lib/actions/productos";
 import { formatearFechaISO } from "@/lib/utils/fecha-chile";
 import { notFound } from "next/navigation";
+import { flagActivo } from "@/lib/feature-flags";
+import { productoIdSchema } from "@/lib/validations/producto";
+import { getFichaInventario } from "@/lib/inventario/consultas";
 import { EditarProductoForm } from "./form";
 import { ImagenProducto } from "./imagen";
+import { FichaProducto } from "./FichaProducto";
+
+export const dynamic = "force-dynamic";
 
 export function buildVolverHref(refQ: string | undefined): string {
   if (!refQ) return "/productos";
@@ -19,6 +25,18 @@ export default async function ProductoDetallePage({
   searchParams: Promise<{ refQ?: string }>;
 }) {
   const [{ id }, { refQ }] = await Promise.all([params, searchParams]);
+
+  if (flagActivo("inventario_bodega")) {
+    const parsed = productoIdSchema.safeParse(Number(id));
+    if (!parsed.success) notFound();
+    let ficha: Awaited<ReturnType<typeof getFichaInventario>>;
+    try { ficha = await getFichaInventario(parsed.data); } catch {
+      return <div role="alert" className="mx-auto w-full max-w-3xl space-y-3"><p className="text-sm text-red-600">No se pudo cargar el producto. Intente nuevamente.</p><Link href="/inventario" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-violet-600 transition-colors">Volver a inventario</Link></div>;
+    }
+    if (!ficha) notFound();
+    return <FichaProducto fila={ficha} refQ={refQ} />;
+  }
+
   const producto = await getProducto(Number(id));
   if (!producto) notFound();
 
