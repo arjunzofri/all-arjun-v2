@@ -295,3 +295,14 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-18 18:50 - inv-17-3a3-on - commit 12021a9 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-17-3a3-on
 - Sin pendientes nuevos.
+
+## 2026-11-18 19:17 - inv-17-3b-on - commit a90ee5b - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-17-3b-on
+- [ ] P-20261118-1917-1 (baja) HALLAZGO: EXP-1 — Un entero de 12 dígitos se rechaza con el mensaje "Cantidad inválida: ingresa un número entero"
+
+## 2026-11-18 — Director, prueba respuesta tardia inv17.3b
+- [ ] D-20261118-SEARCH-PENDING (media): sugerencias esperan conteo pendiente por cola Server Actions. Evidencia work/verificar-busqueda-guardado-arjun.cjs, captura arjun-busqueda-con-guardado-retenido.png. Pendiente GET lectura y reproduccion antes cierre17.3b.
+
+## 2026-11-18 19:40 - inv-17-search-api-on - commit a90ee5b - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-17-search-api-on
+- Sin pendientes nuevos.
