@@ -1,5 +1,12 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-17 — inv-04 action autentica cerrada
+- Commit 6ed7981, 186 lineas total incluyendo QA. Programador DeepSeek low, contrato inv-04-B; sin desvios salvo quitar 2 warnings unused del test sin cambiar casos (autorizado Director).
+- registrarConteoSchema estricto y action auth->flag->validacion->una sentencia SQL; user de sesion, timestamp DB, nonce prefijado por usuario; DTO seguro; conflicto no reintenta automaticamente; errores fijos en español sin URL/credenciales.
+- Director verifico ROJO moduloausente y VERDE38/38 pruebas dirigidas; tsc0, lintarchivostocados0, build0 (aviso baseline root). Revision propia del diff y guardas/payloads.
+- QA DeepSeek inv-04 PASA1/1, auditoria0, 2 imagenes vistas, USD0.5354, sin hallazgos. Director repitio operador->ficha TEST-UPD-001 y403Usuarios en navegador TEST; entorno detenido/restaurado.
+- Sin reset/push/deploy. Siguiente inv-05 guardas de mutaciones anteriores y overrides seguros de flags. Al conectar UI agregar invalidacion/refresco de listado/ficha/historial segun decisionesDirector.
+
 ## 2026-11-17 — inv-03 guardado atomico cerrado
 - Commit aef0817, 179 lineas totales incluido test y QA-REGISTRO. Programador DeepSeek low, sin desvios.
 - Funcion PG VOLATILE/security invoker con locks de idempotencia y posicion; valida replay/usuario/payload, devuelve conflicto para version vieja y conserva historial; no toca stock/movimientos. SQL aplicado solo TEST.
