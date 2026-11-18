@@ -577,3 +577,7 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 - Fuente auditoria inv-audit-09-2-A hallazgo1, confirmado Director en componentes/inventario/BuscadorInventario.tsx.
 - Link Ver todas las coincidencias carece onClick/onElegir; shell persiste entre ficha e inventario. Puede quedar dropdown de busqueda anterior encima de lista nueva.
 - Fix minimo previsto: llamar onElegir igual que links producto, con prueba rojo evento y QA ficha->VerTodas->lista sin dropdown (antes cerrar UIconteo/UAT). Flag nuevo siguefalse enentregaactual.
+
+## 2026-11-18 — BACKLOG baja: conservar termino al enviar busqueda
+- QA inv17-2-on EXP-1. Director confirma enviar() llama elegir()/setQ vacio antes router.push; el filtro sigue aplicado y visible en el titulo de resultados.
+- Revisar antes UAT junto retorno/filtros: conservar termino editable al enviar o Ver todas, cerrar desplegable; elegir producto puede limpiar busqueda. Sin perdida de datos ni bloqueo del flujo actual.

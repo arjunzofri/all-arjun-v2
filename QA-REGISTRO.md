@@ -275,3 +275,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-18 17:11 - inv-17-1-on - commit 1499df8 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-17-1-on
 - Sin pendientes nuevos.
+
+## 2026-11-18 17:28 - inv-17-2-on - commit fed6aab - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-17-2-on
+- [x] P-20261118-1728-1 (baja) HALLAZGO: EXP-1 — El campo de búsqueda permanente no conserva el término buscado; tras enviar queda vacío -> BACKLOG: Director confirma enviar llama elegir/setQ vacio; filtro aplicado visible en resultados, sin perdida de datos. Mejorar conservacion del termino al revisar retorno/filtros antes UAT; seleccionar producto puede limpiar busqueda.
