@@ -5,6 +5,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { upsertProducto } from "@/lib/sync/compras-anil";
 import { fechaHoyChile, esFechaISOValida } from "@/lib/utils/fecha-chile";
+import { exigirModoOperativo } from "@/lib/inventario/modo";
 
 const entradaSchema = z.object({
   codigo: z.string().min(1, "Código requerido"),
@@ -25,6 +26,7 @@ export async function crearEntrada(input: CrearEntradaInput) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("No autenticado");
   const userId = Number(session.user.id);
+  exigirModoOperativo();
 
   const parsed = entradaSchema.parse(input);
   const { codigo, detalle, cantidad, bodegaId, idempotencyKey, imagenUrl, packing, ubicacion, observaciones, fecha } = parsed;

@@ -3,6 +3,7 @@
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { exigirModoOperativo } from "@/lib/inventario/modo";
 
 const retornoSchema = z.object({
   codigo: z.string().min(1, "Código requerido"),
@@ -24,6 +25,7 @@ export async function crearRetorno(input: CrearRetornoInput): Promise<CrearRetor
   const session = await auth();
   if (!session?.user?.id) throw new Error("No autenticado");
   const userId = Number(session.user.id);
+  exigirModoOperativo();
 
   const parsed = retornoSchema.parse(input);
   const { codigo, cantidad, moduloOrigenId, bodegaDestinoId, idempotencyKey, observaciones } = parsed;

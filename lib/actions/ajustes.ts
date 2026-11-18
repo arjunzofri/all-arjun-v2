@@ -3,6 +3,7 @@
 import { neon, NeonQueryFunction } from "@neondatabase/serverless";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { exigirModoOperativo } from "@/lib/inventario/modo";
 import { db } from "@/db";
 import { movimientos } from "@/db/schema";
 import { eq, desc, and, inArray, or, like } from "drizzle-orm";
@@ -162,6 +163,7 @@ export async function crearAjuste(
   const session = await auth();
   if (!session?.user?.id) throw new Error("No autenticado");
   const userId = Number(session.user.id);
+  exigirModoOperativo();
 
   try {
     const parsed = ajusteSchema.parse(input);

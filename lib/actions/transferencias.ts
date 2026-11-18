@@ -3,6 +3,7 @@
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { exigirModoOperativo } from "@/lib/inventario/modo";
 
 const transferenciaSchema = z.object({
   codigo: z.string().min(1, "Código requerido"),
@@ -26,6 +27,7 @@ export async function transferirEntreBodegas(
   const session = await auth();
   if (!session?.user?.id) throw new Error("No autenticado");
   const userId = Number(session.user.id);
+  exigirModoOperativo();
 
   const parsed = transferenciaSchema.parse(input);
   const { codigo, cantidad, bodegaOrigenId, bodegaDestinoId, idempotencyKey, observaciones } = parsed;
