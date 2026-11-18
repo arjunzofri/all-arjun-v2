@@ -5,6 +5,7 @@ type SugerenciaBase = { codigo: string; detalle: string | null; imagenUrl: strin
 type ProductoSearchConfig<T extends SugerenciaBase = SugerenciaBase> = {
   fetchFn: (q: string) => Promise<unknown>;
   onResults: (items: T[]) => void;
+  onError?: (error: unknown) => void;
   guard?: () => boolean;
   minLength?: number;
   debounceMs?: number;
@@ -55,14 +56,16 @@ export function createProductoSearch<T extends SugerenciaBase = SugerenciaBase>(
           const raw = await config.fetchFn(q);
           if (id !== latestId) return;
           config.onResults(normalizeResponse(raw));
-        } catch {
+        } catch (error) {
           if (id !== latestId) return;
-          config.onResults([]);
+          if (config.onError) config.onError(error);
+          else config.onResults([]);
         }
       }, ms);
     },
 
     dispose() {
+      latestId++;
       clearTimeout(timer);
       controller?.abort();
     },
