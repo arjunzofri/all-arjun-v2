@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import LogoutButton from "@/components/LogoutButton";
 import BuscadorInventario from "@/components/inventario/BuscadorInventario";
 import { useBodegaTrabajo } from "@/components/inventario/useBodegaTrabajo";
+import { limpiarBorradoresConteo } from "@/components/inventario/borradoresConteoStore";
 
 const enlace = "rounded-md px-2 py-1 text-slate-600 hover:bg-violet-50 hover:text-violet-700";
 
@@ -24,7 +25,7 @@ export default function InventarioShell({ userId, username, esAdmin, children }:
           </nav>
           <div className="ml-auto flex min-w-0 flex-wrap items-center gap-3">
             <span className="text-sm text-slate-600">{username}</span>
-            <LogoutButton variant="light" onBeforeSignOut={limpiarBodegaTrabajo} />
+            <LogoutButton variant="light" onBeforeSignOut={() => { limpiarBodegaTrabajo(); limpiarBorradoresConteo(userId); }} />
           </div>
         </div>
         <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-wrap items-center gap-3 border-t border-slate-100 px-4 py-2 sm:px-6">
