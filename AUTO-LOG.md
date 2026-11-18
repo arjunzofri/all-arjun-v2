@@ -1,5 +1,17 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-18 — inv-11 listado responsive cerrado
+- Commit c1f57a3, 192 lineas incluyendo QA on/off. Lista con imagen, codigo, ubicacion y stock; tarjetas verticales en movil, fechas Chile, cero distinto de pendiente y paginacion validada.
+- Director comprobo ROJO y corrigio expectativas de fixture UTC y escape HTML antes de implementar. Revision posterior detecto estado vacio y filtro activo ausentes: ROJO propio 2/8, correccion y VERDE propio 14/14. ESLint0, typecheck0, build0 (aviso root baseline).
+- QA DeepSeek inv-11-on PASA 3/3, inv-11-off PASA 1/1, sin hallazgos ni consola. Director reprodujo 5+3=8, cero y pendiente a 1280/360 px; scrollWidth coincide con ancho, cursor invalido rechazado, sin errores de pagina. Capturas revisadas. TEST detenido y flags restaurados a false.
+- Siguiente inv-12 shell/inicio con buscador permanente. Sin reset, push ni deploy.
+
+## 2026-11-18 — Auditoria post cinco slices (inv-06/07/08/10/11)
+- inv-audit-11-A completada, sin bloqueantes para integrar shell/inicio. Director reviso hallazgos y fuente.
+- Antes de UAT: medir consulta con volumen representativo en TEST y corregir formato de miles es-CL en stock. No crear indices sin evidencia. Fecha: cachear Intl es opcional y no se prioriza.
+- Buscador: cierre por clic fuera se integra con shell; flechas/combo completo queda para revision UX posterior si procede. No quitar packing/observaciones del DTO compartido que necesita ficha.
+- Contador reiniciado a 0. Los riesgos legacy de auth/editor/foto/costos siguen registrados para antes de integrar ficha nueva; no se activa el modo global hasta terminar backlog/UAT.
+
 ## 2026-11-18 — inv-10 buscador reutilizable cerrado
 - Commit c5b746c; 196 lineas totales con tests y registro QA. Buscador por codigo, alias y descripcion, resultados directos, estados de error/vacio/cero, debounce y proteccion ante respuestas antiguas. Componente preparado para integrar en lista e inicio.
 - Director verifico ROJO 9 fallos/3 verdes, reviso diff y ejecuto 21/21 pruebas propias. ESLint y typecheck sin errores; build correcto con aviso root ya registrado. Exigio reducir boilerplate del test sin quitar casos, mostrar cero explicitamente y usar Next Link para conservar navegacion interna.
