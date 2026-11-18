@@ -160,3 +160,10 @@
 - Director verifico ROJO modulo ausente y borrador retenido; VERDE30/30 dirigidas +4/4 LogoutButton; tras ajuste de tipado/testlint repitio4/4 nuevos. Diff completo, eslint4archivos0, tsc0/build0 (warning root preexistente).
 - QA DeepSeek inv-16-2-on PASA2/2, auditoria0,7imagenes revisadas,sin hallazgos. Director reprodujo logout/login y verifico claves borrador/bodega eliminadas, clave ajena intacta, reingreso sin bodega, stock8 sin cambios, movil360/JS0. Evidencia externa work/arjun-logout-borradores-movil.png.
 - TEST detenido, flagsfalse/nextenv restaurados. Sin reset/push/deploy. Contadoraudit2. Sigue inv17.1 logica de formulario segun contrato A y ajustes Director; B preparado.
+
+## 2026-11-18 16:56 — inv17.1 implementado, cierre pendiente por conectividad
+- B inv-17-1-B completado; Director reprodujo ROJO16:44:46 modulo ausente. C/D inv-17-1-CD completo, contrato cuatro helpers sin callers. Codigo57+test122=179 lineas; ambos archivos nuevos SIN COMMIT hasta completar verificacion/QA.
+- Director reviso codigo/test reales: proyeccion de4campos para posiciones, expected original del borrador, payload estricto, vacio!=0. VERDE49/49 en4archivos; eslint2archivos0; tsc0.
+- Build inv-17-1 e inv-17-1-reintento FALLAN por next/font: Failed to fetch Inter from Google Fonts, no errorTS. Diagnostico propio: curl fonts.googleapis.com no resuelve host; Resolve-DnsName fonts.googleapis.com timeout con DNSnormal y1.1.1.1; hostname TESTNeon tambien timeout. No modificar red ni omitir guardas ni presentar buildverde.
+- QA17.1 aunNOejecutada, casos preparados ../_dt/qa/inv-17-1-on.casos.md. No levantar TEST hasta resolver conectividad; entorno no iniciado, flagsfalse. No commit producto/push/deploy/reset.
+- Proximo: recuperar conexion y repetir verificar17.1 (nombre nuevo), luegoQA y reproduccion propia verificar-busqueda-ficha-arjun.cjs; cerrar179+QAlineas<=200 ycontadoraudit3. Prompt17.2-B ya preparado pero NOlanzado. Contadoraudit sigue2 porque17.1 pendiente.
