@@ -23,12 +23,14 @@
   inv-03 cerrado aef0817: funcion SQL atomica aplicada SOLO TEST. Suite Director768/0+8skips,
   QA DeepSeek1/1PASA y reproduccion propia de ficha/operador; sin reset real/push/deploy.
   inv-04 cerrado 6ed7981: action autenticada y DTO, Director38/38 + QA1/1PASA; sin despliegue.
-  Siguiente: inv-05-B guardas legacy/override flags. Sonnet sin cuota: usar -Programador deep
+  inv-05 cerrado920a5a6: guardaslegacy/overridesseguros, Director800/0+8skips y QA1/1PASA.
+  Senal2 auditoria inv-audit-05-A en curso antes de proximo slice de consultas/UI; no iniciar hasta resultado.
+  Sonnet sin cuota: usar -Programador deep
   tambien si el selector automatico cambia a Sonnet durante horario peak; no relanzar Sonnet agotado.
 
 ## Contador Ponytail
 - Ultimo audit: inv-plan-A completado 2026-11-17; solo limpieza opcional, sin bloqueo tecnico.
-- Slices desde ultimo audit: 4 del nuevo modo (inv-01..04).
+- Slices desde ultimo audit: 5 del nuevo modo (inv-01..05); auditoria inv-audit-05-A en curso.
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un

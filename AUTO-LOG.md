@@ -1,5 +1,12 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-17 — inv-05 apagado reversible cerrado
+- Commit920a5a6, 142 lineas incluyendo QA/tests. Programador DeepSeek low, contrato inv-05-B; sin desvios. Solo import+guarda antesDB y despuesauth en crearEntrada/Salida/Retorno/transferirEntreBodegas/crearAjuste; CTE y fixes fragiles imagen/packing/ajustes1punta intactos.
+- FlagActivo acepta override server-only de claves conocidas exact true/false; unknown/prototype nunca enciende. FlagsJSONfalse intactos. Nuevo helper exige modo operativo anterior, no bloquea lecturas ni productos/fotos/usuarios/sync.
+- Director ROJO9fallos/7pass antescodigo, VERDE suitecompleta800/0+8skips; eslint8archivos0, tsc0, build0 (aviso baseline root). Diff comprobado lineaalinea.
+- QA DeepSeek inv-05 PASA1/1, auditoria0, 4 imagenes vistas, USD0.5962, sin hallazgos; reproduccion propia operador->Productos->ficha TEST-UPD-001 y403Usuarios. Entorno detenido/restaurado, sin reset/push/deploy.
+- Senal2: auditoria inv-audit-05-A en curso (sololectura) antes de siguiente slice; contador5. Contrato de consultas se decide con resultado.
+
 ## 2026-11-17 — inv-04 action autentica cerrada
 - Commit 6ed7981, 186 lineas total incluyendo QA. Programador DeepSeek low, contrato inv-04-B; sin desvios salvo quitar 2 warnings unused del test sin cambiar casos (autorizado Director).
 - registrarConteoSchema estricto y action auth->flag->validacion->una sentencia SQL; user de sesion, timestamp DB, nonce prefijado por usuario; DTO seguro; conflicto no reintenta automaticamente; errores fijos en español sin URL/credenciales.
