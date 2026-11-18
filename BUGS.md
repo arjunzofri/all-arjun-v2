@@ -572,3 +572,8 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
   parametrizado `%${q}%` sin escapar comodines de usuario. No es inyeccion SQL ni cambio de inv-03.
 - El nuevo buscador debe tratar `%` y `_` como caracteres literales; incluir fixture y regresion al tocarlo.
 
+
+## 2026-11-18 — BACKLOG modo nuevo: cerrar resultados al ver todas
+- Fuente auditoria inv-audit-09-2-A hallazgo1, confirmado Director en componentes/inventario/BuscadorInventario.tsx.
+- Link Ver todas las coincidencias carece onClick/onElegir; shell persiste entre ficha e inventario. Puede quedar dropdown de busqueda anterior encima de lista nueva.
+- Fix minimo previsto: llamar onElegir igual que links producto, con prueba rojo evento y QA ficha->VerTodas->lista sin dropdown (antes cerrar UIconteo/UAT). Flag nuevo siguefalse enentregaactual.

@@ -140,3 +140,11 @@
 - Director detecto ycorrigio viaProgramador contradiccion deltest noUUID: mismo textono llamafactory, caso pasa a texto2nuevo antesC. ROJOpropio6/6 funcionesausentes; VERDE38/38 en3archivos; eslint2archivos0, tsc0/build0 (rootwarning baseline), diffpropio completo. Validacion09.1 preservada.
 - QADeepSeek inv09-2 PASA1/1, auditoria0,3imagenesvistas; observacionretornocorrecto marcadaEXP fue DESCARTADA por no describirdefecto. Director reprodujo buscarUNO->DOS sinrecarga, bodega2,1280/360sin overflow, dual/pendiente/cero yJS0.
 - TESTdetenido/nextenvrestaurado/flagsfalse. Sinreset/push/deploy. Auditcontador5: inv-audit-09-2-A en curso (sololectura) antes16. Contrato16-A store y16-B hook/logout aprobado en principio, pendienteaudit; prompt16-1-B preparado, aunNOlanzado. Sin UI de captura todavia.
+
+## 2026-11-18 — Auditoria Senal2 inv-audit-09-2-A
+- Sin mustfixantes16. Director valido codigo/callers; contadorreiniciado0 tras5slices (12,13.1,14,09.1,09.2).
+- Hallazgo1 confirmado BuscadorInventario Link Ver todas sin onElegir: registrar BUGS para fixpequeno antescerrarUIconteo. RutaslegacyON pendiente conocido seapaga en contratoantesrelease, no regresionnueva.
+- Hallazgo2 DESCARTADO en su premisa: SI existe proxy.ts Next16, todasrutas no publicas sin sesion redirigen/login antespage. Director leyo proxy/matcher ycorrio pruebasproxy9/9. El guardconsulta sigueprotegido; no afirmar ausencia middleware ni dataleaklegacy por esa observacion. Sesionexpiradaentrechecks puede ofrecererrorrecuperable sin datos; no requiere cambio parasiguiente16.
+- Hallazgo4 catchfactorySTORE yaexigidoenprompt16-1-B (null/noefecto, testthrows). Hallazgo5: todo descarte por exitoasync DEBE nonceenviado; parametroomitido solo descarteexplicito usuario, no limpieza porrespuesta. Cubrir enstore/UI.
+- refQarrays sevalidaran junto rutas/listadoantesUAT. CacheIntl opcional. Baseline lint45/rootwarning y rendimiento/formatomiles/fechahora enlista siguenpendientesantesrelease. Auditoria no ejecuto DB ni QA; sololectura. Director no adopta estimacion de usuarios como dato verificado.
+- Proximo16.1 store sinReact, luego16.2hook/logout. B16.1 autorizado seguncontratoA y prompt16-1-B. Sinreset/push/deploy.
