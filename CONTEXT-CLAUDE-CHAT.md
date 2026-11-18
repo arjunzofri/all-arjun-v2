@@ -36,7 +36,7 @@
   QAon4/4+off1/1 y reproduccion compilada con storagebloqueado sinrecarga/errores.
   inv-13.1 cerrado b9bd56e: fichaON lectura segura porposiciones, fecha/hora/autor, sinprecios/legacy.
   Director40/40, QAon3/3+fix1/1+off1/1, reproduccion360/1280 y erroresJS0.
-  inv-14 cerrado892f7e1: getProducto legacy bloqueadoON antesSQL; GETAPI DTO seguro validado. Director26/26, tsc/lint0/buildOK, QAon2/2+off1/1 y reproduccion360/1280/API. Siguiente inv09 borradores puros (contrato inv-09-A y ajuste nonceEsperado).
+  inv-14 cerrado892f7e1: getProducto legacy bloqueadoON antesSQL; GETAPI DTO seguro validado. Director26/26, tsc/lint0/buildOK, QAon2/2+off1/1 y reproduccion360/1280/API. inv09.1 cerrado0bfe23e: schema/parseo/clave de borrador, Director32/32, QA1/1 y reproduccionbusqueda360. Siguiente09.2 operaciones de borrador y noncecondicional.
   Rama ficha ya existe: ahora se puede bloquear lectura vieja sin romper callerON.
   authWRITE y fotos seguras siguen pendientes; no conectar editores antes de esos contratos.
   inv-09-A borradores propuesta lista, se implementara despues del primer UI visible.
@@ -46,7 +46,7 @@
 
 ## Contador Ponytail
 - Ultimo audit: inv-audit-11-A completado 2026-11-18 tras inv-11; sin bloqueantes, pendientes antes UAT en AUTO-LOG.
-- Slices desde ultimo audit: 3 (inv-12, inv-13.1, inv-14; siguiente inv-09 borradores).
+- Slices desde ultimo audit: 4 (inv-12, inv-13.1, inv-14, inv09.1; tras09.2 auditoria obligatoria).
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un

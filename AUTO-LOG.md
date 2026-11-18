@@ -128,3 +128,9 @@
 - QA DeepSeek ON2/2 y OFF1/1 PASA, auditorias0,7imagenes vistas; Director reprodujo API200stock8/ID400/ausente404, ficha1280/360 sin overflow, bodega2 persistente, dual/pendiente/cero, erroresJS0. Foto movil revisada.
 - EXP BOM descartado tras bytes404 reales comienzan123(llave), sin prefijo; HTTP400/404 de IDs invalidos esperados no son erroresJS. Tres pendientes QA cerrados con evidencia.
 - Flags false restaurados, TEST detenido, sin reset/push/deploy. Siguiente inv09 helperborradores con noncecondicional para evitar respuesta antigua borre intencion nueva. Auditcontador3 desdeinv11.
+
+## 2026-11-18 — inv09.1 validacion borradores cerrada
+- Commit0bfe23e,132lineas incluidos QA/tests. Contrato09-A se partio tecnicamente para cumplir200 sin recortar riesgos (B completo proyectaba245-255).09.1 tipos/schema/cantidad/clave;09.2 operaciones; alcance aprobado intacto.
+- Programador DeepSeek, diffpropio sin desvios. Director ROJO moduloausente; VERDE32/32 ubicaciones+validacion, eslint2archivos0, tsc0/build0 (rootwarning baseline). Cero no equivale a vacio; rechaza decimal/signo/miles/exponente/overflow y JSONfueraformato; catalogocerrado.
+- QA DeepSeek inv09-1 PASA1/1, auditoria0,3imagenesvistas, sin hallazgos. Director reprodujo fichaUNO->buscarDOS->Sincontar sinrecarga, B2preservada,1280/360sin overflow, erroresJS0. Solo lectura, helpers sincaller todavia.
+- TESTdetenido/flagsfalse restaurados. Sin reset/push/deploy. Contadoraudit4. Siguiente09.2; tras cerrar auditar antes16store. Contrato16A listo ../_dt/logs/inv-16-A.md: store, luego hook/logout. QA no puede DevTools: alintegrarlogout preparacioncorresponde Director y agente solo observa UI.
