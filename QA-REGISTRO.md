@@ -169,3 +169,17 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-11 11:47 - animacion-identificar-3 - commit e7cb99b - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\animacion-identificar-3
 - Sin pendientes nuevos.
+
+## 2026-11-17 20:52 - inv-01 - commit f0a5c37 - INVALIDO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-01
+- Sin pendientes nuevos.
+- Director: no se ejecutaron casos. Causa externa: limite semanal de Claude Sonnet (429), reinicio informado 21 nov 01:00 Chile. Pendiente Fase E; no clasificar como PASA ni falla de la app.
+
+## 2026-11-17 21:31 - inv-01-deep - commit f0a5c37 - INVALIDO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-01-deep
+- Sin pendientes nuevos.
+
+## 2026-11-17 21:35 - inv-01-deep2 - commit f0a5c37 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-01-deep2
+- [x] P-20261117-2135-1 (baja) HALLAZGO: EXP-1 — Página "No autorizado" sin navegación al entrar a /usuarios como operador -> BACKLOG BUGS.md 2026-11-17; preexistente, Director reprodujo 403 correcto y acceso a Productos, no causado por contrato inerte de ubicaciones.
+- [x] P-20261117-2135-2 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 (Not Found) (/inversion) -> DESCARTADO: QA probo una ruta inventada; la ruta real es /inversion-mercaderia (ver DashboardShell.tsx), 404 esperado, sin enlace roto demostrado.

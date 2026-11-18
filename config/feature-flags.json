@@ -1,5 +1,7 @@
 {
   "inversion_mercaderia": true,
   "identificacion_foto": true,
-  "conciliacion_compras": true
+  "conciliacion_compras": true,
+  "inventario_bodega": false,
+  "asignacion_bodega_compra": false
 }
