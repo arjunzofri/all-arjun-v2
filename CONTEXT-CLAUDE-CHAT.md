@@ -28,13 +28,15 @@
   y checks Drizzle (espejo intencional del DDL), dejar limpiezas opcionales para cierre y proyectar DTO sin nonce.
   inv-06 cerrado8acd059: listadoinventario protegido, SQLreal TEST, DTOsin costos/nonce, 38/38dirigidas,
   QA1/1PASA y reproduccionpropia. inv-07 cerrado d344898: fichaID/historialpaginado, 26/26,
-  QA1/1PASA y reproduccionpropia. Siguiente inv-08-B bodega de trabajo; contrato A aprobado.
+  QA1/1PASA y reproduccionpropia. inv-08 cerrado076f772 bodega de trabajo, 9/9, QA1/1 y reproduccion.
+  Siguiente inv-10-B buscador, contrato A aprobado con ajustes. inv-09-A borradores propuesta lista,
+  se implementara despues del primer UI visible. inv-11-A lista y shell/inicio propuesta lista.
   Sonnet sin cuota: usar -Programador deep
   tambien si el selector automatico cambia a Sonnet durante horario peak; no relanzar Sonnet agotado.
 
 ## Contador Ponytail
 - Ultimo audit: inv-audit-05-A completado 2026-11-17 tras inv-05; no bloqueantes, limpiezas opcionales.
-- Slices desde ultimo audit: 2 (inv-06, inv-07; siguiente inv-08).
+- Slices desde ultimo audit: 3 (inv-06, inv-07, inv-08; siguiente inv-10 buscador).
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un

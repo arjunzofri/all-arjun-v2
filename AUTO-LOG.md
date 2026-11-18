@@ -1,5 +1,11 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-17 — inv-08 bodega de trabajo cerrado
+- Commit076f772, 194lineas incluidoQA. Store sessionStorage/memoria por usuario, snapshotSSRnull, API de seleccion/limpieza compartida, storage denegado sin perder seleccion en memoria.
+- Director reprodujo ROJO inicial y dos desvios del contrato (API incompleta y limpieza que no borraba clave remanente con snapshotnull); pruebas adicionales ROJO2/7 y correccion minima. Rechazo supresion nueva de ESLint y pidio prueba SSR sin mutacion global, conservando cobertura.
+- VERDE propio9/9, eslint0 sin supresiones, tsc0/build0 (aviso root baseline); diff revisado. QA DeepSeek inv08 PASA1/1 sin hallazgos/consola. Director repitio operador->ficha TEST-UPD-001 y403Usuarios; entornoTEST detenido/restaurado.
+- Siguiente inv10 buscador, contrato A aprobado con ajustes B; inv09 borradores puro tiene propuesta A lista, pospuesta hasta primer UI visible. inv11 A propone lista y despues shell/inicio con integracion. Sin reset/push/deploy. Auditcontador3.
+
 ## 2026-11-17 — inv-07 ficha e historial cerrado
 - Commit d344898, 138 lineas incluyendo QA. Ficha por ID exacto, historial de todas las versiones paginado por ID, autor/fecha y DTO sin importes/nonce. Fixtures independientes del orden de tests.
 - Director verifico ROJO inicial y detecto undefined admitido por filtro opcional; test adicional ROJO propio y correccion minima antes de cerrar. VERDE propio 26/26, eslint0, tsc0, build0 (aviso root previo). Revision completa del diff.
