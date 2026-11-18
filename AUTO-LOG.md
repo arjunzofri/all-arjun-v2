@@ -148,3 +148,9 @@
 - Hallazgo4 catchfactorySTORE yaexigidoenprompt16-1-B (null/noefecto, testthrows). Hallazgo5: todo descarte por exitoasync DEBE nonceenviado; parametroomitido solo descarteexplicito usuario, no limpieza porrespuesta. Cubrir enstore/UI.
 - refQarrays sevalidaran junto rutas/listadoantesUAT. CacheIntl opcional. Baseline lint45/rootwarning y rendimiento/formatomiles/fechahora enlista siguenpendientesantesrelease. Auditoria no ejecuto DB ni QA; sololectura. Director no adopta estimacion de usuarios como dato verificado.
 - Proximo16.1 store sinReact, luego16.2hook/logout. B16.1 autorizado seguncontratoA y prompt16-1-B. Sinreset/push/deploy.
+
+## 2026-11-18 — inv16.1 store borradores cerrado
+- Commit1a3d1dc,199lineas incluidoQA: source73/test122. Programador DeepSeek, soloajuste tipadofixtures deltest; sourcehelperprevio intacto. Store porUIDtrim/tab, saneoJSON/clavesexactas/proto/extra, memoriaautoritaria con persistenciabestEffort, tokensgeneracionlimpieza y suscripcionaislada.
+- Director ROJO moduloausente, VERDE50/50 en4archivos, eslint2archivos0, tsc0/build0(rootwarningbaseline). Diff/test completos revisados. Mismotextonopersistenonotify; factorythrowsretornanull; tokenviejo nopersiste/notifica/borra ni resucita despueslimpieza. Nonceviejonoborranuevaintencion; mapaactualusado sin snapshotcapturado.
+- QADeepSeek PASA1/1, auditoria0,3imagenesvistas,sin hallazgos. Director repitio fichaUNO->buscarDOS sinrecarga, bodega2,1280/360sin overflow, dual/pendiente/cero,JS0. Aun sincallerform; limpieza real viaUI llega16.2.
+- Flagsfalse/TESTdetenido/nextenvrestaurado, sinreset/push/deploy. Contadoraudit1. Siguiente16.2hook/logout, Bpromptlisto ycasos QA16-2onpreparados. Luego17.1 logicaformulario: A17completo con ajustesDirector guardados inv-17-decisiones-director.md, no crear wrappersduplicados ni validar ubicacionestricta sobre DTOcompleto.
