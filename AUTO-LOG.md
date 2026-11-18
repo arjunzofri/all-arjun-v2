@@ -1,5 +1,13 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-17 — inv-02 persistencia de conteos cerrada
+- Commit: a9c38e3.
+- Programador DeepSeek low. Contrato inv-02-B y revision Director. Tabla/view append-only, CHECK/FK/unique y catalogo previo coherentes; codigo de producto en db/schema.ts y migration0001.
+- Director verifico ROJO por archivo ausente, reviso y pidio corregir aislamiento de fixtures y guardia antesDDL; alineo NOT NULL y nombre constraint SQL/Drizzle con prueba ROJA de metadata antes del ajuste. Ajustes puntuales SOLO en TEST, sin DROP ni tablas antiguas modificadas.
+- Evidencia propia: 14/14 inventario, 10/10 schema anterior; tsc0, eslint tocados0, build0 (solo aviso baseline turbopack.root). Diff revisado, ~188lineas incluido registro QA.
+- QA DeepSeek inv-02 PASA 3/3, auditoria0, 8 imagenes vistas, USD1.0199; Director reprodujo permisos de operador y Productos en navegador TEST. EXP-5 baja 404ingles preexistente queda BACKLOG; sin pendientes altos.
+- Sin reset de datos reales, sin push/deploy. Entorno QA apagado. Siguiente inv-03 guardado atomico/idempotencia/conflictos.
+
 ## 2026-11-17 — inv-01 cerrado con QA DeepSeek autorizada
 - Pablo autorizo DeepSeek como QA independiente con acceso solo al navegador. Wrapper externo ../_dt/qa-ciclo-deep.ps1; copia de qa-ciclo mantiene guardas/auditoria/repruebas y pasa -Programador deep al subproceso. Primer intento de wrapper no propago parametro; corregido sin tocar herramientas globales.
 - Commit: 61d5929. 166 lineas totales incluyendo QA-REGISTRO, tests y contrato/flags. Programador deepseek-flash low, QA deepseek-flash medium en sesion nueva sin herramientas de codigo/archivos/terminal/JS.

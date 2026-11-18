@@ -18,11 +18,13 @@
   Pablo AUTORIZO DeepSeek para QA en sesion independiente y navegador aislado (2026-11-17).
   Wrapper externo ../_dt/qa-ciclo-deep.ps1 mantiene guardas/auditoria/repruebas de qa-ciclo.ps1.
   Estado preciso AUTO-LOG.md.
-  Ninguna migracion/reset/push/deploy. Siguiente: inv-02-B persistencia en TEST.
+  inv-02 persistencia completada y QA PASA3/3; migracion0001 aplicada SOLO TEST y sin DROP.
+  Commit a9c38e3; pruebas Director14/14 inventario+10/10schema, tsc/lint tocados/buildOK.
+  Sin reset de datos reales/push/deploy. Siguiente: inv-03-B funcion atomica SQL.
 
 ## Contador Ponytail
 - Ultimo audit: inv-plan-A completado 2026-11-17; solo limpieza opcional, sin bloqueo tecnico.
-- Slices desde ultimo audit: 1 del nuevo modo (inv-01).
+- Slices desde ultimo audit: 2 del nuevo modo (inv-01, inv-02).
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un

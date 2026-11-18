@@ -563,4 +563,6 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
   pero el texto "No autorizado" queda fuera del layout y obliga a volver por navegador/URL.
 - Preexistente en proxy.ts, sin relacion con el contrato de ubicaciones. No compromete permisos.
 - Pendiente: pantalla de acceso denegado con enlace al inicio; mantener 403 y acceso restringido.
+- QA inv-02 EXP-5: operador en /inversion-mercaderia recibe notFound con texto ingles de Next.js.
+  Mejora baja de localizacion, comportamiento previo deliberado de ocultar inversion a no-admin.
 
