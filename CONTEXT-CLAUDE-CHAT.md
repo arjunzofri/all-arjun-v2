@@ -24,13 +24,15 @@
   QA DeepSeek1/1PASA y reproduccion propia de ficha/operador; sin reset real/push/deploy.
   inv-04 cerrado 6ed7981: action autenticada y DTO, Director38/38 + QA1/1PASA; sin despliegue.
   inv-05 cerrado920a5a6: guardaslegacy/overridesseguros, Director800/0+8skips y QA1/1PASA.
-  Senal2 auditoria inv-audit-05-A en curso antes de proximo slice de consultas/UI; no iniciar hasta resultado.
+  Senal2 auditoria inv-audit-05-A completada: sin bloqueantes. Director decide mantener nombre guard
+  y checks Drizzle (espejo intencional del DDL), dejar limpiezas opcionales para cierre y proyectar DTO sin nonce.
+  Siguiente inv-06-B listado de inventario sin costos, SQL real TEST, proyeccion explicita.
   Sonnet sin cuota: usar -Programador deep
   tambien si el selector automatico cambia a Sonnet durante horario peak; no relanzar Sonnet agotado.
 
 ## Contador Ponytail
-- Ultimo audit: inv-plan-A completado 2026-11-17; solo limpieza opcional, sin bloqueo tecnico.
-- Slices desde ultimo audit: 5 del nuevo modo (inv-01..05); auditoria inv-audit-05-A en curso.
+- Ultimo audit: inv-audit-05-A completado 2026-11-17 tras inv-05; no bloqueantes, limpiezas opcionales.
+- Slices desde ultimo audit: 0 (siguiente inv-06).
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un

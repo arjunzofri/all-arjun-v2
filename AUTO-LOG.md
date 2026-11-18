@@ -1,5 +1,11 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-17 — Senal2 auditoria post inv-05
+- inv-audit-05-A (DeepSeek solo lectura): sin bloqueantes ni error de locks/concurrencia. Director reviso hallazgos.
+- Helper de fixtures y simplificacion de catalogo son opcionales; no se hacen antes de UI. No eliminar checks Drizzle: espejo intencional para impedir drift. No renombrar guard de cinco callers por preferencia estetica.
+- Riesgo de SELECT* en vista se evita en consultas/DTO nuevos con proyeccion explicita (sin idempotency_key). No hace falta modificar DDL ni aplicar migracion por eso.
+- Contador reiniciado0. Siguiente contrato inv-06 listado SQL real TEST; ficha/historial/costos se agregan por contratos separados para presupuesto200.
+
 ## 2026-11-17 — inv-05 apagado reversible cerrado
 - Commit920a5a6, 142 lineas incluyendo QA/tests. Programador DeepSeek low, contrato inv-05-B; sin desvios. Solo import+guarda antesDB y despuesauth en crearEntrada/Salida/Retorno/transferirEntreBodegas/crearAjuste; CTE y fixes fragiles imagen/packing/ajustes1punta intactos.
 - FlagActivo acepta override server-only de claves conocidas exact true/false; unknown/prototype nunca enciende. FlagsJSONfalse intactos. Nuevo helper exige modo operativo anterior, no bloquea lecturas ni productos/fotos/usuarios/sync.
