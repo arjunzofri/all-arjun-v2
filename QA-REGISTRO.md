@@ -191,3 +191,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-17 22:02 - inv-03 - commit 4e28ae5 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-03
 - [x] P-20261117-2202-1 (baja) HALLAZGO: EXP-1 — Buscar "%" devuelve el listado completo en vez de un resultado vacío -> BACKLOG BUGS.md 2026-11-17; comportamiento previo de ILIKE parametrizado en getProductos, no causado por funcion atomica. Buscar literalmente comodines se cubrira en contrato del nuevo buscador.
+
+## 2026-11-17 22:15 - inv-04 - commit 6be66d0 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-04
+- Sin pendientes nuevos.
