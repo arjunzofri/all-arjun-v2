@@ -121,3 +121,10 @@
 - QA (Fase E): PASA, 2/2 (animacion-identificar-3); verificacion propia del Director con Playwright: laser se mueve, contador avanza, todo desaparece al terminar
 - Desvios del Programador: ninguno
 - QA métricas: FP 0, ESC 0, ACIERTOS 0, costo 0,21 USD (+2 corridas fallidas por QA: sesion de Claude vencida y subida de archivos); mejoras de QA aplicadas: semilla 9d86792
+
+## 2026-11-18 — inv-14 lectura segura cerrada
+- Commit892f7e1,156lineas incluido tests/QA. Programador DeepSeek: getProducto corta antesSQL si modoON; GET auth->IDvalidado->DTO inventario sin costos ni estructuraslegacy. OFF conserva fuente anterior; PATCH intacto para contrato authWRITE.
+- Director verifico ROJO4fallos/2pass, VERDE26/26 en5archivos, eslint3archivos0, tsc0/build0 (advertencia baseline root pendiente). Revision propia completa del diff sin desvios.
+- QA DeepSeek ON2/2 y OFF1/1 PASA, auditorias0,7imagenes vistas; Director reprodujo API200stock8/ID400/ausente404, ficha1280/360 sin overflow, bodega2 persistente, dual/pendiente/cero, erroresJS0. Foto movil revisada.
+- EXP BOM descartado tras bytes404 reales comienzan123(llave), sin prefijo; HTTP400/404 de IDs invalidos esperados no son erroresJS. Tres pendientes QA cerrados con evidencia.
+- Flags false restaurados, TEST detenido, sin reset/push/deploy. Siguiente inv09 helperborradores con noncecondicional para evitar respuesta antigua borre intencion nueva. Auditcontador3 desdeinv11.
