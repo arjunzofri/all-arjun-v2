@@ -12,11 +12,17 @@
   nunca durante desarrollo. Respaldo y alcance concreto del borrado antes de ejecutarlo.
 - Rama inicial main, HEAD 7127b82, arbol limpio antes de documentar el GO.
 - Sin push/deploy antes de Senal 3 y UAT. Probar solo en rama Neon test; origen Vida Digital read-only.
-- Auditoria inicial y contrato en ../_dt/logs/inv-plan-A.*; docs del Director pendientes de commit.
+- Auditoria inicial y contrato en ../_dt/logs/inv-plan-A.*; docs GO commit f0a5c37.
+- inv-01 cerrado commit 61d5929 (6/6, tsc/lint tocados/build OK), QA DeepSeek inv-01-deep2 PASA 3/3,
+  Director reprodujo regresion de operador. Sonnet sigue sin cuota (429, Nov21 01:00 Chile).
+  Pablo AUTORIZO DeepSeek para QA en sesion independiente y navegador aislado (2026-11-17).
+  Wrapper externo ../_dt/qa-ciclo-deep.ps1 mantiene guardas/auditoria/repruebas de qa-ciclo.ps1.
+  Estado preciso AUTO-LOG.md.
+  Ninguna migracion/reset/push/deploy. Siguiente: inv-02-B persistencia en TEST.
 
 ## Contador Ponytail
-- Ultimo audit: inv-plan-A solicitado 2026-11-17 (pendiente de resultado).
-- Slices desde ultimo audit: 0 del nuevo modo.
+- Ultimo audit: inv-plan-A completado 2026-11-17; solo limpieza opcional, sin bloqueo tecnico.
+- Slices desde ultimo audit: 1 del nuevo modo (inv-01).
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un

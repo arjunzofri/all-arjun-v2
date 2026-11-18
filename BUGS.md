@@ -557,3 +557,10 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 
 ### Fix de codigo (2026-11-10, aprobado por Pablo)
 `conciliarComprasAnil` acota el lado app con `acotarLineasApp`: una linea se compara si su folio esta en el lado VD o si entro a la app desde `desde` (`MIN(created_at)`). Verificado en produccion (solo lectura): desde 2026-05-01 -> 5 diferencias (001653, esperadas). Limite conocido: si el sync procesa notas confirmadas ANTES de `desde` (solo en regularizaciones manuales como la del 2026-11-10), esas lineas aparecen como diferencia con motivo `fuera_de_desde`; despues del corte de inventario no ocurre porque el sync solo trae fechconf >= watermark >= desde.
+# 2026-11-17 — BACKLOG baja: acceso denegado sin navegacion
+
+- Fuente: QA inv-01-deep2 EXP-1, reproducido por Director. /usuarios con operador responde 403 correcto,
+  pero el texto "No autorizado" queda fuera del layout y obliga a volver por navegador/URL.
+- Preexistente en proxy.ts, sin relacion con el contrato de ubicaciones. No compromete permisos.
+- Pendiente: pantalla de acceso denegado con enlace al inicio; mantener 403 y acceso restringido.
+
