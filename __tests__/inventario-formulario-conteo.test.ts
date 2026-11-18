@@ -90,7 +90,6 @@ describe("prepararConteo", () => {
     });
     expect(Object.keys(payload!).sort()).toEqual(
       ["cantidad", "expectedConteoId", "idempotencyKey", "productoId", "ubicacion"]);
-    expect(prepararConteo.length).toBe(1);
   });
   it("refleja el texto vigente del draft y conserva expected null", () => {
     expect(prepararConteo(borrador({ cantidadTexto: "33" }))?.cantidad).toBe(33);

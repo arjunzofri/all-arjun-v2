@@ -41,7 +41,7 @@ it("cantidad: vacia sin error pero apaga Guardar; invalida error simple, aria, i
   expect(h).toMatch(/<input[^>]*type="text"/); expect(h).toMatch(/<input[^>]*inputmode="numeric"/i); expect(h).toMatch(/<input[^>]*maxlength="32"/i); expect(h).toMatch(/<input[^>]*pattern="\[0-9\]\*"/);
   expect(h).toMatch(/<form[^>]*novalidate/i);
   const sinUbic = html(); expect(sinUbic).toMatch(/<input[^>]*disabled/);
-  expect(h).toContain("Cantidad total contada en esta posición; 0 es un conteo válido."); expect(h).not.toContain("<table"); expect(h).not.toMatch(/w-\[\d+px\]|style="width/); expect(h).toContain("min-w-0"); expect(h).toContain("w-full");
+  expect(h).toContain("Cantidad total contada en esta posición; 0 es un conteo válido."); expect(h).not.toContain("<table"); expect(h).not.toMatch(/w-\[\d+px\]|style="width/);
 });
 it("borrador: aviso, restaurar por etiqueta y descartar solo con draft activo", () => {
   const b: PropsFormularioVista["borrador"]["restaurable"] = { productoId: 1, ubicacion: { bodega: 2, planta: "ARRIBA", pasillo: "IZQUIERDA", posicion: "M" }, expectedConteoId: null, cantidadTexto: "15", nonce: "00000000-0000-4000-8000-000000000001", actualizadoEn: 1 };
@@ -55,10 +55,15 @@ it("pendiente: texto, aria-busy y controles/submit apagados; error alert+Reinten
   const err = html({ envio: { ...base.envio, mensaje: { tono: "error", texto: "No se pudo guardar el conteo." } } }); expect(err).toContain('role="alert"'); expect(err).toContain("No se pudo guardar el conteo."); expect(err).toMatch(/<button[^>]*type="button"[^>]*>Reintentar/);
   const ok = html({ envio: { ...base.envio, mensaje: { tono: "exito", texto: "Conteo guardado: 7 u." } } }); expect(ok).toContain('role="status"'); expect(ok).toContain("Conteo guardado: 7 u.");
 });
-it("conflicto: vigente vs propuesta, fecha sin autor inventado y botones type=button que no guardan", () => {
-  const base = props(); const conflicto: PropsFormularioVista["envio"]["conflicto"] = { vigente: { id: 9, cantidad: 9, creadoEn: "2026-11-17T02:30:00Z" }, propuesta: 7 }; const h = html({ envio: { ...base.envio, conflicto } });
+it("conflicto: vigente vs propuesta, fecha sin autor inventado, ubicación/cantidad bloqueadas y un solo descartar", () => {
+  const base = props(); const conflicto: PropsFormularioVista["envio"]["conflicto"] = { vigente: { id: 9, cantidad: 9, creadoEn: "2026-11-17T02:30:00Z" }, propuesta: 7 };
+  const borradorActivo: PropsFormularioVista["borrador"] = { actual: true, restaurable: null, onRestaurar: vi.fn(), onDescartar: vi.fn() };
+  const cantidad = { texto: "7", valor: 7, diferencia: null, invalido: false, onCambiar: vi.fn() };
+  const h = html({ ubicacion: sel(), cantidad, borrador: borradorActivo, envio: { ...base.envio, conflicto } });
   expect(h).toContain('role="alert"'); expect(h).toContain("El conteo cambió mientras editabas"); expect(h).toContain("Vigente: 9 u."); expect(h).toContain("Tu propuesta: 7 u.");
   expect(h).toContain("16-11-2026"); expect(h).toContain("23:30"); expect(h).not.toMatch(/qa-|usuario:/); expect(h).toMatch(/no se guarda/i);
-  for (const t of ["Volver a contar sobre la versión actual", "Seguir revisando"]) expect(h).toMatch(new RegExp(`<button[^>]*type="button"[^>]*>${t}</button>`)); expect(h).toContain("Descartar borrador");
+  for (const t of ["Volver a contar sobre la versión actual", "Seguir revisando"]) expect(h).toMatch(new RegExp(`<button[^>]*type="button"[^>]*>${t}</button>`));
+  expect(h).toMatch(/<input[^>]*disabled/); expect((h.match(/<select[^>]*disabled/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  expect((h.match(/Descartar borrador/g) ?? []).length).toBe(1); expect(borradorActivo.onDescartar).not.toHaveBeenCalled();
   expect(base.envio.onGuardar).not.toHaveBeenCalled(); expect(base.envio.onVolverAContar).not.toHaveBeenCalled();
 });

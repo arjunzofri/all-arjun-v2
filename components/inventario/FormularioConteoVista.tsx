@@ -46,7 +46,7 @@ export function FormularioConteoVista(p: PropsFormularioVista): ReactElement {
   const ocupado = p.envio.estado === "guardando";
   const completa = !!p.ubicacion.seleccion && esUbicacionValida(p.ubicacion.seleccion);
   const puedeGuardar = completa && p.cantidad.valor !== null && !p.cantidad.invalido && !ocupado && !p.envio.conflicto;
-  const bloqueado = !bodegaActiva || ocupado;
+  const bloqueado = !bodegaActiva || ocupado || !!p.envio.conflicto;
   const ids = { pasillo: `${uid}-pasillo`, posicion: `${uid}-posicion`, cantidad: `${uid}-cantidad`, hint: `${uid}-hint`, error: `${uid}-error` };
   const vigente = p.ubicacion.vigente;
 
@@ -84,7 +84,7 @@ export function FormularioConteoVista(p: PropsFormularioVista): ReactElement {
       <div className="min-w-0">
         <label htmlFor={ids.cantidad} className="block text-xs font-semibold text-slate-600">Cantidad</label>
         <input id={ids.cantidad} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={MAX_TEXTO_CANTIDAD} autoComplete="off" enterKeyHint="done"
-          value={p.cantidad.texto} disabled={!completa || ocupado} onChange={(e) => p.cantidad.onCambiar(e.target.value)}
+          value={p.cantidad.texto} disabled={!completa || bloqueado} onChange={(e) => p.cantidad.onCambiar(e.target.value)}
           aria-invalid={p.cantidad.invalido} aria-describedby={p.cantidad.invalido ? `${ids.hint} ${ids.error}` : ids.hint}
           className="mt-1 w-full min-w-0 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
         <p id={ids.hint} className="mt-1 text-xs text-slate-500">Cantidad total contada en esta posición; 0 es un conteo válido.</p>
@@ -94,7 +94,7 @@ export function FormularioConteoVista(p: PropsFormularioVista): ReactElement {
       {p.borrador.restaurable && (
         <Boton onClick={p.borrador.onRestaurar} disabled={ocupado}>Restaurar borrador de {etiquetaUbicacion(p.borrador.restaurable.ubicacion)}</Boton>
       )}
-      {p.borrador.actual && (
+      {p.borrador.actual && !p.envio.conflicto && (
         <div className="min-w-0 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           <p>Borrador sin guardar: se conserva si buscas otro producto o sales de la ficha.</p>
           <div className="mt-2"><Boton onClick={p.borrador.onDescartar} disabled={ocupado}>Descartar borrador</Boton></div>

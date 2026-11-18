@@ -1,6 +1,10 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import type { FilaInventario, PosicionContada } from "@/lib/inventario/consultas";
-import type { BorradorConteo } from "@/lib/inventario/borradores-conteo";
+import { obtenerBorrador, type BorradorConteo, type EntradaBorrador } from "@/lib/inventario/borradores-conteo";
+import {
+  descartarBorradorConteo, guardarBorradorConteo, limpiarBorradoresConteo,
+  obtenerBorradoresConteo, obtenerTokenBorradores,
+} from "@/components/inventario/borradoresConteoStore";
 import type { UbicacionInventario } from "@/lib/inventario/ubicaciones";
 const R = vi.hoisted(() => {
   const estados: unknown[] = []; let cursor = 0;
@@ -105,4 +109,38 @@ it("bloqueado: mutadores no-op; bodega y descartarEn operativos", () => {
   expect([S.guardar.mock.calls.length, S.descartar.mock.calls.length, m.texto]).toEqual([antes, 0, "3"]);
   m.elegirBodega(2); expect(S.fijar).toHaveBeenLastCalledWith(2);
   m.descartarEn(7, U1, N); expect(S.descartar).toHaveBeenLastCalledWith(7, U1, N);
+});
+it("backbone store real: expected null sobrevive a guardar con draft vivo; solo el descarte explícito habilita expected 9", () => {
+  const uid = "u-inv-17-3a1-audit-fix";
+  let n = 0;
+  const UUID = () => `00000000-0000-4000-8000-${String(n++).padStart(12, "0")}`;
+  const token = () => obtenerTokenBorradores(uid);
+  S.guardar.mockImplementation((e: EntradaBorrador, texto: string) =>
+    guardarBorradorConteo(uid, token(), e, texto, 1000 + n, UUID));
+  S.descartar.mockImplementation((p: number, u: UbicacionInventario, nonce: string) =>
+    descartarBorradorConteo(uid, token(), p, u, nonce));
+  S.borrador.mockImplementation((p: number, u: UbicacionInventario) =>
+    obtenerBorrador(obtenerBorradoresConteo(uid), p, u));
+  try {
+    let m = useEnB1(); expect(m.draft).toBeNull();
+    m.cambiarTexto("60"); m = usePintar();
+    m.cambiarTexto("70"); m = usePintar();
+    expect([m.draft?.cantidadTexto, m.draft?.expectedConteoId]).toEqual(["70", null]);
+    const n1 = m.draft!.nonce;
+
+    m = usePintar(FILA([pos({ id: 9 })])); expect(m.vigente?.id).toBe(9);
+    m.guardarBorrador({ expectedConteoId: 9 });
+    expect(obtenerBorrador(obtenerBorradoresConteo(uid), 7, U1)?.expectedConteoId).toBeNull();
+
+    m = usePintar(FILA([pos({ id: 9 })])); m.descartarEn(7, U1, n1);
+    m = usePintar(FILA([pos({ id: 9 })])); expect(m.draft).toBeNull();
+    const nuevo = m.guardarBorrador({ expectedConteoId: 9 });
+    expect(nuevo).toMatchObject({ expectedConteoId: 9, cantidadTexto: "70" });
+    expect(nuevo!.nonce).not.toBe(n1);
+    expect(obtenerBorrador(obtenerBorradoresConteo(uid), 7, U1))
+      .toMatchObject({ expectedConteoId: 9, cantidadTexto: "70", nonce: nuevo!.nonce });
+  } finally {
+    S.guardar.mockReset(); S.descartar.mockReset();
+    limpiarBorradoresConteo(uid);
+  }
 });
