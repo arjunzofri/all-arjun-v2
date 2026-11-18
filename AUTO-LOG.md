@@ -154,3 +154,9 @@
 - Director ROJO moduloausente, VERDE50/50 en4archivos, eslint2archivos0, tsc0/build0(rootwarningbaseline). Diff/test completos revisados. Mismotextonopersistenonotify; factorythrowsretornanull; tokenviejo nopersiste/notifica/borra ni resucita despueslimpieza. Nonceviejonoborranuevaintencion; mapaactualusado sin snapshotcapturado.
 - QADeepSeek PASA1/1, auditoria0,3imagenesvistas,sin hallazgos. Director repitio fichaUNO->buscarDOS sinrecarga, bodega2,1280/360sin overflow, dual/pendiente/cero,JS0. Aun sincallerform; limpieza real viaUI llega16.2.
 - Flagsfalse/TESTdetenido/nextenvrestaurado, sinreset/push/deploy. Contadoraudit1. Siguiente16.2hook/logout, Bpromptlisto ycasos QA16-2onpreparados. Luego17.1 logicaformulario: A17completo con ajustesDirector guardados inv-17-decisiones-director.md, no crear wrappersduplicados ni validar ubicacionestricta sobre DTOcompleto.
+
+## 2026-11-18 — inv16.2 hook y cierre de sesion cerrados
+- Commit ef5c2b5, 154 lineas incluyendo tests y QA. Hook reactivo por usuario, callbacks con token capturado y limpieza de borradores/bodega antes de salir; claves ajenas intactas. Sin formulario de conteo conectado todavia.
+- Director verifico ROJO modulo ausente y borrador retenido; VERDE30/30 dirigidas +4/4 LogoutButton; tras ajuste de tipado/testlint repitio4/4 nuevos. Diff completo, eslint4archivos0, tsc0/build0 (warning root preexistente).
+- QA DeepSeek inv-16-2-on PASA2/2, auditoria0,7imagenes revisadas,sin hallazgos. Director reprodujo logout/login y verifico claves borrador/bodega eliminadas, clave ajena intacta, reingreso sin bodega, stock8 sin cambios, movil360/JS0. Evidencia externa work/arjun-logout-borradores-movil.png.
+- TEST detenido, flagsfalse/nextenv restaurados. Sin reset/push/deploy. Contadoraudit2. Sigue inv17.1 logica de formulario segun contrato A y ajustes Director; B preparado.

@@ -39,14 +39,14 @@
   inv-14 cerrado892f7e1: getProducto legacy bloqueadoON antesSQL; GETAPI DTO seguro validado. Director26/26, tsc/lint0/buildOK, QAon2/2+off1/1 y reproduccion360/1280/API. inv09.1 cerrado0bfe23e: schema/parseo/clave de borrador, Director32/32, QA1/1 y reproduccionbusqueda360. inv09.2 cerrado63e65fe: operaciones inmutables y descartecondicional pornonce; Director38/38, QA1/1 y reproduccionpropia. Audit inv-audit-09-2-A cerrado sin bloqueantes16; Director descarto premisa sinproxy, proxy9/9; onElegirVertodas backlogBUGS antesUIconteo.
   Rama ficha ya existe: ahora se puede bloquear lectura vieja sin romper callerON.
   authWRITE y fotos seguras siguen pendientes; no conectar editores antes de esos contratos.
-  inv09.1/09.2 y16.1 borradores implementados; falta16.2hook/logout, despues formulario17. Contrato17-A revisado porDirector: inv-17-decisiones-director.md y17-1-B (NO lanzarantes16.2).
+  inv09.1/09.2,16.1 y16.2 borradores/hook/logout cerrados. inv16.2 ef5c2b5: QA2/2 y reproduccion propia limpieza/login/movil/JS0; sigue formulario17. Contrato17-A revisado porDirector: inv-17-decisiones-director.md y17-1-B (NO lanzarantes16.2).
   inv-12 shell/inicio corresponde a subcontrato11-B de logs/inv-11-A.md, ajustes inv-12-decisiones.md.
   Sonnet sin cuota: usar -Programador deep
   tambien si el selector automatico cambia a Sonnet durante horario peak; no relanzar Sonnet agotado.
 
 ## Contador Ponytail
 - Ultimo audit: inv-audit-09-2-A completado 2026-11-18 tras inv09.2; sin bloqueantes16, decisiones en AUTO-LOG y backlogbuscador enBUGS.
-- Slices desde ultimo audit: 1 (inv16.1 cerrado1a3d1dc). Siguiente16.2 hook/logout: promptinv-16-2-B preparado. Store50/50, QA1/1 y reproduccionpropia. Successasync siempre nonceenviado, store captura throwsfactory. Sin UI de conteo aun.
+- Slices desde ultimo audit: 2 (inv16.1 1a3d1dc; inv16.2 ef5c2b5). Siguiente17.1 logica formulario; B preparado/aprobado. Successasync siempre nonceenviado, store captura throwsfactory. Sin UI de conteo aun.
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un
