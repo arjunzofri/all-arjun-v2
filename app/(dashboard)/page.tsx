@@ -1,6 +1,8 @@
 ﻿import { auth } from "@/lib/auth";
+import { flagActivo } from "@/lib/feature-flags";
 import { redirect } from "next/navigation";
 import { getBodegas, getModulos } from "@/lib/actions/vistas";
+import InicioInventario from "@/components/inventario/InicioInventario";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -69,6 +71,8 @@ export default async function DashboardPage() {
   if (!session?.user) redirect("/login");
 
   const user = session.user as { username?: string } | undefined;
+  if (flagActivo("inventario_bodega"))
+    return <InicioInventario username={user?.username ?? "---"} mostrarIdentificacion={flagActivo("identificacion_foto")} />;
   const [bodegas, modulos] = await Promise.all([getBodegas(), getModulos()]);
 
   return (

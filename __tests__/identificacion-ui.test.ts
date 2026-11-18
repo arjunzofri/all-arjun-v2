@@ -107,7 +107,7 @@ describe("DashboardShell — item Identificar por foto", () => {
 describe("layout server — showIdentificacion", () => {
   it("flag activo → true para operador", async () => {
     mockAuth.mockResolvedValue({ user: { role: "operador" } } as never);
-    mockFlag.mockReturnValue(true);
+    mockFlag.mockImplementation((k) => k === "identificacion_foto");
     const el = (await DashboardLayout({ children })) as React.ReactElement;
     expect((el.props as { showIdentificacion: boolean }).showIdentificacion).toBe(true);
     expect(mockFlag).toHaveBeenCalledWith("identificacion_foto");

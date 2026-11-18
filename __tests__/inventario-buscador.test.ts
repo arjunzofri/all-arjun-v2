@@ -9,6 +9,7 @@ import type { FilaInventario } from "@/lib/inventario/consultas";
 vi.mock("@/lib/inventario/consultas", () => ({
   listarInventario: vi.fn(async () => ({ items: [], nextCursor: null })),
 }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 const cargarBuscador = () => import("@/components/inventario/BuscadorInventario");
 

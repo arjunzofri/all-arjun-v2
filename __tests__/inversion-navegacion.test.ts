@@ -60,7 +60,7 @@ describe("layout server — showInversion", () => {
     flag: boolean
   ): Promise<boolean> {
     mockAuth.mockResolvedValue(sesion as never);
-    mockFlag.mockReturnValue(flag);
+    mockFlag.mockImplementation((k) => (k === "inversion_mercaderia" ? flag : false));
     const el = (await DashboardLayout({ children })) as React.ReactElement;
     return (el.props as { showInversion: boolean }).showInversion;
   }

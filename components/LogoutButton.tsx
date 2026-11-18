@@ -7,17 +7,21 @@ export async function createLogoutHandler(
   signOutFn: (opts?: Record<string, unknown>) => Promise<unknown>,
   isPending: () => boolean,
   setPending: (v: boolean) => void,
+  onBeforeSignOut?: () => unknown,
 ) {
   if (isPending()) return;
   setPending(true);
   try {
+    if (onBeforeSignOut) { try { await onBeforeSignOut(); } catch { /* signOut igual corre */ } }
     await signOutFn({ redirectTo: "/login" });
   } finally {
     setPending(false);
   }
 }
 
-export default function LogoutButton() {
+export default function LogoutButton({ variant, onBeforeSignOut }: {
+  variant?: "light"; onBeforeSignOut?: () => void;
+} = {}) {
   const pendingRef = useRef(false);
   const [pending, setPendingState] = useState(false);
 
@@ -27,13 +31,13 @@ export default function LogoutButton() {
   };
 
   const handleLogout = () =>
-    createLogoutHandler(nextAuthSignOut, () => pendingRef.current, setPending);
+    createLogoutHandler(nextAuthSignOut, () => pendingRef.current, setPending, onBeforeSignOut);
 
   return (
     <button
       onClick={handleLogout}
       disabled={pending}
-      className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors disabled:opacity-50"
+      className={variant === "light" ? "inline-flex items-center gap-2 rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-violet-50 hover:text-violet-700 transition-colors disabled:opacity-50" : "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors disabled:opacity-50"}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

@@ -223,3 +223,11 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-18 02:29 - inv-11-off - commit da217d9 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-11-off
 - Sin pendientes nuevos.
+
+## 2026-11-18 03:06 - inv-12-on - commit 8dec764 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-12-on
+- Sin pendientes nuevos.
+
+## 2026-11-18 03:09 - inv-12-off - commit 8dec764 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-12-off
+- Sin pendientes nuevos.

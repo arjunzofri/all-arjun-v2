@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { createProductoSearch } from "@/components/useProductoSearch";
@@ -32,6 +33,7 @@ export function ListaResultados({ items, error, consultado, q, onElegir }: Props
 }
 
 export default function BuscadorInventario({ grande = false }: { grande?: boolean }) {
+  const router = useRouter();
   const id = useId(), listaId = `${id}-lista`;
   const [q, setQ] = useState(""); const [abierto, setAbierto] = useState(false);
   const [items, setItems] = useState<FilaInventario[]>([]); const [error, setError] = useState<string | null>(null);
@@ -52,9 +54,17 @@ export default function BuscadorInventario({ grande = false }: { grande?: boolea
     setAbierto(false); setQ(""); setItems([]); setError(null); setConsultado(false); setBuscando(false);
     motor.dispose();
   }
+  function enviar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); // navegación interna: conserva la bodega en memoria aunque storage esté bloqueado
+    const termino = q.trim();
+    elegir();
+    router.push(`/inventario?q=${encodeURIComponent(termino)}`);
+  }
   const mostrarLista = abierto && (buscando || consultado || error !== null);
   return (
-    <form action="/inventario" method="get" role="search" className="relative flex w-full min-w-0 items-stretch gap-2">
+    <form action="/inventario" method="get" role="search" onSubmit={enviar}
+      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAbierto(false); }}
+      className="relative flex w-full min-w-0 items-stretch gap-2">
       <label htmlFor={`${id}-q`} className="sr-only">Buscar producto por código, alias o descripción</label>
       <input id={`${id}-q`} name="q" type="search" role="combobox" aria-expanded={mostrarLista} aria-controls={listaId} aria-autocomplete="list" autoComplete="off" maxLength={100} value={q}
         onChange={(e) => cambiar(e.target.value)} onFocus={() => { if (consultado) setAbierto(true); }} onKeyDown={(e) => { if (e.key === "Escape") setAbierto(false); }}
