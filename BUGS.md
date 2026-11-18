@@ -581,3 +581,7 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 ## 2026-11-18 — BACKLOG baja: conservar termino al enviar busqueda
 - QA inv17-2-on EXP-1. Director confirma enviar() llama elegir()/setQ vacio antes router.push; el filtro sigue aplicado y visible en el titulo de resultados.
 - Revisar antes UAT junto retorno/filtros: conservar termino editable al enviar o Ver todas, cerrar desplegable; elegir producto puede limpiar busqueda. Sin perdida de datos ni bloqueo del flujo actual.
+
+## 2026-11-18 — Pendiente permisos server-actions Usuarios antes UAT (R8)
+- Evidencia estatica Director: lib/actions/usuarios.ts crearUsuario solo verifica rol si recibe requestUserId opcional; page llama sin ese argumento. Funcion no llama auth; listarUsuarios tampoco verifica sesion/rol. Proxy protege la ruta, no se ha reproducido aqui una explotacion HTTP ni se afirma incidente de produccion.
+- Contratar y probar guardas reales de sesion/admin dentro de ambas funciones antes DB, sin confiar en actor enviado por cliente; revisar callers y __tests__/usuarios.test.ts. Relacionado con requisito Usuarios solo admin, antes UAT. No hay eliminacion de usuarios en esta API, por lo que no hay impacto de FK conteos sobre un flujo de borrado existente.
