@@ -566,3 +566,8 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 - QA inv-02 EXP-5: operador en /inversion-mercaderia recibe notFound con texto ingles de Next.js.
   Mejora baja de localizacion, comportamiento previo deliberado de ocultar inversion a no-admin.
 
+## 2026-11-17 — BACKLOG baja: comodines en buscador anterior
+- QA inv-03 EXP-1: `%` devuelve todo el listado. Causa verificable: getProductos aplica ILIKE
+  parametrizado `%${q}%` sin escapar comodines de usuario. No es inyeccion SQL ni cambio de inv-03.
+- El nuevo buscador debe tratar `%` y `_` como caracteres literales; incluir fixture y regresion al tocarlo.
+

@@ -20,11 +20,14 @@
   Estado preciso AUTO-LOG.md.
   inv-02 persistencia completada y QA PASA3/3; migracion0001 aplicada SOLO TEST y sin DROP.
   Commit a9c38e3; pruebas Director14/14 inventario+10/10schema, tsc/lint tocados/buildOK.
-  Sin reset de datos reales/push/deploy. Siguiente: inv-03-B funcion atomica SQL.
+  inv-03 cerrado aef0817: funcion SQL atomica aplicada SOLO TEST. Suite Director768/0+8skips,
+  QA DeepSeek1/1PASA y reproduccion propia de ficha/operador; sin reset real/push/deploy.
+  Siguiente: inv-04-B action autentica y DTO, prompt preparado. Sonnet sin cuota: usar -Programador deep
+  tambien si el selector automatico cambia a Sonnet durante horario peak; no relanzar Sonnet agotado.
 
 ## Contador Ponytail
 - Ultimo audit: inv-plan-A completado 2026-11-17; solo limpieza opcional, sin bloqueo tecnico.
-- Slices desde ultimo audit: 2 del nuevo modo (inv-01, inv-02).
+- Slices desde ultimo audit: 3 del nuevo modo (inv-01..03).
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un

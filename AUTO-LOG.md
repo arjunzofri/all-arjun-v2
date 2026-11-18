@@ -1,5 +1,12 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-17 — inv-03 guardado atomico cerrado
+- Commit aef0817, 179 lineas totales incluido test y QA-REGISTRO. Programador DeepSeek low, sin desvios.
+- Funcion PG VOLATILE/security invoker con locks de idempotencia y posicion; valida replay/usuario/payload, devuelve conflicto para version vieja y conserva historial; no toca stock/movimientos. SQL aplicado solo TEST.
+- Director reviso diff y ROJO real; suite completa 768 passed, 8 skipped, 0 fallos; lint test0, tsc0, build0 (aviso baseline root). Pruebas nuevas incluyen dos carreras reales simultaneas.
+- QA DeepSeek inv-03 PASA1/1, auditoria0, 2 imagenes vistas, USD0.5242; Director repitio operador->Productos->ficha TEST-UPD-001 y bloqueo403Usuarios; captura work/arjun-inv03-director.png inspeccionable. Hallazgo bajo wildcard de buscador viejo queda BACKLOG para nuevo buscador.
+- Entorno QA detenido/restaurado, sin reset/push/deploy. Siguiente inv-04 action autenticada y DTO. Sonnet sin cuota; se mantiene DeepSeek disponible para poder continuar tambien al entrar en horario peak.
+
 ## 2026-11-17 — inv-02 persistencia de conteos cerrada
 - Commit: a9c38e3.
 - Programador DeepSeek low. Contrato inv-02-B y revision Director. Tabla/view append-only, CHECK/FK/unique y catalogo previo coherentes; codigo de producto en db/schema.ts y migration0001.
