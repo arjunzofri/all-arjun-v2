@@ -46,7 +46,7 @@
 
 ## Contador Ponytail
 - Ultimo audit: inv-audit-09-2-A completado 2026-11-18 tras inv09.2; sin bloqueantes16, decisiones en AUTO-LOG y backlogbuscador enBUGS.
-- Slices desde ultimo audit: 2 (inv16.1 1a3d1dc; inv16.2 ef5c2b5). 17.1 implementado SIN COMMIT: Director49/49, eslint0/tsc0; build falla descargaInter y DNSnormal/1.1.1.1/TESTNeon timeout16:56. QA pendiente, casos preparados. Repetir build al recuperar conexion, luegoQA/reproduccion y cierre. Prompt17.2-B preparado NOlanzado. Successasync siempre nonceenviado, store captura throwsfactory. Sin UI de conteo aun.
+- Slices desde ultimo audit: 3 (inv16.1,16.2,17.1). inv17.1 cerrado53fc2de,183lineas; Director49/49,lint0/tsc0/build0 tras recuperar internet, QA1/1/auditoria0 y reproduccion propia360/1280JS0. Siguiente17.2 vista B preparado. RevisionA17.3 readonly en curso. Fixtures conteo TEST5179/5180/5181, verAUTOLOG. Successasync siempre nonceenviado/token; sin UI de conteo aun.
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un

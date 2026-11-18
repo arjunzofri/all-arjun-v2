@@ -167,3 +167,10 @@
 - Build inv-17-1 e inv-17-1-reintento FALLAN por next/font: Failed to fetch Inter from Google Fonts, no errorTS. Diagnostico propio: curl fonts.googleapis.com no resuelve host; Resolve-DnsName fonts.googleapis.com timeout con DNSnormal y1.1.1.1; hostname TESTNeon tambien timeout. No modificar red ni omitir guardas ni presentar buildverde.
 - QA17.1 aunNOejecutada, casos preparados ../_dt/qa/inv-17-1-on.casos.md. No levantar TEST hasta resolver conectividad; entorno no iniciado, flagsfalse. No commit producto/push/deploy/reset.
 - Proximo: recuperar conexion y repetir verificar17.1 (nombre nuevo), luegoQA y reproduccion propia verificar-busqueda-ficha-arjun.cjs; cerrar179+QAlineas<=200 ycontadoraudit3. Prompt17.2-B ya preparado pero NOlanzado. Contadoraudit sigue2 porque17.1 pendiente.
+
+## 2026-11-18 17:12 — inv17.1 cerrado tras recuperar conexion
+- Commit53fc2de,183lineas incluyendoQA/source57/test122. Sin desvio de contrato, cuatro helpers puros, sin callers todavia.
+- DNS recuperado comprobado. Verificacion independiente inv-17-1-red-restablecida: tsc0/build0 (rootwarningbaseline). Director49/49 yeslint0 previos siguen validos, codigo sin cambios. Causa de dos builds previos fallidos confirmada conectividad externa, no codigo.
+- QA DeepSeek inv17-1-on PASA1/1, auditoria0,7imagenesvistas, sin pendientes. Exploracion alias encontro producto correctamente, no defecto. Director reprodujo fichaUNO->buscarDOS sinrecarga, B2preservada, dual/pendiente/cero,1280/360sin overflow,JS0; captura movil inspeccionada.
+- TEST detenido/flagsfalse/nextenvrestaurado. Sin reset/push/deploy. Contadoraudit3. Siguiente17.2 vista, B aprobado. RevisionA17.3 en curso readonly para presupuesto/callers/cache/tests.
+- Fixtures propios nuevos SOLOTEST: QA-CONTEO-BASE5179 B1A1F80; QA-CONTEO-PEND5180 sinconteos; QA-CONTEO-CERO5181 B1A2P0. Preparador externo work/preparar-conteo-qa.cjs validaTEST!=prod y solo limpia estos3; ejemplosQA-INV-DIRECTOR intactos.
