@@ -1,5 +1,11 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-17 — inv-07 ficha e historial cerrado
+- Commit d344898, 138 lineas incluyendo QA. Ficha por ID exacto, historial de todas las versiones paginado por ID, autor/fecha y DTO sin importes/nonce. Fixtures independientes del orden de tests.
+- Director verifico ROJO inicial y detecto undefined admitido por filtro opcional; test adicional ROJO propio y correccion minima antes de cerrar. VERDE propio 26/26, eslint0, tsc0, build0 (aviso root previo). Revision completa del diff.
+- QA DeepSeek inv-07 PASA1/1, sin hallazgos ni consola; Director reprodujo operador->Productos->ficha TEST-UPD-001 y403Usuarios. Entorno TEST detenido/restaurado. Sin reset/push/deploy.
+- Siguiente inv-08 bodega de trabajo, contrato A aprobado con ajustes en prompt B. Contador audit2.
+
 ## 2026-11-17 — inv-06 listado seguro cerrado
 - Commit8acd059, 199lineas incluyendoQA. Programador DeepSeek low. Lista por productoantesdejoin; arrayposicionesvigentes y stocknullpendiente/0contado, fecha/autorISO, cursorporIDestable; escape literal%/_/backslash y alias/descripcion; sin costos/nonce ni stocklegado.
 - Director reviso ROJO moduloausente; pidio corregir determinismo IDs en fixtures concurrentes, TS/warning del testnuevo y erroressegurosespañol antescerrarD; agrego pruebasROJAS de parametros/SQLerror y limitecursorint4. No se eliminaron riesgos/casos.
