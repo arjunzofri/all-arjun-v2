@@ -6,12 +6,13 @@ import { inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { conteosInventario, productos, users } from "@/db/schema";
 import { auth } from "@/lib/auth";
-import { listarInventario, type FilaInventario, type PosicionContada } from "@/lib/inventario/consultas";
+import { getFichaInventario, getHistorialConteos, listarInventario,
+  type FilaInventario, type PosicionContada } from "@/lib/inventario/consultas";
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 const host = (u?: string) => new URL(u!).host;
 const tag = `INVQ${Date.now().toString(36)}`; // codigo varchar(30): tag corto
 const flagPrevio = process.env.FEATURE_INVENTARIO_BODEGA;
-let u1 = 0, u2 = 0, prodA = 0, prodCero = 0;
+let u1 = 0, u2 = 0, prodA = 0, prodCero = 0, prodPend = 0;
 const ids: number[] = [];
 const insertar = (p: number, b: number, planta: string, pasillo: string, pos: string, cant: number, u: number, fecha: string) =>
   db.execute(sql`INSERT INTO conteos_inventario (producto_id, bodega, planta, pasillo, posicion, cantidad, usuario_id, idempotency_key, creado_en)
@@ -29,7 +30,11 @@ beforeAll(async () => {
   const us = await db.insert(users).values([{ username: `${tag}u1` }, { username: `${tag}u2` }]).returning({ id: users.id });
   u1 = us[0].id; u2 = us[1].id;
   prodA = await producto(`${tag}GRP`);
-  await producto(`${tag}PEND`);
+  await insertar(prodA, 1, "", "A1", "M", 99, u2, "2026-01-01T00:00:00Z");
+  for (const [pa, po] of [["A1", "F"], ["A2", "M"], ["A3", "P"], ["A4", "F"]]) await insertar(prodA, 1, "", pa, po, 1, u2, "2026-11-02T10:00:00Z");
+  await insertar(prodA, 1, "", "A1", "M", 1, u1, "2026-11-01T10:00:00Z");
+  for (const [pl, pa, po] of [["ARRIBA", "IZQUIERDA", "M"], ["ABAJO", "DERECHA", "F"], ["ARRIBA", "DERECHA", "P"]]) await insertar(prodA, 2, pl, pa, po, 1, u1, "2026-11-03T10:00:00Z");
+  prodPend = await producto(`${tag}PEND`);
   prodCero = await producto(`${tag}CERO`);
 });
 afterAll(async () => {
@@ -47,10 +52,6 @@ beforeEach(() => {
   vi.mocked(auth).mockResolvedValue({ user: { id: String(u1) } } as never);
 });
 it("agrupa vigentes en array plano 5 B1 + 3 B2, descarta antecedente 99 y preserva fecha/autor", async () => {
-  await insertar(prodA, 1, "", "A1", "M", 99, u2, "2026-01-01T00:00:00Z");
-  for (const [pa, po] of [["A1", "F"], ["A2", "M"], ["A3", "P"], ["A4", "F"]]) await insertar(prodA, 1, "", pa, po, 1, u2, "2026-11-02T10:00:00Z");
-  await insertar(prodA, 1, "", "A1", "M", 1, u1, "2026-11-01T10:00:00Z");
-  for (const [pl, pa, po] of [["ARRIBA", "IZQUIERDA", "M"], ["ABAJO", "DERECHA", "F"], ["ARRIBA", "DERECHA", "P"]]) await insertar(prodA, 2, pl, pa, po, 1, u1, "2026-11-03T10:00:00Z");
   const [item] = await items(`${tag}GRP`);
   const fila: FilaInventario = item;
   const b1 = fila.posiciones.filter((p) => p.bodega === 1), b2 = fila.posiciones.filter((p) => p.bodega === 2);
@@ -119,4 +120,70 @@ it("oculta SQL/URL y devuelve mensaje fijo si falla la base", async () => {
     expect((err as Error).message).toBe("No se pudo obtener el inventario. Intente nuevamente.");
     expect((err as Error).message).not.toMatch(/postgres|http|host|u:p/i);
   } finally { spy.mockRestore(); }
+});
+it("getFichaInventario resuelve por ID exacto y devuelve null si el producto no existe", async () => {
+  const ficha = await getFichaInventario(prodA);
+  expect(ficha?.id).toBe(prodA);
+  expect(ficha?.posiciones.length).toBe(8);
+  expect(ficha?.stockContado).toBe(8);
+  expect(Object.keys(ficha!).sort()).toEqual(["codigo", "codigoPersonal", "detalle", "id", "imagenUrl", "observaciones", "packing", "posiciones", "stockContado"]);
+  expect(JSON.stringify(ficha)).not.toMatch(/precio|nonce|idempotency/i);
+  await expect(getFichaInventario(prodPend)).resolves.toMatchObject({ id: prodPend, posiciones: [], stockContado: null });
+  const borrado = await producto(`${tag}GONE`);
+  await db.delete(productos).where(inArray(productos.id, [borrado]));
+  await expect(getFichaInventario(borrado)).resolves.toBeNull();
+});
+it("getFichaInventario rechaza id inválido, sin sesión o flag off antes de cualquier SQL", async () => {
+  const spy = vi.spyOn(db, "execute");
+  try {
+    for (const id of [0, -1, 2147483648, "5", null, undefined]) await expect(getFichaInventario(id)).rejects.toThrow("Parámetros de búsqueda inválidos.");
+    vi.mocked(auth).mockResolvedValueOnce(null as never);
+    await expect(getFichaInventario(prodA)).rejects.toThrow(/sesi/i);
+    process.env.FEATURE_INVENTARIO_BODEGA = "false";
+    try { await expect(getFichaInventario(prodA)).rejects.toThrow(/habilitad/i); }
+    finally { process.env.FEATURE_INVENTARIO_BODEGA = "true"; }
+    expect(spy).not.toHaveBeenCalled();
+  } finally { spy.mockRestore(); }
+});
+it("getHistorialConteos conserva las 9 versiones con autor/fecha y pagina 3+3+3 por id DESC", async () => {
+  const todo = await getHistorialConteos({ productoId: prodA, limit: 100 });
+  expect(todo.items.length).toBe(9);
+  expect(todo.nextCursor).toBeNull();
+  const idsDesc = todo.items.map((i) => i.id).sort((a, b) => b - a);
+  expect(todo.items.map((i) => i.id)).toEqual(idsDesc);
+  const viejo = todo.items.find((i) => i.cantidad === 99)!;
+  expect([viejo.usuarioId, viejo.usuario, viejo.creadoEn]).toEqual([u2, `${tag}u2`, "2026-01-01T00:00:00.000Z"]);
+  expect(todo.items.filter((i) => i.cantidad === 1)).toHaveLength(8);
+  expect(Object.keys(viejo).sort()).toEqual(["bodega", "cantidad", "creadoEn", "id", "pasillo", "planta", "posicion", "usuario", "usuarioId"]);
+  expect(JSON.stringify(todo)).not.toMatch(/precio|nonce|idempotency/i);
+  const vistos: number[] = [];
+  let cursor: number | null = null;
+  for (let i = 0; i < 3; i++) {
+    const p = await getHistorialConteos({ productoId: prodA, limit: 3, ...(cursor ? { cursor } : {}) });
+    vistos.push(...p.items.map((x) => x.id));
+    cursor = p.nextCursor;
+  }
+  expect([vistos.length, cursor]).toEqual([9, null]);
+  expect(new Set(vistos).size).toBe(9);
+  expect(vistos).toEqual(todo.items.map((i) => i.id));
+});
+it("getHistorialConteos valida params y sin sesión antes de SQL, oculta fallos y producto sin conteos da []", async () => {
+  await expect(getHistorialConteos({ productoId: prodPend })).resolves.toEqual({ items: [], nextCursor: null });
+  const spy = vi.spyOn(db, "execute");
+  try {
+    for (const bad of [{}, { productoId: 0 }, { productoId: 2147483648 }, { productoId: prodA, limit: 0 }, { productoId: prodA, cursor: -1 }, { productoId: prodA, cursor: Number.MAX_SAFE_INTEGER + 1 }])
+      await expect(getHistorialConteos(bad)).rejects.toThrow(/parámetros/i);
+    vi.mocked(auth).mockResolvedValueOnce(null as never);
+    await expect(getHistorialConteos({ productoId: prodA })).rejects.toThrow(/sesi/i);
+    process.env.FEATURE_INVENTARIO_BODEGA = "false";
+    try { await expect(getHistorialConteos({ productoId: prodA })).rejects.toThrow(/habilitad/i); }
+    finally { process.env.FEATURE_INVENTARIO_BODEGA = "true"; }
+    expect(spy).not.toHaveBeenCalled();
+  } finally { spy.mockRestore(); }
+  const spySql = vi.spyOn(db, "execute").mockRejectedValueOnce(new Error("postgres://u:p@host/db"));
+  try {
+    const err = await getHistorialConteos({ productoId: prodA }).catch((e: unknown) => e);
+    expect((err as Error).message).toBe("No se pudo obtener el historial. Intente nuevamente.");
+    expect((err as Error).message).not.toMatch(/postgres|http|host|u:p/i);
+  } finally { spySql.mockRestore(); }
 });
