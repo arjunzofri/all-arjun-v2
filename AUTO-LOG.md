@@ -1,5 +1,11 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-18 — inv-10 buscador reutilizable cerrado
+- Commit c5b746c; 196 lineas totales con tests y registro QA. Buscador por codigo, alias y descripcion, resultados directos, estados de error/vacio/cero, debounce y proteccion ante respuestas antiguas. Componente preparado para integrar en lista e inicio.
+- Director verifico ROJO 9 fallos/3 verdes, reviso diff y ejecuto 21/21 pruebas propias. ESLint y typecheck sin errores; build correcto con aviso root ya registrado. Exigio reducir boilerplate del test sin quitar casos, mostrar cero explicitamente y usar Next Link para conservar navegacion interna.
+- QA DeepSeek inv-10 PASA 1/1, sin hallazgos ni errores de consola. Director repitio acceso de operador y ficha QA-INV-DIRECTOR-CERO, sin guardar datos. Entorno TEST detenido y restaurado.
+- Siguiente inv-11 lista responsive, contrato y QA on/off preparados. Inv-12 integrara shell e inicio; agregar submit interno del buscador en ese contrato. Inv-09 borradores pendiente tras primer UI visible. Contador de auditoria: 4. Sin reset, push ni deploy.
+
 ## 2026-11-17 — inv-08 bodega de trabajo cerrado
 - Commit076f772, 194lineas incluidoQA. Store sessionStorage/memoria por usuario, snapshotSSRnull, API de seleccion/limpieza compartida, storage denegado sin perder seleccion en memoria.
 - Director reprodujo ROJO inicial y dos desvios del contrato (API incompleta y limpieza que no borraba clave remanente con snapshotnull); pruebas adicionales ROJO2/7 y correccion minima. Rechazo supresion nueva de ESLint y pidio prueba SSR sin mutacion global, conservando cobertura.

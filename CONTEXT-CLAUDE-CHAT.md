@@ -29,14 +29,16 @@
   inv-06 cerrado8acd059: listadoinventario protegido, SQLreal TEST, DTOsin costos/nonce, 38/38dirigidas,
   QA1/1PASA y reproduccionpropia. inv-07 cerrado d344898: fichaID/historialpaginado, 26/26,
   QA1/1PASA y reproduccionpropia. inv-08 cerrado076f772 bodega de trabajo, 9/9, QA1/1 y reproduccion.
-  Siguiente inv-10-B buscador, contrato A aprobado con ajustes. inv-09-A borradores propuesta lista,
-  se implementara despues del primer UI visible. inv-11-A lista y shell/inicio propuesta lista.
+  inv-10 cerrado c5b746c: buscador reutilizable, 21/21, QA1/1 y reproduccion propia.
+  Siguiente inv-11-B lista responsive, contrato aprobado; QA on/off preparados.
+  inv-09-A borradores propuesta lista, se implementara despues del primer UI visible.
+  inv-12 shell/inicio corresponde a subcontrato11-B de logs/inv-11-A.md, ajustes inv-12-decisiones.md.
   Sonnet sin cuota: usar -Programador deep
   tambien si el selector automatico cambia a Sonnet durante horario peak; no relanzar Sonnet agotado.
 
 ## Contador Ponytail
 - Ultimo audit: inv-audit-05-A completado 2026-11-17 tras inv-05; no bloqueantes, limpiezas opcionales.
-- Slices desde ultimo audit: 3 (inv-06, inv-07, inv-08; siguiente inv-10 buscador).
+- Slices desde ultimo audit: 4 (inv-06, inv-07, inv-08, inv-10). Auditar despues de inv-11.
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un
