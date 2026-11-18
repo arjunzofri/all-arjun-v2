@@ -46,7 +46,7 @@
 
 ## Contador Ponytail
 - Ultimo audit: inv-audit-09-2-A completado 2026-11-18 tras inv09.2; sin bloqueantes16, decisiones en AUTO-LOG y backlogbuscador enBUGS.
-- Slices desde ultimo audit: 3 (inv16.1,16.2,17.1). inv17.1 cerrado53fc2de,183lineas; Director49/49,lint0/tsc0/build0 tras recuperar internet, QA1/1/auditoria0 y reproduccion propia360/1280JS0. Siguiente17.2 vista B preparado. RevisionA17.3 readonly en curso. Fixtures conteo TEST5179/5180/5181, verAUTOLOG. Successasync siempre nonceenviado/token; sin UI de conteo aun.
+- Slices desde ultimo audit: 4 (inv16.1,16.2,17.1,17.2). inv17.1 53fc2de cerrado183lineas; inv17.2 8067ead cerrado198lineas, Director18/18/lint0/tsc0/build0, QA1/1/auditoria0 y reproduccion propia360/1280JS0; vistaaislada8estados PASA. Nuevo backlog bajo busqueda campo vacio tras enviar, verBUGS. Sigue17.3a B preparado, A revisado y ajustes inv-17-3-ajustes-director obligatorios. Fixtures conteo TEST5179/5180/5181, verAUTOLOG. Successasync siempre nonceenviado/token; vista aun sincaller/guardadoUI.
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un
