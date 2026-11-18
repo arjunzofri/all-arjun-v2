@@ -1,5 +1,12 @@
 # AUTO-LOG — app-arjun-v2
 
+## 2026-11-17 — inv-06 listado seguro cerrado
+- Commit8acd059, 199lineas incluyendoQA. Programador DeepSeek low. Lista por productoantesdejoin; arrayposicionesvigentes y stocknullpendiente/0contado, fecha/autorISO, cursorporIDestable; escape literal%/_/backslash y alias/descripcion; sin costos/nonce ni stocklegado.
+- Director reviso ROJO moduloausente; pidio corregir determinismo IDs en fixtures concurrentes, TS/warning del testnuevo y erroressegurosespañol antescerrarD; agrego pruebasROJAS de parametros/SQLerror y limitecursorint4. No se eliminaron riesgos/casos.
+- Evidencia propia 38/38 dirigidas consultas/action/modo, tsc0/lint0/build0 (aviso baseline root). Snapshot amplio previo inv-05 suite800/0+8skips. Diff/DTO revisados.
+- QA DeepSeek inv-06 PASA1/1, auditoria0, 3imagenesvistas, USD0.5829, sinpendientes; Director repitio operador->ficha TEST-UPD-001 y403Usuarios, entornoTEST detenido/restaurado.
+- Sin reset/push/deploy. Siguiente inv-07 ficha exacta porID e historialpaginado, contrato preparado.
+
 ## 2026-11-17 — Senal2 auditoria post inv-05
 - inv-audit-05-A (DeepSeek solo lectura): sin bloqueantes ni error de locks/concurrencia. Director reviso hallazgos.
 - Helper de fixtures y simplificacion de catalogo son opcionales; no se hacen antes de UI. No eliminar checks Drizzle: espejo intencional para impedir drift. No renombrar guard de cinco callers por preferencia estetica.

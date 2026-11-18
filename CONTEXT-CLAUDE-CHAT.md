@@ -26,13 +26,14 @@
   inv-05 cerrado920a5a6: guardaslegacy/overridesseguros, Director800/0+8skips y QA1/1PASA.
   Senal2 auditoria inv-audit-05-A completada: sin bloqueantes. Director decide mantener nombre guard
   y checks Drizzle (espejo intencional del DDL), dejar limpiezas opcionales para cierre y proyectar DTO sin nonce.
-  Siguiente inv-06-B listado de inventario sin costos, SQL real TEST, proyeccion explicita.
+  inv-06 cerrado8acd059: listadoinventario protegido, SQLreal TEST, DTOsin costos/nonce, 38/38dirigidas,
+  QA1/1PASA y reproduccionpropia. Siguiente inv-07-B fichaID/historialpaginado, prompt preparado.
   Sonnet sin cuota: usar -Programador deep
   tambien si el selector automatico cambia a Sonnet durante horario peak; no relanzar Sonnet agotado.
 
 ## Contador Ponytail
 - Ultimo audit: inv-audit-05-A completado 2026-11-17 tras inv-05; no bloqueantes, limpiezas opcionales.
-- Slices desde ultimo audit: 0 (siguiente inv-06).
+- Slices desde ultimo audit: 1 (inv-06; siguiente inv-07).
 
 Pegar este documento al inicio de una conversación con Claude (Director
 Técnico) cuando se necesite tomar decisiones de arquitectura, diseñar un
