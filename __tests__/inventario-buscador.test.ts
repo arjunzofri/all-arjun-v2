@@ -6,9 +6,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { createProductoSearch } from "@/components/useProductoSearch";
 import type { FilaInventario } from "@/lib/inventario/consultas";
 
-vi.mock("@/lib/inventario/consultas", () => ({
-  listarInventario: vi.fn(async () => ({ items: [], nextCursor: null })),
-}));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 const cargarBuscador = () => import("@/components/inventario/BuscadorInventario");
@@ -64,11 +61,38 @@ describe("ListaResultados (exportada)", () => {
     expect(html).toMatch(/cero/i); expect(html).toContain("0 u.");
     expect(html).not.toContain("Sin contar");
   });
+  it("'Ver todas las coincidencias' dispara onElegir como evento real del árbol", async () => {
+    const { ListaResultados } = await cargarBuscador(), onElegir = vi.fn();
+    type Nodo = { props: { href?: string; onClick?: () => void; children?: unknown } };
+    const arbol = ListaResultados({ items: [fila()], error: null, consultado: true, q: "abc", onElegir }) as unknown as Nodo;
+    const enlace = (arbol.props.children as Nodo[]).find((c) => c?.props?.href?.startsWith("/inventario?q="));
+    expect(enlace).toBeTruthy();
+    enlace!.props.onClick?.();
+    expect(onElegir).toHaveBeenCalledTimes(1);
+  });
   it("máximo 12 coincidencias y 'Ver todas' con q codificada", async () => {
     const items = Array.from({ length: 13 }, (_, i) => fila({ id: i + 1, codigo: `C${i + 1}` }));
     const html = await renderLista({ items, q: "caño 1/2" });
     expect((html.match(/href="\/productos\//g) ?? []).length).toBe(12); expect(html).toContain("Ver todas las coincidencias");
     expect(html).toContain('href="/inventario?q=ca%C3%B1o%201%2F2"');
+  });
+});
+
+describe("sugerenciasGET (transporte real)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it("trim + encodeURIComponent de alias y comodines, con cache no-store", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ items: [fila()] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const { sugerenciasGET } = await cargarBuscador();
+    expect(await sugerenciasGET("  ca ñ/%_  ")).toEqual({ items: [fila()] });
+    expect(fetchMock.mock.calls).toEqual([["/api/inventario/buscar?q=ca%20%C3%B1%2F%25_", { cache: "no-store" }]]);
+  });
+  it("HTTP no-ok rechaza con error genérico sin leer el JSON", async () => {
+    const json = vi.fn(async () => ({ error: "https://user:secret@prod.neon.tech/db" }));
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, json })));
+    const { sugerenciasGET } = await cargarBuscador();
+    await expect(sugerenciasGET("abc")).rejects.toThrow("No se pudo buscar. Intente nuevamente.");
+    expect(json).not.toHaveBeenCalled();
   });
 });
 

@@ -2,10 +2,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 
-const { authMock, flagMock, dbExecute } = vi.hoisted(() => ({ authMock: vi.fn(), flagMock: vi.fn(), dbExecute: vi.fn() }));
+const { authMock, flagMock, dbExecute, revalidatePath } = vi.hoisted(() => ({ authMock: vi.fn(), flagMock: vi.fn(), dbExecute: vi.fn(), revalidatePath: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ auth: authMock }));
 vi.mock("@/lib/feature-flags", () => ({ flagActivo: flagMock }));
 vi.mock("@/db", () => ({ db: { execute: dbExecute } }));
+vi.mock("next/cache", () => ({ revalidatePath }));
 
 // Producto ausente a proposito: ROJO valido de Fase B.
 import { registrarConteo } from "@/lib/inventario/conteos";
@@ -68,17 +69,24 @@ describe("registrarConteo — llamada y respuesta", () => {
     expect(r).toEqual({ ok: true, conteo: DTO, repetido: false });
     expect(JSON.stringify(r)).not.toContain("idempotency");
     expect(JSON.stringify(r)).not.toContain(`12:${key}`);
+    expect(revalidatePath).toHaveBeenCalledTimes(2);
+    expect(revalidatePath).toHaveBeenCalledWith("/inventario");
+    expect(revalidatePath).toHaveBeenCalledWith("/productos/1");
   });
 
-  it("replay devuelve el mismo id y fecha con repetido=true", async () => {
+  it("replay devuelve el mismo id y fecha con repetido=true y revalida ambas rutas", async () => {
     dbExecute.mockResolvedValue(respuesta({ ok: true, conteo: FILA, repetido: true }));
     expect(await registrarConteo(base())).toEqual({ ok: true, conteo: DTO, repetido: true });
+    expect(revalidatePath).toHaveBeenCalledTimes(2);
+    expect(revalidatePath).toHaveBeenCalledWith("/inventario");
+    expect(revalidatePath).toHaveBeenCalledWith("/productos/1");
   });
 
   it("conflicto con vigente null responde sin una segunda llamada", async () => {
     dbExecute.mockResolvedValue(respuesta({ ok: false, conflicto: true, vigente: null }));
     expect(await registrarConteo({ ...base(), expectedConteoId: 9 })).toEqual({ ok: false, conflicto: true, vigente: null });
     expect(dbExecute).toHaveBeenCalledTimes(1);
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("error de DB con URL/credenciales responde mensaje fijo sin filtrar", async () => {
@@ -89,5 +97,6 @@ describe("registrarConteo — llamada y respuesta", () => {
     expect(salida).not.toContain("secret");
     expect(salida).not.toContain("neon.tech");
     expect(salida).not.toContain("https://");
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

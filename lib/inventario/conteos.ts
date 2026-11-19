@@ -1,6 +1,7 @@
 "use server";
 
 import { sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import { flagActivo } from "@/lib/feature-flags";
@@ -58,7 +59,11 @@ export async function registrarConteo(input: unknown): Promise<RegistrarConteoRe
   const fila = (resultado as { rows?: { r?: unknown }[] }).rows?.[0]?.r;
   if (typeof fila !== "object" || fila === null) return { ok: false, error: ERROR_SEGURO };
   const r = fila as Record<string, unknown>;
-  if (r.ok === true && esFila(r.conteo)) return { ok: true, conteo: aDTO(r.conteo), repetido: r.repetido === true };
+  if (r.ok === true && esFila(r.conteo)) {
+    revalidatePath("/inventario");
+    revalidatePath(`/productos/${productoId}`);
+    return { ok: true, conteo: aDTO(r.conteo), repetido: r.repetido === true };
+  }
   if (r.ok === false && r.conflicto === true) return { ok: false, conflicto: true, vigente: esFila(r.vigente) ? aDTO(r.vigente) : null };
   return { ok: false, error: ERROR_SEGURO };
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Fragment } from "react";
 import { getProducto } from "@/lib/actions/productos";
+import { auth } from "@/lib/auth";
 import { formatearFechaISO } from "@/lib/utils/fecha-chile";
 import { notFound } from "next/navigation";
 import { flagActivo } from "@/lib/feature-flags";
@@ -29,12 +30,13 @@ export default async function ProductoDetallePage({
   if (flagActivo("inventario_bodega")) {
     const parsed = productoIdSchema.safeParse(Number(id));
     if (!parsed.success) notFound();
+    const sesion = await auth();
     let ficha: Awaited<ReturnType<typeof getFichaInventario>>;
     try { ficha = await getFichaInventario(parsed.data); } catch {
       return <div role="alert" className="mx-auto w-full max-w-3xl space-y-3"><p className="text-sm text-red-600">No se pudo cargar el producto. Intente nuevamente.</p><Link href="/inventario" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-violet-600 transition-colors">Volver a inventario</Link></div>;
     }
     if (!ficha) notFound();
-    return <FichaProducto fila={ficha} refQ={refQ} />;
+    return <FichaProducto fila={ficha} usuarioId={String(sesion?.user?.id ?? "")} refQ={refQ} />;
   }
 
   const producto = await getProducto(Number(id));

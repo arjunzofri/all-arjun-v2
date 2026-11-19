@@ -4,9 +4,15 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { createProductoSearch } from "@/components/useProductoSearch";
-import { listarInventario, type FilaInventario } from "@/lib/inventario/consultas";
+import type { FilaInventario } from "@/lib/inventario/consultas";
 
 const MENSAJE_ERROR = "No se pudo buscar. Intente nuevamente.";
+/** Sugerencias por GET propio: no espera la cola de Server Actions del guardado. */
+export async function sugerenciasGET(texto: string): Promise<{ items: FilaInventario[] }> {
+  const respuesta = await fetch(`/api/inventario/buscar?q=${encodeURIComponent(texto.trim())}`, { cache: "no-store" });
+  if (!respuesta.ok) throw new Error(MENSAJE_ERROR);
+  return (await respuesta.json()) as { items: FilaInventario[] };
+}
 type Props = { items: FilaInventario[]; error: string | null; consultado: boolean; q: string; onElegir: () => void };
 
 export function ListaResultados({ items, error, consultado, q, onElegir }: Props) {
@@ -27,7 +33,7 @@ export function ListaResultados({ items, error, consultado, q, onElegir }: Props
           </span>
         </Link></li>
       ))}
-    </ul><Link href={`/inventario?q=${encodeURIComponent(q)}`} className="block border-t border-slate-100 px-3 py-2 text-center text-sm font-medium text-violet-700 hover:bg-violet-50">Ver todas las coincidencias</Link>
+    </ul><Link href={`/inventario?q=${encodeURIComponent(q)}`} onClick={onElegir} className="block border-t border-slate-100 px-3 py-2 text-center text-sm font-medium text-violet-700 hover:bg-violet-50">Ver todas las coincidencias</Link>
     </div>
   );
 }
@@ -40,7 +46,7 @@ export default function BuscadorInventario({ grande = false }: { grande?: boolea
   const [consultado, setConsultado] = useState(false); const [buscando, setBuscando] = useState(false);
   const motor = useMemo(() => createProductoSearch<FilaInventario>({
     minLength: 1,
-    fetchFn: async (texto) => (await listarInventario({ q: texto.trim(), limit: 12 })).items,
+    fetchFn: sugerenciasGET,
     onResults: (res) => { setItems(res); setError(null); setConsultado(true); setBuscando(false); },
     onError: () => { setItems([]); setError(MENSAJE_ERROR); setConsultado(true); setBuscando(false); },
   }), []);

@@ -12,6 +12,11 @@ import { conteosInventario, productos, users } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
+// Parcial: useRouter (lo usa el contenedor cliente) pero notFound real para 404.
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return { ...actual, useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }) };
+});
 const real = vi.hoisted(() => ({ getProducto: null as null | ((id: number) => Promise<unknown>) }));
 const espia = vi.hoisted(() => ({ getProducto: vi.fn() }));
 vi.mock("@/lib/actions/productos", async (importOriginal) => {
@@ -70,6 +75,9 @@ it("ON: ficha segura con alias, packing, observaciones, total y 2 bodegas con au
     expect(out).toContain(txt);
   expect(await html(dual, "ca ja")).toContain("/inventario?q=ca%20ja");
   expect(out).not.toMatch(/USD|precio|Historial de compras|M[oó]dulos|Pr[oó]ximamente|SENTINELA/i);
+  expect(out).toContain("Guardar conteo");
+  expect(out).toContain("Cantidad total contada en esta posición; 0 es un conteo válido.");
+  expect(out.indexOf("Guardar conteo")).toBeLessThan(out.indexOf("Observaciones"));
 });
 
 it("ON: pendiente (null) y contado 0 se distinguen", async () => {
@@ -101,6 +109,7 @@ it("OFF: página legacy intacta y usa getProducto real", async () => {
   expect(out).toMatch(/Historial de compras/);
   expect(out).toMatch(/Editar producto/);
   expect(out).not.toMatch(/Sin posiciones contadas/);
+  expect(out).not.toContain("Guardar conteo");
 });
 
 it("compat: force-dynamic declarado y buildVolverHref conservado", () => {
