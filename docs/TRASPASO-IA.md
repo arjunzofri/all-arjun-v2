@@ -85,3 +85,8 @@ DTO operador sin costos/nonce/ubicación librelegacy. Imagen no destruir antes d
 Últimoaudit inv-audit-17-3b-A, decisión inv-audit-17-3b-decision.md; contador0 antes18.1.
 **Sin deploy/push/reset ni escrituras de producción. Al reanudar verificar flagsfalse y puerto3123 libre.**
 
+
+### Trabajo activo a continuación
+- Lanzado Programador inv-18-1-BCD (formatofecha/hora/miles), sin commit. Esperar ../_dt/logs/inv-18-1-BCD.done y leer informe/diff; NO relanzar mismo nombre mientras activo.
+- Contrato aprobado6archivos: lib/utils/fecha-chile.ts, ListaInventario.tsx, FichaProducto.tsx, FormularioConteoVista.tsx, fecha-chile.test.ts, inventario-lista.test.ts. No SQL/flags/env/roles/historialUI. Director verificación/QA/commit pendientes.
+- Último cierre1623ce8docs/c51cff5producto. Contadoraudit0 antes este trabajo. No repetir17.3b ya cerrado.

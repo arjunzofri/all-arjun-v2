@@ -296,5 +296,3 @@ Fotos de 10 notas de venta impresas del WinFac enviadas por Pablo (5 Vida Digita
 - Lineas de produccion por slice declaradas en cada commit; slices 3 y 8 divididos en dos commits por el limite de 200.
 
 ### ACTUALIZACION 2026-11-11 05:15 — ver AUTO-LOG.md (cierre de QA, 8 commits sin push esperando UAT de Pablo)
-
-
