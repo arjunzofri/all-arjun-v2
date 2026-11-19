@@ -10,7 +10,24 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto: 17.3b CERRADO
+## Punto exacto de reanudación — 18.1 CERRADO, siguiente18.2
+Último commit producto **e09a114**, formato fecha/hora Chile y miles;57add+16del=73 incluyendoQA.
+- Director34/34 propias, eslint6=0, tsc0/build0 (warningroot preexistente), diff6archivos revisado.
+- QA inv-18-1-on PASA1/1/auditoría0/7imágenes; inv-18-1-off PASA1/1/auditoría0/3imágenes, sin defectos ni consola.
+- Director verificar-formato-conteos-arjun.cjs PASA: listado/ficha fecha16-11-2026 hora23:30 autor,1280/360sin desbordes, cero frente a Sin contar, JS0. Miles148163->148.163 cubierto en unit; no se afirma fixturevisual con cantidadgrande.
+- Hora compartida h23, medianoche00:05, inválida—; entradas numéricas/preview/packing/costos intactos. Se eliminaron2funciones localesduplicadas. Mismo formulario mantiene key usuario+SKU.
+- **No código ni implementación pendiente de commit. No Programador/QA de esta sesión activos; TEST apagado, flagsfalse, next-env restaurado.**
+- Última auditoría inv-audit-17-3b-A, contador **1** slice desde entonces (18.1). No push/deploy/reset/escriturasproducción.
+
+### Primeros pasos de la otra IA
+1. Confirmar git status/rama/HEAD reales y leer este documento + PRD/CLAUDE/BUGS/AUTO-LOG. No repetir17.3b ni18.1 ya cerrados.
+2. Próximo **18.2 historial de conteos a demanda**. A ../_dt/logs/inv-18-historial-A.md, decisiones ../_dt/prompts/inv-18-decisiones-director.md. **Prompt BCD preparado ../_dt/prompts/inv-18-2-BCD.md, AÚN NO LANZADO.**
+3. Antes de lanzarlo: redactar planQA18.2 (basado en los8casos delA, ajustando decisiones details nativo/sin dedupe innecesario), preparar solo fixturesTEST propios >=12versiones de5179 para paginación y un producto sinconteos. Nunca resetglobal ni baseproducción. El Director puede preparar fixtures fuera producto como los scripts existentes.
+4. Lanzar Programador18.2BCD concontrato yplanQAaprobados porDirector, presupuesto<=196+QA4. Si no cabe, repartir porcontrato; nunca comprimir ni quitar riesgos. No aprobaciónhumana adicional.
+5. Después verificaciónindependiente/tests/lint/tsc/build, Eaislado, reproducir mayor riesgo ycommitDirector. Actualizar este archivo/AUTO-LOG/contador.
+Los contratos restantes de Usuarios/authproductos/imagen y backlog completo están abajo. No confundir esta preparación con trabajo ya implementado.
+
+## Cierre anterior17.3b (referencia)
 Commit c51cff5 integra formulario y búsqueda durante guardado:169añadidas+24eliminadas=193 líneas incluyendo QA. Ya NO hay código17.3b sin commit.
 API lectura previa25262d0; checkpoint documental inicial3b69822.
 Director:59/59 dirigidas del ajuste, eslint0, tsc0/build0 (warningroot preexistente), lectura diff9archivos180líneasproducto/tests.
@@ -22,8 +39,8 @@ Flagfalse, next-env restaurado, TEST apagado. Ningún push/deploy/reset/escritur
 ### Auditoría cerrada y siguiente acción
 Auditoría readonly inv-audit-17-3b-A completada; informe ../_dt/logs/inv-audit-17-3b-A.md; decisión ../_dt/prompts/inv-audit-17-3b-decision.md.
 Sin bloqueantes. Hallazgo flag/nextenv fue snapshot duranteQAON; Director verificó restauración y stage explícito antescommit. No refactor genérico storage ni cambio de motor compartido por estética.
-Contador reiniciado0 tras5slices revisados.
-**Siguiente18.1: contrato aprobado y prompt ../_dt/prompts/inv-18-1-BCD.md listo. Lanzar solo si no existe corrida activa/completa de ese nombre; consultar done/log/status al reanudar.**
+Contador reiniciado0 tras5slices revisados; luego18.1 cerrado lo dejó en1.
+18.1 ya cerrado e09a114; conservar su contrato como evidencia, NO volver a lanzarlo.
 Plan QA18.1 ../_dt/qa/inv-18-1-on.casos.md. Después18.2historial y backlog completo abajo.
 Comandos/tests/guardas y evidencias externas detallados en las secciones siguientes.
 
@@ -59,7 +76,7 @@ Imágenes arjun-conteo-integrado-movil.png y arjun-busqueda-con-guardado-retenid
 Únicos fixtures mutables conteoTEST5179 BASE,5180 PEND,5181 CERO. Preparador limpia solo sus conteos/restaura80/pendiente/0; no resetglobal. Diagnósticos dejaron17/18/123, resetpuntual antes QA si procede.
 Read-only4951 UNO8 B1/B2,4952 DOS pendiente,4953 CERO0, no mutarlos.
 Migraciones0001/RPC aplicadas SOLO TEST; NO producción.
-Respaldo b: ../_dt/handoff-2026-11-19/17-3b-tracked.patch +2untracked +SHA256.txt. NO aplicar sobre árbol ya modificado.
+Respaldos históricos externos ../_dt/handoff-2026-11-19/:17-3b-tracked.patch+2nuevos+SHA256 y18-1-tracked.patch+18-1-SHA256. Ambos YA están incorporados en commits: NO aplicarlos sobre HEAD actual.
 Stash FREEZE80489094099d7b2a9e9fa841232c7d96cc45e79d YA reaplicado (anterior al ajusteGET); no aplicar otra vez.
 
 ## Arquitectura a conservar
@@ -69,7 +86,7 @@ Bodega por usuario/tab; borradores nonce/token; logout limpia. Async elimina sol
 DTO operador sin costos/nonce/ubicación librelegacy. Imagen no destruir antes de DB ni cloudVD externo.
 
 ## Backlog restante aprobado
--18.1 horaChile compartida/miles/listafecha+hora: prompt inv-18-1-BCD.md listo; decisiones inv-18-decisiones-director.md; A inv-18-historial-A.md.
+-18.1 CERRADO e09a114; hora/miles/lista ya hechos. Sigue18.2; contratos de18.1 quedan como evidencia.
 -18.2 historial lazy con details nativo, cursor/mounted/error/retry, keyhistorial versiones sin cambiar keyform. Estimaciónoriginal205rechazada; simplificar estados, no quitar riesgos.
 -UsuariosR8: crearUsuario/listarUsuarios sin auth dentroacción; actoropcional y returninghash. No explotaciónHTTP afirmada. inv-usuarios-auth-A.md / inv-usuarios-auth-ajustes-director.md listos. Limpieza solo propios, no %test-% global.
 -AuthWRITEproductos/PATCH, alias/packing/observaciones; ocultar campo ubicaciónlibreON. Contratos inv-15-B.md / inv-13-lectura-A.md.
@@ -82,11 +99,5 @@ DTO operador sin costos/nonce/ubicación librelegacy. Imagen no destruir antes d
 -Tablaúnica togglevaloresadmin; imagenprimera56, CostopromantesValor, Saldo, quitar3métricas. Operador nunca recibecostos; avisos comprasposteriores/fechasmixtas.
 -CA12 conservarfiltro/búsqueda alvolver, no inventar scroll. refQarrays validar; términopresentealEnviar; foto56/404localizado/retorno/accesodenegado.
 -Release benchmarkSQLvolumenrepresentativo, lintglobal45erroresbaseline/rootwarning, audit/QAbarrridocompleto/UATPablo/Señal3. Resetfinalsolo respaldoygateconcretos.
-Últimoaudit inv-audit-17-3b-A, decisión inv-audit-17-3b-decision.md; contador0 antes18.1.
+Últimoaudit inv-audit-17-3b-A, decisión inv-audit-17-3b-decision.md; contador1 tras18.1.
 **Sin deploy/push/reset ni escrituras de producción. Al reanudar verificar flagsfalse y puerto3123 libre.**
-
-
-### Trabajo activo a continuación
-- Lanzado Programador inv-18-1-BCD (formatofecha/hora/miles), sin commit. Esperar ../_dt/logs/inv-18-1-BCD.done y leer informe/diff; NO relanzar mismo nombre mientras activo.
-- Contrato aprobado6archivos: lib/utils/fecha-chile.ts, ListaInventario.tsx, FichaProducto.tsx, FormularioConteoVista.tsx, fecha-chile.test.ts, inventario-lista.test.ts. No SQL/flags/env/roles/historialUI. Director verificación/QA/commit pendientes.
-- Último cierre1623ce8docs/c51cff5producto. Contadoraudit0 antes este trabajo. No repetir17.3b ya cerrado.

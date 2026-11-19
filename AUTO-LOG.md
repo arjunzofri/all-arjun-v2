@@ -236,3 +236,11 @@
 - D-SEARCH ARREGLADO y lowcantidad BACKLOG. Flagsfalse/nextenvrestaurado/puerto3123libre comprobados antescommit, stageexplícito; nuncaadd-A.
 - Auditoría inv-audit-17-3b-A sin bloqueantes; decisión vinculante ../_dt/prompts/inv-audit-17-3b-decision.md. Snapshot flagtrue era QAON temporal; descartar refactor genérico de storage, motor sin AbortSignal no afecta latestId probado. Hora duplicada se absorbe18.1. Contador0.
 - TRASPASO actualizado al cierre. Siguiente18.1 preparado; sinpush/deploy/reset/prod.
+
+## 2026-11-19 — Cierre18.1 e09a114 y traspaso definitivo
+- Fuente/tests65add+del +QA8=73. Director34/34, lint6/tsc/build0; warningrootpreexistente sin ocultar. B5rojos reales antesC (horaausente, fecha/horalista, miles);0/nullintactos.
+- HoraChile h23 compartida elimina2duplicados; lista fecha+hora+autor porposición y milesreadonlylista/ficha. Inputs/preview/costos/packing/keys intactos.
+- QA inv-18-1-on PASA1/1/auditoría0/7imágenes yOFF PASA1/1/auditoría0/3imágenes, sin hallazgos/JS0. Director navegadorpropio verificar-formato-conteos-arjun.cjs PASA1280/360fecha-hora-lista/ficha/autor/0vsnull/nooverflow/JS0. Miles porunit nofixturevisualgrande.
+- TESTapagado/nextenvrestaurado/flagsfalse. Código e09a114 cerrado; contador1 desdeaudit17.3b.
+- Traspaso canónico docs/TRASPASO-IA.md actualizado: ningúntrabajoactivo; siguiente18.2 prompt ../_dt/prompts/inv-18-2-BCD.md preparado NOlanzado. Director siguiente prepara planQA/fixtures12versiones solosintéticos antesB.
+- Backlogrestante explicado y contratos/rutas/evidencias/localizadores exactos. Respaldos17.3b y18.1 en ../_dt/handoff-2026-11-19 ya incorporados, NO reaplicar. Sinpush/deploy/resetreal/prod.
