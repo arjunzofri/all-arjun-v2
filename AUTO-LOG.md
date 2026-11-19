@@ -223,3 +223,16 @@
 - Commit25262d0 API42+test136+QA/BUGS16=194. Director52/52, eslint0, tsc/build0; QA inv-17-search-api-on PASA1/1 auditoría0; reproducciónHTTP autenticado/query400/DTOstock8/no-store/anonbloqueado yOFF404. Sin caller durante eseQA.
 - D-20261118-SEARCH-PENDING: búsquedaServerAction espera cola de guardado, causaNext16confirmada. AjusteProgramador inv-17-3b-search-BCD exit0; b180líneas SINcommit, faltan reproducción tardía/verificación propia/QAafectada.
 - Traspaso docs/TRASPASO-IA.md y prioridad en CONTEXT. Patch+untracked+SHA256 ../_dt/handoff-2026-11-19. Contadoraudit4; flagsfalse/puerto3123libre al inspeccionar. Sinprod/push/deploy/reset.
+
+## 2026-11-19 — Verificacion propia del ajuste de busqueda
+- Director59/59 en5archivos + eslintBuscador/test0. Lectura real diff:9archivos180add+del, no motorcompartido.
+- Director verificar-conteo-respuestas-arjun.cjs PASA: respuesta perdida tras commit -> replay sin duplicado; mientras respuesta retenida busqueda GET encuentra siguienteSKU, cambiaficha y nuevo borrador99; liberar anterior elimina solo nonce enviado y conserva99/nonce nuevo. JS0. TEST apagado/nextenv restaurado.
+- Tsc/build propios inv-17-3b-search-director lanzados; falta QA afectadaON yOFF antes cerrarcommitb. Registro de traspaso no implica fin del backlog.
+
+## 2026-11-19 — Cierre17.3b c51cff5 y auditoría
+- 193added+deleted conQA;9archivosproducto/tests180. Director59/59/lint0/tsc0/build0, warningrootbaseline.
+- Respuesta perdida tras servidorrecibió -> retry sin duplicado; respuesta retenida -> GETbusca/abre siguienteSKU/borrador99 -> liberarviejo conserva99/nonce y limpia solo enviado, JS0 PASA.
+- QA searchON1/1 yOFF1/1, ambas auditoría0/5imágenes/sinpendientes. DirectorOFFPASApersonal redirección/ficha/ausenciaform/JS0. ScriptOFF inicial comparación case-sensitive ignoró CSSuppercase; corregido en script externo y repetido, no appbug.
+- D-SEARCH ARREGLADO y lowcantidad BACKLOG. Flagsfalse/nextenvrestaurado/puerto3123libre comprobados antescommit, stageexplícito; nuncaadd-A.
+- Auditoría inv-audit-17-3b-A sin bloqueantes; decisión vinculante ../_dt/prompts/inv-audit-17-3b-decision.md. Snapshot flagtrue era QAON temporal; descartar refactor genérico de storage, motor sin AbortSignal no afecta latestId probado. Hora duplicada se absorbe18.1. Contador0.
+- TRASPASO actualizado al cierre. Siguiente18.1 preparado; sinpush/deploy/reset/prod.

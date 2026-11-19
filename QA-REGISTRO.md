@@ -314,4 +314,3 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-19 09:09 - inv-17-3b-off - commit 3b69822 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-17-3b-off
 - Sin pendientes nuevos.
-

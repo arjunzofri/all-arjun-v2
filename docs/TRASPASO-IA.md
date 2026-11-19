@@ -10,42 +10,29 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto
-Último commit producto cerrado25262d0 (API lectura GET); anterior docs a90ee5b / puente2626699.
-**17.3b está implementado SIN commit/cierre. Preservar el árbol de trabajo.**
-7 modificados:
-components/inventario/BuscadorInventario.tsx; lib/inventario/conteos.ts;
-app/(dashboard)/productos/[id]/page.tsx y FichaProducto.tsx;
-__tests__/inventario-buscador.test.ts, inventario-conteos-action.test.ts y productos-ficha-lectura.test.ts.
-2 NUEVOS: components/inventario/FormularioConteo.tsx y __tests__/inventario-formulario-contenedor.test.ts.
-Informe Programador:180 added+deleted, Director debe contar otra vez.
-Integra formulario antes de metadatos, key usuarioId:productoId, revalida cache solo éxito/replay, cierra VerTodas.
-Ajuste último: sugerenciasGET exportada usa GET independiente; NO modifica motor compartido.
+## Punto exacto: 17.3b CERRADO
+Commit c51cff5 integra formulario y búsqueda durante guardado:169añadidas+24eliminadas=193 líneas incluyendo QA. Ya NO hay código17.3b sin commit.
+API lectura previa25262d0; checkpoint documental inicial3b69822.
+Director:59/59 dirigidas del ajuste, eslint0, tsc0/build0 (warningroot preexistente), lectura diff9archivos180líneasproducto/tests.
+Prueba real de respuesta perdida/replay/cambioSKU/borrador99 PASA con JS0: GET encuentra siguiente producto ANTES de liberar respuesta del conteo y el borrador nuevo conserva nonce/cantidad.
+QA inv-17-3b-search-on PASA1/1/auditoría0/5imágenes; OFF inv-17-3b-off PASA1/1/auditoría0/5imágenes. Director reprodujo OFF: redirección /inventario -> /productos, ficha antigua/Historial/Editor presentes, sin formulario nuevo, JS0. Primer scriptOFF falló por comparar títulos sin considerar CSSuppercase; se corrigió solo script externo y pasó, no fue defecto de app.
+D-20261118-SEARCH-PENDING ARREGLADO; P-20261118-1917-1 BACKLOG bajo (texto cantidad fuera de rango). Ver QA-REGISTRO y BUGS.
+Flagfalse, next-env restaurado, TEST apagado. Ningún push/deploy/reset/escritura producción.
 
-## Bug abierto y siguiente acción
-D-20261118-SEARCH-PENDING (media), QA-REGISTRO y BUGS.
-Director retuvo respuesta de conteo DESPUÉS de commit TEST: búsqueda ServerAction esperando; al liberar empieza búsqueda. Causa confirmada Next16 node_modules/next/dist/client/components/app-router-instance.js104-160 (cola serial).
-Primera hipótesis confirmada, ningún fix fallido aún; cambio GET evita cola.
-- API25262d0: route42 + test136 + QA/BUGS16 =194. Auth ID numérico -> flag -> query única q trim1..100 -> listarInventario fijo12. Sin costos/nonce/nextCursor; no-store; error genérico.
-- Director API52/52, eslint0, tsc/build0 (warningroot baseline); QA inv-17-search-api-on PASA1/1/auditoría0/4imágenes. Director HTTP real auth/anon bloqueado/query400/stock8/no-store y OFF404 PASA. GET aún sin caller durante ese QA.
-- Programador inv-17-3b-search-BCD terminó exit0; sesión a029acd7-5fbb-4673-a541-bbfa28b195b5; informe ../_dt/logs/inv-17-3b-search-BCD.md.
-- **Falta Director tests/lint/tsc/build del ajuste, reproducción real tardía y QA afectada. No declararlo cerrado por verde del Programador.**
+### Auditoría cerrada y siguiente acción
+Auditoría readonly inv-audit-17-3b-A completada; informe ../_dt/logs/inv-audit-17-3b-A.md; decisión ../_dt/prompts/inv-audit-17-3b-decision.md.
+Sin bloqueantes. Hallazgo flag/nextenv fue snapshot duranteQAON; Director verificó restauración y stage explícito antescommit. No refactor genérico storage ni cambio de motor compartido por estética.
+Contador reiniciado0 tras5slices revisados.
+**Siguiente18.1: contrato aprobado y prompt ../_dt/prompts/inv-18-1-BCD.md listo. Lanzar solo si no existe corrida activa/completa de ese nombre; consultar done/log/status al reanudar.**
+Plan QA18.1 ../_dt/qa/inv-18-1-on.casos.md. Después18.2historial y backlog completo abajo.
+Comandos/tests/guardas y evidencias externas detallados en las secciones siguientes.
 
-Pasos exactos:
-1. Leer diff real, propios tests dirigidos de b+API+hooks, eslint, tsc/build; entorno TEST estricto.
-2. Repetir work/verificar-busqueda-guardado-arjun.cjs: coincidencia debe aparecer ANTES de liberar.
-3. Repetir work/verificar-conteo-respuestas-arjun.cjs: respuesta perdida tras servidor recibió -> Reintentar sin duplicados; pausar otro conteo -> buscar/abrir siguienteSKU -> escribir99 -> liberar viejo ->99/nonce nuevo conservados y SOLO borrador enviado eliminado.
-4. Fallo -> diagnosticar causa antes nuevo fix, no parchear Next.
-5. QA afectada código/descripción desde ficha, SKU/B2, VerTodas,360; OFF1 caso preparado. Conteos8casos ya pasaron ANTES ajuste.
-6. Resolver bug solo con evidencia; low de cantidad enorme puede BACKLOG. Commit explícito9archivos+QA <=200.
-7. Actualizar este archivo/context/AUTO-LOG. Auditoría tras cerrar b (5slices), luego18.1/18.2/backlog.
-
-## Evidencia anterior de conteos (no confundir con ajuste posterior)
+## Evidencia anterior de conteos (complementaria al cierre)
 - inv-17-3b-on PASA8/8, auditoría0,11imágenes, JS0: cero;80+30=110; inválidos; borrador; conflicto2pestañas; logout; dobleclic123; actoradmin.
 - Director82/82, eslint9/tsc/build0. Suite107files pass/2skip;954tests pass/8skip/0fail: verif-inv-17-3b-suite-completa.*.
 - Director dos contextos/cuentas: conflicto50vs60/Seguir/Descartar/revisión explícita, B2 intacta, recarga15,123dobleclic1versión,360nooverflow/JS0 PASA.
 - Low P-20261118-1917-1: entero12dígitos rechazado con texto poco preciso “ingresa un número entero”; no corrupción.
-- OFF aún no ejecutado: ../_dt/qa/inv-17-3-off.casos.md.
+- OFF cerrado PASA1/1 + reproducción propia; casos ../_dt/qa/inv-17-3-off.casos.md.
 
 ## Comandos exactos
 Carpeta externa: C:\Users\pablo\Documents\app-arjun-v2\_dt
@@ -95,5 +82,6 @@ DTO operador sin costos/nonce/ubicación librelegacy. Imagen no destruir antes d
 -Tablaúnica togglevaloresadmin; imagenprimera56, CostopromantesValor, Saldo, quitar3métricas. Operador nunca recibecostos; avisos comprasposteriores/fechasmixtas.
 -CA12 conservarfiltro/búsqueda alvolver, no inventar scroll. refQarrays validar; términopresentealEnviar; foto56/404localizado/retorno/accesodenegado.
 -Release benchmarkSQLvolumenrepresentativo, lintglobal45erroresbaseline/rootwarning, audit/QAbarrridocompleto/UATPablo/Señal3. Resetfinalsolo respaldoygateconcretos.
-Últimoaudit inv-audit-17-3a1-A, decisiones inv-audit-17-3a1-decision.md. Contador4:70fd805,5988073,2626699,25262d0; trasb5->auditar.
+Últimoaudit inv-audit-17-3b-A, decisión inv-audit-17-3b-decision.md; contador0 antes18.1.
 **Sin deploy/push/reset ni escrituras de producción. Al reanudar verificar flagsfalse y puerto3123 libre.**
+

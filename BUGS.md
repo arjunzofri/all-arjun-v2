@@ -586,7 +586,9 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 - Evidencia estatica Director: lib/actions/usuarios.ts crearUsuario solo verifica rol si recibe requestUserId opcional; page llama sin ese argumento. Funcion no llama auth; listarUsuarios tampoco verifica sesion/rol. Proxy protege la ruta, no se ha reproducido aqui una explotacion HTTP ni se afirma incidente de produccion.
 - Contratar y probar guardas reales de sesion/admin dentro de ambas funciones antes DB, sin confiar en actor enviado por cliente; revisar callers y __tests__/usuarios.test.ts. Relacionado con requisito Usuarios solo admin, antes UAT. No hay eliminacion de usuarios en esta API, por lo que no hay impacto de FK conteos sobre un flujo de borrado existente.
 
-## 2026-11-18 — En curso: busqueda espera guardado (modo inventario)
+## 2026-11-18 — ARREGLADO c51cff5: busqueda espera guardado (modo inventario)
 - Director reprodujo con respuesta de conteo retenida despues commit TEST: busqueda permanece esperando2s; al liberar respuesta inicia su POST y aparecen coincidencias. Fuente: BuscadorInventario usa Server Action; cola Next16 app-router-instance.js104-160 serializa acciones. No perdida de conteo.
 - FREEZE respaldo stash80489094099d7b2a9e9fa841232c7d96cc45e79d creado y reaplicado; codigo restaurado. Primera hipotesis confirmada, ningun fix intentado.
 - Corregir lectura de sugerencias mediante GET autenticado independiente; repetir respuesta tardia/reintento/navegacion/borrador99 antes cerrar17.3b.
+
+- Cierre2026-11-19: GET independiente/c51cff5, prueba real de respuesta retenida+cambioSKU+99/replay PASA; QA searchON/OFF PASA y DirectorOFFPASA. Ver AUTO-LOG/TRASPASO. VerTodas también corregido c51cff5; conservar término al enviar sigue BACKLOG separado.
