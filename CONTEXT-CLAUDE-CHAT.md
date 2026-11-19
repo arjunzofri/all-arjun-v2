@@ -1,5 +1,13 @@
 # CONTEXT-CLAUDE-CHAT.md — app-arjun-v2
 
+## LEER PRIMERO — continuidad vigente 2026-11-19
+**[docs/TRASPASO-IA.md](docs/TRASPASO-IA.md) contiene el estado exacto y prevalece sobre estados HISTORICOS debajo.**
+- Repo anidado app-arjun-v2/app-arjun-v2, rama feat/inventario-bodega.
+- API25262d0 cerrada. Integración17.3b9archivos/180líneas SINcommit; ajusteGET falta verificación propia/QA.
+- Respaldo ../_dt/handoff-2026-11-19, NO aplicar sobre cambios presentes.
+- Contadoraudit4; trasb auditar. Flagsfalse, sinpush/deploy/resetreal.
+
+
 ## VIGENTE 2026-11-17 — GO modo inventario
 
 - Pablo aprobo propuesta y maqueta en este chat Codex. Director = Codex; Programador = Claude Code
@@ -288,3 +296,4 @@ Fotos de 10 notas de venta impresas del WinFac enviadas por Pablo (5 Vida Digita
 - Lineas de produccion por slice declaradas en cada commit; slices 3 y 8 divididos en dos commits por el limite de 200.
 
 ### ACTUALIZACION 2026-11-11 05:15 — ver AUTO-LOG.md (cierre de QA, 8 commits sin push esperando UAT de Pablo)
+

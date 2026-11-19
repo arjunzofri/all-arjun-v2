@@ -218,3 +218,8 @@
 - Director26/26 hook+factory+edicion, eslint2archivos0/tsc0/build0(rootwarningbaseline). Lectura propia completa source/tests. Helperestricto pruebas-inventario.ps1 usado porProgramador, sinURLficticia ni envmodificaciones.
 - QA inv17-3a3-on PASA1/1/auditoria0/9imagenesvistas,sin pendientes. Director espero cierreQA yuso helperpropio verificar-director.ps1 (rechaza puertoocupado, levantaTESTconguardas/overrideenvlocal ysiempreapaga): busquedaUNO->DOSsinrecarga,B2,dual/pendiente/cero,360/1280/JS0 PASA. No seafirma flujo conteoUI integrado aun.
 - TESTdetenido/nextenvrestaurado/flagsfalse, sinreset/push/deploy. Contadoraudit3. Sigue17.3b-BCD integracionfinal, prompt9archivos<=200 con identidadFormusuario+producto (nunca nonce/cantidad). Plan8casos+OFF yscriptsDirector completos/respuestastardias listos. Historial18Areadonly lanzado enparalelo para contratosposteriores; no mezclarlo con17.3b.
+
+## 2026-11-19 — Continuidad y API de búsqueda cerrada
+- Commit25262d0 API42+test136+QA/BUGS16=194. Director52/52, eslint0, tsc/build0; QA inv-17-search-api-on PASA1/1 auditoría0; reproducciónHTTP autenticado/query400/DTOstock8/no-store/anonbloqueado yOFF404. Sin caller durante eseQA.
+- D-20261118-SEARCH-PENDING: búsquedaServerAction espera cola de guardado, causaNext16confirmada. AjusteProgramador inv-17-3b-search-BCD exit0; b180líneas SINcommit, faltan reproducción tardía/verificación propia/QAafectada.
+- Traspaso docs/TRASPASO-IA.md y prioridad en CONTEXT. Patch+untracked+SHA256 ../_dt/handoff-2026-11-19. Contadoraudit4; flagsfalse/puerto3123libre al inspeccionar. Sinprod/push/deploy/reset.
