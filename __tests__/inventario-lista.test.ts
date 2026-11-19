@@ -55,9 +55,18 @@ it("stock 0 se ve 0, no Sin contar", () => {
   expect(html).toContain("Total contado: 0 u."); expect(html).not.toContain("Sin contar");
 });
 it("lista vacía: Sin resultados.", () => { expect(htmlLista([])).toContain("Sin resultados."); });
-it("2 posiciones: cada cantidad con su fecha Chile y autor, etiquetas B1/B2 correctas", () => {
-  const html = htmlLista([fila({ stockContado: 8, posiciones: [pos(), pos({ id: 2, bodega: 2, planta: "ARRIBA", pasillo: "IZQUIERDA", posicion: "P", cantidad: 3, usuario: "qa-dos" })] })]);
-  expect(html).toContain("Total contado: 8 u."); expect(html).toContain("B1 · A1 · Medio · 5 u. · 16-11-2026 · qa-uno"); expect(html).toContain("B2 · Arriba · Izquierda · Principal · 3 u. · 16-11-2026 · qa-dos");
+it("2 posiciones: cada cantidad con su fecha-hora Chile y autor, etiquetas B1/B2 correctas", () => {
+  const html = htmlLista([fila({ stockContado: 8, posiciones: [pos(), pos({ id: 2, bodega: 2, planta: "ARRIBA", pasillo: "IZQUIERDA", posicion: "P", cantidad: 3, usuario: "qa-dos", creadoEn: "2026-11-17T12:45:00Z" })] })]);
+  expect(html).toContain("Total contado: 8 u.");
+  expect(html).toContain("B1 · A1 · Medio · 5 u. · 16-11-2026 23:30 · qa-uno");
+  expect(html).toContain("B2 · Arriba · Izquierda · Principal · 3 u. · 17-11-2026 09:45 · qa-dos");
+});
+it("cantidad readonly 148163 con miles es-CL y sin decimales", () => {
+  const html = htmlLista([fila({ stockContado: 148163, posiciones: [pos({ cantidad: 148163 })] })]);
+  expect(html).toContain("Total contado: 148.163 u.");
+  expect(html).toContain("148.163 u.");
+  expect(html).not.toContain("148163");
+  expect(html).not.toMatch(/148\.163[.,]\d/);
 });
 it("fecha Chile cruza medianoche UTC al día anterior; inválida em dash", () => {
   expect(formatearFechaChile("2026-11-17T02:30:00Z")).toBe("16-11-2026"); expect(formatearFechaChile("no-es-fecha")).toBe("—");

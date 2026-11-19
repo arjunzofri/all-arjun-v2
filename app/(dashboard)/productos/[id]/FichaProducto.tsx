@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { FormularioConteo } from "@/components/inventario/FormularioConteo";
-import { formatearFechaChile } from "@/lib/utils/fecha-chile";
+import { formatearFechaChile, formatearHoraChile } from "@/lib/utils/fecha-chile";
+import { formatearNumero } from "@/lib/utils/inversion-formato";
 import { etiquetaUbicacion, type UbicacionInventario } from "@/lib/inventario/ubicaciones";
 import type { FilaInventario, PosicionContada } from "@/lib/inventario/consultas";
-const horaChile = (iso: string) => new Intl.DateTimeFormat("es-CL", { timeZone: "America/Santiago", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 // Cast puntual: el schema de DB restringe estas columnas a los valores del union.
 const ubicacion = (p: PosicionContada) => etiquetaUbicacion({ bodega: p.bodega, planta: p.planta, pasillo: p.pasillo, posicion: p.posicion } as UbicacionInventario);
 export function FichaProducto({ fila, usuarioId, refQ }: { fila: FilaInventario; usuarioId: string; refQ?: string }) {
@@ -25,7 +25,7 @@ export function FichaProducto({ fila, usuarioId, refQ }: { fila: FilaInventario;
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 bg-slate-50 px-5 py-3.5"><h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Conteo</h2></div>
         <div className="min-w-0 px-5 pt-4"><FormularioConteo key={`${usuarioId}:${fila.id}`} fila={fila} usuarioId={usuarioId} /></div>
-        <p className="px-5 pt-4 text-sm font-medium text-slate-800">{fila.stockContado === null ? "Sin contar" : `Total contado: ${fila.stockContado}`}</p>
+        <p className="px-5 pt-4 text-sm font-medium text-slate-800">{fila.stockContado === null ? "Sin contar" : `Total contado: ${formatearNumero(fila.stockContado)}`}</p>
         {fila.posiciones.length === 0 ? (
           <p className="px-5 py-4 text-sm text-slate-400">Sin posiciones contadas</p>
         ) : (
@@ -33,8 +33,8 @@ export function FichaProducto({ fila, usuarioId, refQ }: { fila: FilaInventario;
             {fila.posiciones.map((p) => (
               <li key={p.id} className="min-w-0 break-words rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600">
                 <span className="font-medium text-slate-800">{ubicacion(p)}</span>
-                {" · "}{p.cantidad} u.
-                {" · "}{formatearFechaChile(p.creadoEn)} {horaChile(p.creadoEn)}
+                {" · "}{formatearNumero(p.cantidad)} u.
+                {" · "}{formatearFechaChile(p.creadoEn)} {formatearHoraChile(p.creadoEn)}
                 {" · "}{p.usuario}
               </li>
             ))}

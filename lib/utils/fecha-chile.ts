@@ -15,6 +15,13 @@ export function formatearFechaChile(iso: string): string {
   return new Intl.DateTimeFormat("es-CL", { timeZone: "America/Santiago", day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
 }
 
+/** Timestamp ISO → "HH:mm" (h23) en hora de Chile; inválida → "—". */
+export function formatearHoraChile(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat("es-CL", { timeZone: "America/Santiago", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(d);
+}
+
 /** "YYYY-MM-DD" (o ISO con hora) → "DD-MM-YYYY", sin pasar por Date. */
 export function formatearFechaISO(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);

@@ -4,7 +4,7 @@ import { esUbicacionValida, etiquetaUbicacion, opcionesUbicacion } from "@/lib/i
 import { MAX_TEXTO_CANTIDAD, type BorradorConteo } from "@/lib/inventario/borradores-conteo";
 import type { PosicionContada } from "@/lib/inventario/consultas";
 import type { SeleccionParcial } from "@/lib/inventario/formulario-conteo";
-import { formatearFechaChile } from "@/lib/utils/fecha-chile";
+import { formatearFechaChile, formatearHoraChile } from "@/lib/utils/fecha-chile";
 
 export type MensajeVista = { tono: "exito" | "error" | "info"; texto: string };
 export type ConflictoVista = {
@@ -20,7 +20,6 @@ export type PropsFormularioVista = {
 };
 
 type Opcion = { codigo: string; etiqueta: string };
-const horaChile = (iso: string) => Number.isNaN(Date.parse(iso)) ? "—" : new Intl.DateTimeFormat("es-CL", { timeZone: "America/Santiago", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(iso));
 const Campo = (p: { id: string; etiqueta: string; children: ReactNode }) => (
   <div className="min-w-0">
     <label htmlFor={p.id} className="block text-xs font-semibold text-slate-600">{p.etiqueta}</label>
@@ -74,7 +73,7 @@ export function FormularioConteoVista(p: PropsFormularioVista): ReactElement {
       {p.ubicacion.seleccion && (
         <dl className="grid min-w-0 grid-cols-1 gap-2 rounded-xl bg-slate-50 p-3 text-sm sm:grid-cols-3">
           <div className="min-w-0"><dt className="text-xs font-semibold text-slate-500">Conteo anterior</dt>
-            <dd className="break-words text-slate-700">{vigente ? `${vigente.cantidad} u. · ${formatearFechaChile(vigente.creadoEn)} ${horaChile(vigente.creadoEn)} · ${vigente.usuario}` : "Sin conteo previo"}</dd></div>
+            <dd className="break-words text-slate-700">{vigente ? `${vigente.cantidad} u. · ${formatearFechaChile(vigente.creadoEn)} ${formatearHoraChile(vigente.creadoEn)} · ${vigente.usuario}` : "Sin conteo previo"}</dd></div>
           <div className="min-w-0"><dt className="text-xs font-semibold text-slate-500">Nuevo conteo</dt>
             <dd className="break-words text-slate-700">{p.cantidad.valor ?? "—"}</dd></div>
           <div className="min-w-0"><dt className="text-xs font-semibold text-slate-500">Diferencia</dt>
@@ -103,7 +102,7 @@ export function FormularioConteoVista(p: PropsFormularioVista): ReactElement {
       {p.envio.conflicto && (
         <div role="alert" className="min-w-0 space-y-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           <p className="font-semibold">El conteo cambió mientras editabas</p>
-          <p>Vigente: {p.envio.conflicto.vigente ? `${p.envio.conflicto.vigente.cantidad} u. · ${formatearFechaChile(p.envio.conflicto.vigente.creadoEn)} ${horaChile(p.envio.conflicto.vigente.creadoEn)}` : "sin conteo vigente"}</p>
+          <p>Vigente: {p.envio.conflicto.vigente ? `${p.envio.conflicto.vigente.cantidad} u. · ${formatearFechaChile(p.envio.conflicto.vigente.creadoEn)} ${formatearHoraChile(p.envio.conflicto.vigente.creadoEn)}` : "sin conteo vigente"}</p>
           <p>Tu propuesta: {p.envio.conflicto.propuesta} u.</p>
           <p>Volver a contar no se guarda automáticamente: revisa y guarda de nuevo.</p>
           <div className="flex flex-wrap gap-2">

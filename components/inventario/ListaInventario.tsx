@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
-import { formatearFechaChile } from "@/lib/utils/fecha-chile";
+import { formatearFechaChile, formatearHoraChile } from "@/lib/utils/fecha-chile";
+import { formatearNumero } from "@/lib/utils/inversion-formato";
 import { etiquetaUbicacion, type UbicacionInventario } from "@/lib/inventario/ubicaciones";
 import type { FilaInventario, PosicionContada } from "@/lib/inventario/consultas";
 
@@ -18,10 +19,10 @@ const Ubicaciones = ({ fila }: { fila: FilaInventario }) => fila.posiciones.leng
   : <ul className="space-y-1">{fila.posiciones.map((p) => <li key={p.id} className="break-words text-xs text-slate-600">{ubicacion(p)}</li>)}</ul>;
 const Stock = ({ fila }: { fila: FilaInventario }) => (
   <div className="space-y-1">
-    <span className="block text-sm font-medium text-slate-800">{fila.stockContado === null ? "Sin contar" : `Total contado: ${fila.stockContado} u.`}</span>
+    <span className="block text-sm font-medium text-slate-800">{fila.stockContado === null ? "Sin contar" : `Total contado: ${formatearNumero(fila.stockContado)} u.`}</span>
     {fila.posiciones.length === 0
       ? <span className="block text-xs text-slate-400">Sin posiciones contadas</span>
-      : <ul className="space-y-1">{fila.posiciones.map((p) => <li key={p.id} className="break-words text-xs text-slate-600">{`${ubicacion(p)} · ${p.cantidad} u. · ${formatearFechaChile(p.creadoEn)} · ${p.usuario}`}</li>)}</ul>}
+      : <ul className="space-y-1">{fila.posiciones.map((p) => <li key={p.id} className="break-words text-xs text-slate-600">{`${ubicacion(p)} · ${formatearNumero(p.cantidad)} u. · ${formatearFechaChile(p.creadoEn)} ${formatearHoraChile(p.creadoEn)} · ${p.usuario}`}</li>)}</ul>}
   </div>
 );
 
