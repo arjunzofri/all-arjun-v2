@@ -634,3 +634,6 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 
 ## 2026-11-20 — BACKLOG baja (latente): getComprasAnilDesde con nro_ingreso null
 - Detectado por Programador en 22b-1 (preexistente): el mapa de visaciones indexa `${nro}` (null -> "null") pero el lookup usa `nro ?? ""` -> undefined -> crash. Medicion Director read-only en VD 2026-11-20: 0 filas con knumezet null (vida 466, sanjh 1017). Latente; corregir con guarda cuando se toque esa funcion o antes de release.
+
+## 2026-11-20 — RIESGO release: duracion del sync ON en Vercel
+- 22b-3: cada fila hace ~3 consultas HTTP a Neon. Lote 100 + guarda 8 s. Docs Vercel actuales: Fluid compute 300 s por defecto en todos los planes; sin Fluid, Hobby 10 s (hasta 60 s). No verificado que modo usa el proyecto. Si un dia con muchas filas tardara > 8 s, el watermark no avanzaria (re-lee el mismo dia). Medir en UAT el tiempo real por corrida (respuesta procesadas/pendientes) y ajustar LIMITE_MS o maxDuration antes de activar cron-job.org.

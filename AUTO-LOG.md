@@ -302,3 +302,9 @@
 - Fase A inv-21-A (12:48 UTC) aprobada; decisiones ../_dt/prompts/inv-21-decisiones-director.md (un solo slice; sync de compras fuera).
 - BCD: rojo 8, proxy.ts +28 y test 162 = 190. Director 74/74, eslint/tsc/build 0. verificar-legacy-rutas-arjun.cjs PASA ON y OFF (primer intento ON: script esperaba 1 salto y Next normaliza barra final con 308 previo; script ajustado, no defecto).
 - QA inv-21-on PASA5/5 y off PASA1/1. Pendientes 1000-1/-2 DESCARTADOS (404 esperado). Backlog defensa en profundidad en BUGS. Contador1. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — inv-22 compras: Fase A, gate Pablo y slices 22a, 22b-1, 22b-2a, 22b-2b, 22b-3
+- Fase A inv-22-A: defectos actuales (GL desconocido descartaba compra; watermark sin GREATEST). Gate humano N3/N4 enviado 13:08 UTC; respuesta Pablo 13:11 UTC: N3 backfill de TODO el historico al ledger, stock solo por conteo; N4 cron-job.org con CRON_SECRET, prohibido Vercel Cron si cuesta.
+- 22a e58c632 tabla compras_importadas (migracion 0003 solo TEST). 22b-1 3584bbf query VD con opciones. 22b-2a 8e9bbdd harness + caracterizacion. 22b-2b a624b07 sync ON solo catalogo+ledger. 22b-3 lotes+guarda tiempo. Todas <=196 por particion (Programador hizo STOP dos veces correctamente; Director rechazo ampliar presupuesto).
+- Volumen VD medido read-only: 1483 lineas, max 55/dia, 0 sin catalogo, 0 nro null. Watermark legacy TEST quedo en 2026-11-10 por una corrida roja (solo TEST).
+- Pendiente inv-22: 22c lease concurrencia, 22d ACTUALIZAR + estado en inicio, 22e endpoint cron-job.org con CRON_SECRET. Sin push/deploy/reset/prod.
