@@ -328,3 +328,10 @@
 ## 2026-11-20 — inv-23 sugerencia de bodega (d02d565)
 - Contrato DeepSeek aprobado (ultima compra por fecha_confirmacion DESC, id DESC, sin retroceder; id desde bodegas; GLX/NULL sin sugerencia). 192 lineas. Rojo 8 -> verde.
 - Director: 27 archivos inventario/263 tests verdes, tsc 0, build 0. QA on (ambos flags) PASA 4/4, off (solo inventario) PASA 1/1, 0 errores consola. Fixtures QA23 en compras_importadas TEST creados y limpiados. Flags false. Contador 1.
+
+## 2026-11-20 — inv-24 valorizacion "Inversion segun ultimos conteos" (24a..24e)
+- Contrato DeepSeek aprobado (_dt/prompts/inv-24-decision.md); nota: ejemplo E2 del contrato corregido por el Director (mas reciente primero).
+- 24a bfed91e calculo puro (11 tests). 24b 8f972c2 consultas admin (3 SQL para N productos, guard admin antes de DB). 24c c9a152a desplegable ficha. 24d 28d01f3 columnas/total en lista. 24e interruptor Mostrar valores + redirect /inversion-mercaderia -> /inventario?valores=1 en ON (ajuste Director).
+- Verificacion Director: 42 archivos/427 tests verdes (inventario+inversion), tsc 0, build 0 en cada slice con UI. QA: 24c PASA 4/4 (valores verificados a mano 160,00 / 2,29 / 10 sin costo y captura revisada), 24e PASA 5/5. Fixtures QA24 en compras_importadas TEST creados y limpiados.
+- Benchmark TEST desde PC Pablo (904 productos, 1488 lotes): 3 consultas ~770 ms en caliente (~250 ms de ida y vuelta Chile-us-east por consulta); en Vercel deberia ser menor. Sin indice nuevo.
+- Contador Senal2: 6 -> auditoria.
