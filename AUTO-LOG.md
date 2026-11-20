@@ -293,3 +293,7 @@
 - BCD deepseek se detuvo correctamente: 284 > 196. Director aprobo particion 20.3a query read-only (78), 20.3b accion (170), 20.3c UI (91+QA); Programador separo solo tests (resume de sesion; primer resume fallo por id de sesion de relleno puesto por el Director, sin efectos).
 - Director 59/59, eslint/tsc/build 0. verificar-identificador-ficha-arjun.cjs PASA interceptando /api/identificacion (0 Gemini): variante -> 5179, externo 006 incorporado con metadata del servidor (TERMOMETRO, packing 500) sin duplicar, sin opciones -> /inventario/nuevo; 006 borrado (0 stock/conteos).
 - QA inv-20-3-on PASA3/3, off PASA1/1; P-0930-1 BACKLOG baja (preexistente). Contador6 -> auditoria Senal2 inv-audit-20-3-A. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — Auditoria Senal2 inv-audit-20-3-A y fix
+- Auditoria (12:31 UTC) sin bloqueantes; decision ../_dt/prompts/inv-audit-20-3-decision.md. Fix #1/#2/#3/#4/#6 en un slice (rojo 7, 165 lineas + QA); #5/#7 backlog de schema en BUGS.
+- Director 88/88, eslint/tsc/build 0. QA regresion imagen ON 2/2 y OFF 1/1. Contador 0. Sin push/deploy/reset/prod.

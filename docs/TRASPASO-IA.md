@@ -10,7 +10,10 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — 20.3 identificador CERRADO 20afd3e, siguiente auditoria Senal2 inv-audit-20-3-A
+## Punto exacto de reanudación — auditoria 20.3 y fix CERRADOS, siguiente apagar legacy en ON (inv-21)
+- Contador **0**. Siguiente: Fase A inv-21 apagar rutas/acciones legacy en ON reversiblemente (excepcion /entradas/identificar), con impacto lateral de ../_dt/logs/inv-audit-20-3-A.md. Sync de compras en ON va en el slice de compras (no apagar a ciegas).
+
+## (HISTORICO) 20.3 identificador CERRADO 20afd3e, siguiente auditoria Senal2 inv-audit-20-3-A
 - 20.3a 10f589f, 20.3b f19a2de, 20.3c 20afd3e. Contador **6**: auditoria antes del siguiente backlog (apagar rutas/acciones/sync legacy en ON reversiblemente, excepcion /entradas/identificar).
 
 ## (HISTORICO) 20.1 c9635f4 y 20.2 d5416cb CERRADOS, siguiente 20.3 identificador a ficha

@@ -622,3 +622,9 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 
 ## 2026-11-20 — BACKLOG baja: "Sacar otra foto" sin foto previa no hace nada
 - QA inv-20-3-off EXP-1 (preexistente, ambos modos): en /entradas/identificar el boton reiniciar no cambia nada si no hay foto. Opcion: ocultarlo hasta que exista foto o resultado.
+
+## 2026-11-20 — ARREGLADO (commit fix auditoria 20.3): imagen sin key, ruta imagen 500 no-JSON, alert duplicado, crearProductoManual rechazaba, tope 10 codigos
+- Ver AUTO-LOG. Rojo 7 -> 88/88, QA regresion imagen ON/OFF PASA.
+
+## 2026-11-20 — BACKLOG (decision schema): codigos que difieren solo en mayusculas
+- Auditoria inv-audit-20-3-A #5/#7: primerIdLocal resuelve sin mayusculas, pero UNIQUE(codigo) y upsertProducto son exactos. En carrera con el sync (ABC vs abc) pueden quedar dos productos y abrirProductoIdentificado puede informar incorporado:true con metadata nula. No es regresion (crearEntrada ya usaba el mismo upsert). Fix real: indice unico upper(btrim(codigo)) en migracion aparte, previa verificacion de duplicados existentes en TEST y produccion (produccion: solo lectura hasta Senal3). Nunca drizzle-kit push.
