@@ -643,3 +643,11 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 
 ## 2026-11-20 — ARREGLADO bec410a / 46e01c1 / 51342c3 (22d): fetch sin contexto, hora +3h, guarda dia lleno
 - Reproducidos por el Director con backfill real en TEST (boton y ruta). Ver commits.
+
+## 2026-11-20 — Backlog auditoria inv-audit-22e-A (no bloqueante)
+- D3 duracion: sync ON hace ~3 round trips por linea (100/lote). Estado estable <=55 lineas/dia (~7 s); backfill inicial via ACTUALIZAR (maxDuration 60). Si Vercel mide >25 s por corrida: INSERT set-based (unnest) o lote menor.
+- D5 ledger insert-only: correcciones posteriores de una compra en Vida Digital no se reflejan (costo original). Decision Director; revisar en UAT antes de valorizar.
+- D6 tests: DDL de 0004 en beforeAll de varios archivos puede chocar en paralelo (solo tests).
+- ACTUALIZAR disponible para cualquier sesion (no solo admin): revisar en UAT.
+- syncComprasAnil(corte,{modo:"on"}) es entrada solo-tests y omite el lease; sin caller productivo.
+- Harness de tests borra la key global compras-anil-ledger en TEST (ya anotado); el Director la restaura tras correr la suite.

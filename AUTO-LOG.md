@@ -319,3 +319,8 @@
 - Backfill completo final TEST: 98 corridas sin error, ledger 1483 filas / 169710 u. / 847078.81 = exacto VD; stock/movimientos/conteos sin cambio; 12.9 s prom, 37 s max por corrida desde PC Pablo.
 - 22e 84ade79 endpoint cron-job.org (CRON_SECRET, timingSafeEqual, flag OFF 409, allowlist exacta, maxDuration 60). Guia docs/OPERACION-CRON-COMPRAS.md (pasos UAT de Pablo).
 - QA inv-22d-on PASA4/4, off PASA1/1. Ledger TEST vaciado y recargado por el Director (solo datos de verificacion). Contador 6 -> auditoria. Sin push/deploy/reset/prod; migraciones 0003/0004 solo TEST.
+
+## 2026-11-20 — Auditoria inv-audit-22e-A + inv-22e-fix
+- Auditoria Senal2 (DeepSeek, horario economico): sin bloqueantes; decision _dt/prompts/inv-audit-22e-decision.md. D1 medido en TEST: 0 filas item NULL (precondicion solo de prod, agregada a la guia).
+- inv-22e-fix (123 lineas): D2 estado error/Compras al, D4 watermark 1900, D7 key harness, D8 incompleto, D9 finally, cron ocupado 200 enCurso. Rojo 7 -> verde; Director: 9 archivos/54 tests verdes, tsc 0, build 0; QA on PASA 4/4, off PASA 1/1, 0 errores de consola.
+- Contador Senal2: 0.
