@@ -266,3 +266,9 @@
 - 3 archivos 184+8=192; test recortado/compactado por Programador (263->148) pero cubre todos los riesgos de inv-15-B; aceptado. QA-REGISTRO9 en commit docs.
 - Director 38/38 dirigidos (edicion-segura, update-validacion, api, ficha-lectura, lectura-segura), eslint3=0, tsc0, build0. verificar-patch-productos-arjun.cjs PASA (anonimo redirigido sin edicion, 400 id, 400 ubicacion/null ON, 200 valido sin SQL, auditoria id admin 534 pese a usuarioId 999999).
 - QA inv-15-on PASA2/2, inv-15-off PASA2/2, consola0. P-0117-1 BACKLOG baja (refresh legado), P-0117-2 DESCARTADO informativo. 5179 restaurado (preparar-conteo-qa + preparar-historial-qa). Contador4. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — Contrato inv-19 y cierre 19.1 4b71811
+- Fase A inv-19-editor-A (04:19 UTC, economico) aprobada: particion 19.1 editor datos / 19.2 imagen CAS; decisiones ../_dt/prompts/inv-19-decisiones-director.md (vacio=no cambiar; sin Cloudinary real en QA; packing>0).
+- 19.1 BCD 302s, 196 lineas (rojo B por modulo inexistente). Corte de conexion al PC 04:30-11:10 UTC; verificacion retomada 11:11 UTC (economico).
+- Director 34/34, eslint3=0, tsc0, build0. verificar-editor-ficha-arjun.cjs PASA (primer intento fallo por seleccion de texto del script, que escribio obs mezclada en 5179 TEST: restaurado y corregido con Ctrl+A).
+- QA inv-19-1-on PASA5/5, off PASA1/1, consola0; P-0818-1 DESCARTADO (recorte esperado). 5179 restaurado. Contador5 -> auditoria Senal2 antes de 19.2.

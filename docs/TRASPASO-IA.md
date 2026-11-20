@@ -10,7 +10,11 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — inv-15 AuthWRITE CERRADO b62f69b
+## Punto exacto de reanudación — 19.1 editor ficha CERRADO 4b71811, siguiente auditoria Senal2 y luego 19.2
+- 19.1 commit 4b71811 (196 lineas). Contrato inv-19 ../_dt/logs/inv-19-editor-A.md + decisiones ../_dt/prompts/inv-19-decisiones-director.md. Contador **5**: correr auditoria ponytail (inv-audit-19-1-A) antes de 19.2.
+- 19.2 imagen CAS: prompt ../_dt/prompts/inv-19-2-BCD.md y QA ../_dt/qa/inv-19-2-on/off.casos.md listos. Nunca Cloudinary real.
+
+## (HISTORICO) inv-15 AuthWRITE CERRADO b62f69b
 - Commit b62f69b (192 lineas). updateProducto/PATCH autentican y auditan con sesion; ubicacion libre rechazada en ON. Ver AUTO-LOG. Contador **4** (audit obligatorio al superar 5).
 - Siguiente backlog: editor nuevo de ficha ON (alias/packing/observaciones sin ubicacion, con revalidate) + imagen (upload->CAS DB->cleanup). Requiere Fase A nueva.
 

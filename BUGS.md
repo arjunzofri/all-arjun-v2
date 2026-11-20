@@ -604,3 +604,7 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 
 ## 2026-11-20 — BACKLOG baja: editor legado OFF no refresca tarjeta tras guardar
 - QA inv-15-off EXP-1: tras "Cambios guardados correctamente" la tarjeta superior de /productos/[id] muestra valores viejos hasta recargar. Preexistente: form.tsx/updateProducto sin revalidatePath; inv-15 no lo toco por contrato. Incluir revalidatePath/refresh en el contrato del editor nuevo de ficha (alias/packing/observaciones) antes de UAT.
+
+## 2026-11-20 — PREGUNTA UAT: vaciar alias/packing/observaciones desde el editor
+- inv-19.1: en el editor nuevo (y el legado) un campo vacio significa "no cambiar"; no se puede borrar un alias u observacion. Decision Director (opcion a): mantener por R15 "restricciones actuales" y no tocar el schema compartido con PATCH OFF. Consultar a Pablo en UAT si quiere permitir borrar (schema aceptando null, ~10 lineas + tests).
+- Correccion documental: la entrada antigua que dice que packing acepta 0 (nonnegative) esta desactualizada; el codigo real exige packing entero > 0 (lib/validations/producto.ts, productos-update-validacion.test.ts).

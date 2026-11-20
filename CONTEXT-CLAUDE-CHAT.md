@@ -3,9 +3,9 @@
 ## LEER PRIMERO — continuidad vigente 2026-11-19
 **[docs/TRASPASO-IA.md](docs/TRASPASO-IA.md) contiene el estado exacto y prevalece sobre estados HISTORICOS debajo.**
 - Repo anidado app-arjun-v2/app-arjun-v2, rama feat/inventario-bodega.
-- API25262d0, conteos17.3b c51cff5 y formato18.1 e09a114 e historial18.2 69a9e05 UsuariosR8 c6878dc y AuthWRITE productos b62f69b CERRADOS con verificación propia y QAON/OFF. Siguiente ver TRASPASO.
+- API25262d0, conteos17.3b c51cff5 y formato18.1 e09a114 e historial18.2 69a9e05 UsuariosR8 c6878dc AuthWRITE productos b62f69b y editor ficha 19.1 4b71811 CERRADOS con verificación propia y QAON/OFF. Siguiente ver TRASPASO.
 - Respaldo ../_dt/handoff-2026-11-19, NO aplicar sobre cambios presentes.
-- Auditoría inv-audit-17-3b-A cerrada sin bloqueantes, contador4 tras18.1,18.2,R8 e inv-15. Árbolsinproducto pendiente, sin trabajos activos, flagsfalse, sinpush/deploy/resetreal.
+- Auditoría inv-audit-17-3b-A cerrada sin bloqueantes, contador5 tras18.1,18.2,R8,inv-15 y19.1; auditoria Senal2 antes de 19.2. Árbolsinproducto pendiente, sin trabajos activos, flagsfalse, sinpush/deploy/resetreal.
 
 
 ## VIGENTE 2026-11-17 — GO modo inventario

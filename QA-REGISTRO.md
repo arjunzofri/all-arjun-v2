@@ -348,3 +348,11 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-15-off
 - [x] P-20261120-0117-1 (baja) HALLAZGO: EXP-1 — La ficha de datos no se refresca tras guardar; muestra los valores viejos hasta recargar -> BACKLOG baja: preexistente en editor legado OFF (inv-15 no toco form ni revalidate por contrato); se resuelve con revalidatePath en el contrato de editor nuevo/UI. Ver BUGS.
 - [x] P-20261120-0117-2 (media) HALLAZGO: EXP-2 — Validación de packing inválido (0) funciona y no altera datos -> DESCARTADO: informativo, comportamiento correcto segun el propio agente.
+
+## 2026-11-20 08:18 - inv-19-1-on - commit 70a2485 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-19-1-on
+- [x] P-20261120-0818-1 (baja) HALLAZGO: EXP-2 — Alias con espacios: se muestra recortado tras guardar -> DESCARTADO: comportamiento esperado (construirPayload recorta, cubierto en productos-editor-ficha-on).
+
+## 2026-11-20 08:20 - inv-19-1-off - commit 70a2485 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-19-1-off
+- Sin pendientes nuevos.
