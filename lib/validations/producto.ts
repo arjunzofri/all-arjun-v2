@@ -16,3 +16,11 @@ export const updateProductoSchema = z.object({
 });
 
 export type UpdateProductoInput = z.infer<typeof updateProductoSchema>;
+// Creacion manual/historica (sin stock). No modifica updateProductoSchema.
+export const crearProductoSchema = z.object({
+  codigo: z.string().trim().min(1, "Código requerido").max(30, "El código no puede superar 30 caracteres"),
+  detalle: z.string().trim().optional(),
+  packing: z.number().int("El packing debe ser un entero mayor o igual que 0").nonnegative("El packing debe ser un entero mayor o igual que 0").optional(),
+  imagenUrl: z.string().max(500).nullable().optional(),
+});
+export type CrearProductoInput = z.infer<typeof crearProductoSchema>;

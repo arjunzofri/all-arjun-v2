@@ -1,12 +1,15 @@
 ﻿"use server";
 
+import { neon } from "@neondatabase/serverless";
 import { db } from "@/db";
 import { productos, movimientos, activityLog, stock, bodegas, modulos, movimientoVisaciones } from "@/db/schema";
 import { eq, and, lt, gt, desc, or, ilike, inArray, sql } from "drizzle-orm";
 import { mergeProductStock } from "@/lib/utils/merge-product-stock";
 import { fechaChileDeTimestamp } from "@/lib/utils/fecha-chile";
-import { productoIdSchema, updateProductoSchema, type UpdateProductoInput } from "@/lib/validations/producto";
+import { productoIdSchema, updateProductoSchema, crearProductoSchema, type UpdateProductoInput, type CrearProductoInput } from "@/lib/validations/producto";
 import { exigirModoOperativo } from "@/lib/inventario/modo";
+import { primerIdLocal } from "@/lib/inventario/productos-locales";
+import { upsertProducto } from "@/lib/sync/compras-anil";
 import { auth } from "@/lib/auth";
 import { flagActivo } from "@/lib/feature-flags";
 
@@ -240,4 +243,33 @@ export async function updateProducto(
   }
 
   return { ok: true, producto: updated };
+}
+
+// ── Crear producto manual (sin stock; unico INSERT via upsertProducto) ───
+export async function crearProductoManual(
+  input: CrearProductoInput
+): Promise<{ ok: true; id: number; existente: boolean } | { ok: false; error: string }> {
+  const session = await auth();
+  const usuarioId = Number(session?.user?.id);
+  if (!Number.isSafeInteger(usuarioId) || usuarioId <= 0) return { ok: false, error: "No autorizado" };
+  if (!flagActivo("inventario_bodega")) {
+    return { ok: false, error: "El inventario de bodega no está habilitado" };
+  }
+  const parsed = crearProductoSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos invalidos" };
+  const { codigo, detalle, packing, imagenUrl } = parsed.data;
+  // 1) Ya existe localmente (sin distinguir mayusculas): no se escribe nada.
+  const existente = await primerIdLocal([codigo]);
+  if (existente !== null) return { ok: true, id: existente, existente: true };
+  // 2) Mismo upsert que sync y entradas; nunca stock, conteos ni movimientos.
+  await upsertProducto(neon(process.env.DATABASE_URL!), {
+    codigo,
+    detalle: detalle ?? null,
+    cantcaja: packing ?? null,
+    imagenUrl: imagenUrl ?? null,
+  });
+  // 3) Relectura: doble clic o carrera con el sync devuelven la misma fila.
+  const [creado] = await db.select({ id: productos.id }).from(productos).where(eq(productos.codigo, codigo));
+  if (!creado) return { ok: false, error: "No se pudo crear el producto" };
+  return { ok: true, id: creado.id, existente: false };
 }
