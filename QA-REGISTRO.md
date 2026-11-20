@@ -472,3 +472,12 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - Fase E hecha por el Director con navegador y POST de imagen interceptado (sin Cloudinary): verificar-imagen-reducida-arjun.cjs. Foto 12,4 MB -> enviada JPEG 1,25 MB; error JSON y 413 muestran mensaje fijo. Sin pendientes.
 ## 2026-11-20 22:40 - inv-29-on (Director) - commit 29e61d0 - PASA (tests)
 - Ninguna pantalla ON usa las 8 lecturas legacy; el gate en ON se verifica con spies de DB (lecturas-legacy-gate.test.ts: rechazo antes de SQL). Sin pendientes.
+
+## 2026-11-20 20:09 - inv-barrido-on - commit 13efd48 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-barrido-on
+- Sin pendientes nuevos.
+
+## 2026-11-20 20:09 - inv-barrido-on-barrido - commit 13efd48 - INVALIDO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-barrido-on-barrido
+- [x] P-20261120-2009-1 (alta) ROTO: Ficha 1130-3 - "Pendiente de contar": (ver FALTA-1) -> ARREGLADO inv-31: el desplegable lleva rotulo "Valorización" y sin conteos muestra "Este producto aún no tiene conteos..." (tests rojos->verdes; se re-verifica en el barrido siguiente).
+- [x] P-20261120-2009-2 (baja) FALTA: FALTA-1 — La sección "Pendiente de contar" se abre vacía, sin estado vacío -> ARREGLADO inv-31 (mismo origen que P-20261120-2009-1).

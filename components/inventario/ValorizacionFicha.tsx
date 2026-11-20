@@ -9,18 +9,22 @@ const columnas: { label: string; valor: (p: PartidaValorizacion) => string }[] =
   { label: "Costo unit.", valor: (p) => (p.costoUnitario === null ? "—" : formatearMoneda(p.costoUnitario)) },
   { label: "Valor", valor: (p) => (p.valor === null ? "—" : formatearMoneda(p.valor)) },
 ];
+const MENSAJE_ERROR = "No se pudo cargar la valorización";
+const MENSAJE_SIN_CONTEO = "Este producto aún no tiene conteos. La valorización se calcula con el último conteo físico.";
 const rango = (v: ValorizacionCodigo) => v.fechaConteoMin === v.fechaConteoMax
   ? `Conteo: ${formatearFecha(v.fechaConteoMin)}`
   : `Conteos: ${formatearFecha(v.fechaConteoMin)} a ${formatearFecha(v.fechaConteoMax)}`;
 
 /** Desplegable de valorización por lotes. Solo se renderiza para admin. */
 export function ValorizacionFicha({ valorizacion: v, error }: { valorizacion: ValorizacionCodigo | null; error: boolean }) {
-  const resumen = error ? "No se pudo cargar la valorización"
+  const resumen = error ? MENSAJE_ERROR
     : v === null ? "Pendiente de contar"
     : `Costo prom.: ${formatearPromedio(v.costoPromedio)} · Valor: ${formatearMoneda(v.valorTotal)}`;
   return (
     <details className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <summary className="cursor-pointer break-words px-5 py-3.5 text-sm font-semibold text-slate-800">{resumen}</summary>
+      <summary className="cursor-pointer break-words px-5 py-3.5 text-sm font-semibold text-slate-800">Valorización · {resumen}</summary>
+      {error && <div className="min-w-0 border-t border-slate-100 px-5 py-4"><p className="text-sm text-red-600">{MENSAJE_ERROR}</p></div>}
+      {!error && v === null && <div className="min-w-0 border-t border-slate-100 px-5 py-4"><p className="text-sm text-slate-400">{MENSAJE_SIN_CONTEO}</p></div>}
       {!error && v !== null && (
         <div className="min-w-0 border-t border-slate-100 px-5 py-4">
           <p className="mb-2 text-xs text-slate-500">{rango(v)}</p>

@@ -93,6 +93,29 @@ it("7. no aparecen los indicadores prohibidos", async () => {
   for (const txt of ["Unidades en stock", "Códigos con stock", "Unidades sin costo"]) expect(out).not.toContain(txt);
 });
 
+it("9. sin conteos: summary «Valorización · Pendiente de contar» y cuerpo explicativo", async () => {
+  rol("admin");
+  m.valor.mockResolvedValue(null);
+  const out = await html();
+  expect(out).toContain("Valorización · Pendiente de contar");
+  expect(out).toContain("Este producto aún no tiene conteos. La valorización se calcula con el último conteo físico.");
+});
+
+it("10. con valorización: el summary lleva el rótulo «Valorización · Costo prom.» antes de «Valor:»", async () => {
+  rol("admin");
+  const out = await html();
+  expect(out).toContain("Valorización · Costo prom.:");
+  expect(out.indexOf("Costo prom.")).toBeLessThan(out.indexOf("Valor:"));
+});
+
+it("11. error: summary y cuerpo muestran el mensaje fijo (2 veces)", async () => {
+  rol("admin");
+  m.valor.mockRejectedValue(new Error("boom"));
+  const out = await html();
+  expect(out).toContain("Valorización · No se pudo cargar la valorización");
+  expect(out.match(/No se pudo cargar la valorización/g) ?? []).toHaveLength(2);
+});
+
 it("8. fallo de la acción → mensaje fijo y ficha base intacta", async () => {
   rol("admin");
   m.valor.mockRejectedValue(new Error("postgres://secreto"));
