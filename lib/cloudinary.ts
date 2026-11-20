@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 
 const CLOUD_NAME = "dbl8yxnjy"; // Arjun
 const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
+export const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+export const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
 
 export function extraerPublicId(url: string | null): string | null {
   if (!url) return null;

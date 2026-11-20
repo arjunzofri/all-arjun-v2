@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ProductoThumbnail } from "@/components/ProductoThumbnail";
+import { ImagenProducto } from "./imagen";
 import { FormularioConteo } from "@/components/inventario/FormularioConteo";
 import { HistorialConteos } from "@/components/inventario/HistorialConteos";
 import { EditorFichaProducto } from "@/components/inventario/EditorFichaProducto";
@@ -19,7 +19,7 @@ export function FichaProducto({ fila, usuarioId, refQ }: { fila: FilaInventario;
         Volver a inventario
       </Link>
       <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
-        <div className="shrink-0"><ProductoThumbnail src={fila.imagenUrl} alt={fila.codigo} size="lg" /></div>
+        <div className="w-40 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white"><ImagenProducto productoId={fila.id} imagenUrl={fila.imagenUrl} /></div>
         <div className="min-w-0">
           <p className="text-xs font-semibold text-violet-600 uppercase tracking-widest mb-1">Producto</p><h1 className="break-words text-2xl font-bold text-slate-900">{fila.codigo}</h1>
           {fila.detalle && <p className="mt-1.5 break-words text-sm leading-relaxed text-slate-500">{fila.detalle}</p>}
