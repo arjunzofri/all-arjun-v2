@@ -1,6 +1,22 @@
 import { auth } from "@/lib/auth";
+import { flagActivo } from "@/lib/feature-flags";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+
+const SEGMENTO_LEGACY = ["salidas", "retornos", "transferencias", "movimientos", "bodegas", "modulos"];
+const API_LEGACY = ["/api/productos", "/api/productos/por-bodega"];
+
+function normalizar(pathname: string) {
+  return pathname.replace(/\/+$/, "") || "/";
+}
+
+/** Páginas legacy que se apagan con el modo inventario (nunca /productos/[id] ni /entradas/identificar). */
+export function esRutaLegacy(pathname: string): boolean {
+  const segmentos = normalizar(pathname).split("/").filter(Boolean);
+  if (segmentos[0] === "entradas") return !(segmentos.length === 2 && segmentos[1] === "identificar");
+  if (segmentos[0] === "productos") return segmentos.length === 1;
+  return SEGMENTO_LEGACY.includes(segmentos[0] ?? "");
+}
 
 export async function proxy(request: NextRequest) {
   const session = await auth();
@@ -35,6 +51,18 @@ export async function proxy(request: NextRequest) {
   const role = (session.user as { role?: string }).role;
   if (pathname === "/usuarios" && role !== "admin") {
     return new NextResponse("No autorizado", { status: 403 });
+  }
+
+  // Modo inventario ON: apaga páginas y APIs legacy. OFF: comportamiento intacto.
+  if (flagActivo("inventario_bodega")) {
+    const ruta = normalizar(pathname);
+    if (esRutaLegacy(pathname) || API_LEGACY.includes(ruta)) {
+      // API o mutación: 404 (nunca reenviar un POST a /inventario)
+      if (ruta.startsWith("/api/") || request.method !== "GET") {
+        return NextResponse.json({ error: "No disponible" }, { status: 404 });
+      }
+      return NextResponse.redirect(new URL("/inventario", request.url));
+    }
   }
 
   return NextResponse.next();
