@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { neon } from "@neondatabase/serverless";
 import { syncComprasAnil } from "@/lib/sync/compras-anil";
+import { flagActivo } from "@/lib/feature-flags";
 import { registrarConciliacion } from "@/lib/sync/conciliacion-compras";
 
 export async function POST(): Promise<NextResponse> {
@@ -12,12 +13,18 @@ export async function POST(): Promise<NextResponse> {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
+  const on = flagActivo("inventario_bodega");
   const sql = neon(process.env.DATABASE_URL!);
-  const rows = await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil'`;
-  const corte = (rows as { value: string }[])[0]?.value ?? "2026-05-01";
+  const rows = on
+    ? await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil-ledger'`
+    : await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil'`;
+  const corte =
+    (rows as { value: string }[])[0]?.value ?? (on ? "1900-01-01" : "2026-05-01");
 
   try {
-    const result = await syncComprasAnil(corte);
+    const result = on
+      ? await syncComprasAnil(corte, { modo: "on" })
+      : await syncComprasAnil(corte);
     if (result.conciliacion !== undefined) {
       // Auditoría best-effort: si falla el log, el sync responde 200 igual.
       try {

@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { getComprasAnilDesde } from "@/db/vidadigital/queries";
+import { guardarCompraImportada } from "@/lib/sync/compras-importadas";
 import { flagActivo } from "@/lib/feature-flags";
 import {
   conciliarComprasAnil,
@@ -16,6 +17,8 @@ const BODEGA_ID: Record<string, number> = {
 
 const SYNC_KEY = "compras-anil";
 const ORIGEN_KEY = "compras-anil-desde";
+const LEDGER_KEY = "compras-anil-ledger";
+const LEDGER_DESDE_KEY = "compras-anil-ledger-desde";
 
 export interface SyncComprasAnilResultado {
   procesadas: number;
@@ -111,12 +114,58 @@ export async function insertarMovimientoSync(
   }
 }
 
+// ── Sync en modo inventario ON: solo ledger (inv-22b) ───────────────
+
+async function syncLedger(
+  sql: { (strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown> },
+  corte: string,
+): Promise<SyncComprasAnilResultado> {
+  await sql`
+    INSERT INTO sync_watermark (key, value)
+    VALUES (${LEDGER_DESDE_KEY}, '1900-01-01')
+    ON CONFLICT (key) DO NOTHING
+  `;
+
+  const compras = await getComprasAnilDesde(corte, { incluirSinMetadata: true });
+  let maxFecha = corte;
+  for (const c of compras) if (c.fechconf && c.fechconf > maxFecha) maxFecha = c.fechconf;
+
+  let procesadas = 0;
+  for (const compra of compras) {
+    if (!compra.fechconf) continue;
+    await upsertProducto(sql, compra); // nunca escribe ubicación ni pisa campos manuales
+    const prod = (await sql`
+      SELECT id FROM productos WHERE codigo = ${compra.codigo}
+    `) as { id: number }[];
+    if (!prod[0]) continue;
+    await guardarCompraImportada(sql, {
+      ...compra,
+      productoId: prod[0].id,
+      bodegaCodigo: compra.bodegaCodigo ?? null,
+      fechaNota: compra.fechanvt,
+      fechaConfirmacion: compra.fechconf,
+    });
+    procesadas++;
+  }
+
+  await sql`
+    INSERT INTO sync_watermark (key, value)
+    VALUES (${LEDGER_KEY}, ${maxFecha})
+    ON CONFLICT (key) DO UPDATE
+      SET value = GREATEST(sync_watermark.value, EXCLUDED.value)
+  `;
+  return { procesadas, watermark: maxFecha };
+}
+
 // ── Sync principal ────────────────────────────────────────────────────
 
 export async function syncComprasAnil(
   corte: string,
+  opciones: { modo?: "on" | "off" } = {},
 ): Promise<SyncComprasAnilResultado> {
   const sql = neon(process.env.DATABASE_URL!);
+
+  if (opciones.modo === "on") return syncLedger(sql, corte);
 
   // Defensa: validar que BODEGA_ID coincida con las filas reales en bodegas/modulos.
   // Si alguien recrea las tablas y los serials quedan desalineados, el sync
