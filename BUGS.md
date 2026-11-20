@@ -601,3 +601,6 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 ## 2026-11-19 — ARREGLADO c6878dc: permisos server-actions Usuarios (R8)
 - Causa raiz: crearUsuario autorizaba solo si el cliente enviaba requestUserId opcional y listarUsuarios no verificaba sesion. Fix: exigirAdmin() con auth() antes de SQL en ambas, DTO sin hash, sin actor de cliente.
 - Evidencia: rojo B 10 fallos -> 29/29 verdes; replay Director de server actions como operador/anonimo con control positivo admin (verificar-usuarios-r8-arjun.cjs) PASA; QA ON 4/4 y OFF 1/1. Limitacion declarada: rol del JWT firmado hasta renovar sesion.
+
+## 2026-11-20 — BACKLOG baja: editor legado OFF no refresca tarjeta tras guardar
+- QA inv-15-off EXP-1: tras "Cambios guardados correctamente" la tarjeta superior de /productos/[id] muestra valores viejos hasta recargar. Preexistente: form.tsx/updateProducto sin revalidatePath; inv-15 no lo toco por contrato. Incluir revalidatePath/refresh en el contrato del editor nuevo de ficha (alias/packing/observaciones) antes de UAT.

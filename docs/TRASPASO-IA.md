@@ -10,7 +10,11 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — UsuariosR8 CERRADO c6878dc, siguiente AuthWRITE productos (inv-15)
+## Punto exacto de reanudación — inv-15 AuthWRITE CERRADO b62f69b
+- Commit b62f69b (192 lineas). updateProducto/PATCH autentican y auditan con sesion; ubicacion libre rechazada en ON. Ver AUTO-LOG. Contador **4** (audit obligatorio al superar 5).
+- Siguiente backlog: editor nuevo de ficha ON (alias/packing/observaciones sin ubicacion, con revalidate) + imagen (upload->CAS DB->cleanup). Requiere Fase A nueva.
+
+## (HISTORICO) UsuariosR8 CERRADO c6878dc, siguiente AuthWRITE productos (inv-15)
 - UsuariosR8 commit **c6878dc** (189 líneas incl QA). Ver AUTO-LOG Cierre UsuariosR8 y BUGS (ARREGLADO + BACKLOG media errores esperados como valor antes UAT). Contador **3**.
 - Siguiente AuthWRITE productos: contrato INV-13.3 en ../_dt/logs/inv-13-lectura-A.md (sección Contrato INV-13.3) + prompt ../_dt/prompts/inv-15-BCD.md y plan QA ../_dt/qa/inv-15-on/off.casos.md preparados por Director 2026-11-19 23:30. Lanzar SOLO en horario permitido.
 

@@ -260,3 +260,9 @@
 - Director verificar-usuarios-r8-arjun.cjs PASA: replay de next-action listar/crear como operador y anonimo sin lista ni usuario forjado, control positivo admin, sin hash en respuestas. Dos intentos iniciales fallaron por el script (cabecera sin interceptacion; selector tomaba buscador global), corregidos en script externo, no app.
 - QA inv-usuarios-r8-on PASA4/4 auditoria0; off PASA1/1. P-2256-2 alta (500 consola) DESCARTADO duplicado de P-2256-1; P-2256-1 BACKLOG media errores esperados como valor (BUGS). 403 operador esperado.
 - TEST: borrado solo qa-r8-2253 (id881) y qa-r8d-* propios. Flagsfalse, puerto libre. Contador3 desde audit17.3b. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — Cierre inv-15 AuthWRITE productos b62f69b
+- Lanzado 04:03 UTC (horario economico DeepSeek), BCD 369s. Rojo B 7 fallos reales (sin sesion ok:true, auditoria con id forjado, ubicacion ON guardada, NaN a SQL, PATCH ubicacion 200).
+- 3 archivos 184+8=192; test recortado/compactado por Programador (263->148) pero cubre todos los riesgos de inv-15-B; aceptado. QA-REGISTRO9 en commit docs.
+- Director 38/38 dirigidos (edicion-segura, update-validacion, api, ficha-lectura, lectura-segura), eslint3=0, tsc0, build0. verificar-patch-productos-arjun.cjs PASA (anonimo redirigido sin edicion, 400 id, 400 ubicacion/null ON, 200 valido sin SQL, auditoria id admin 534 pese a usuarioId 999999).
+- QA inv-15-on PASA2/2, inv-15-off PASA2/2, consola0. P-0117-1 BACKLOG baja (refresh legado), P-0117-2 DESCARTADO informativo. 5179 restaurado (preparar-conteo-qa + preparar-historial-qa). Contador4. Sin push/deploy/reset/prod.
