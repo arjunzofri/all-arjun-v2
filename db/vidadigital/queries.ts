@@ -396,6 +396,37 @@ export function deduplicarCatalogo(
 }
 
 /**
+ * Metadata de un código exacto (trim + sin distinguir mayúsculas), para
+ * incorporar un producto que solo existe afuera. Solo SELECT.
+ * Orden determinista: primero filas con imagen y detalle.
+ */
+export async function getProductoExternoPorCodigo(
+  codigo: string
+): Promise<ProductoHistorico | null> {
+  const db = getVidaDigitalClient();
+  const result = await db.execute(
+    sql`
+      SELECT codigo, detalle, imagen_url AS imagen, cantcaja
+      FROM public.productos
+      WHERE upper(btrim(codigo)) = upper(btrim(${codigo}))
+      ORDER BY (imagen_url IS NULL OR btrim(imagen_url) = ''),
+               (detalle IS NULL OR btrim(detalle) = ''),
+               btrim(codigo), detalle, imagen_url
+      LIMIT 1
+    `
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { rows } = result as any as {
+    rows: { codigo: string; detalle: string | null; imagen: string | null; cantcaja: number | null }[];
+  };
+  const r = rows[0];
+  return r
+    ? { codigo: r.codigo, detalle: r.detalle, imagenUrl: r.imagen, packing: r.cantcaja }
+    : null;
+}
+
+/**
  * Catálogo completo con imagen para identificación por foto.
  * Solo SELECT. No filtra por empresa_id a propósito: compras de Anil
  * pueden venir de Sanjh (empresa_id=1) o Vida Digital (empresa_id=2).
