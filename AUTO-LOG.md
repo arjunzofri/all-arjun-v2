@@ -288,3 +288,8 @@
 - 20.1 crearProductoManual: rojo 7/7, 195 lineas, Director 35/35, eslint/tsc/build 0. ON CONFLICT de upsertProducto revisado (COALESCE no pisa ubicacion/imagen). Sin UI ni QA navegador.
 - 20.2 /inventario/nuevo + NuevoProducto + link shell: 193 lineas, Director 46/46, eslint/tsc/build 0. verificar-nuevo-producto-arjun.cjs: 20 sugerencias VD reales, relleno correcto (primer intento: selector incluia buscador de cabecera, script corregido).
 - QA inv-20-2-on PASA6/6, off PASA1/1. Pendientes 0912-1 y 0915-1 DESCARTADOS con evidencia. Productos QA 5538/5539 borrados de TEST: 0 filas stock/conteos/movimientos (confirma creacion sin stock). Contador3. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — Cierre 20.3 identificador a ficha (10f589f / f19a2de / 20afd3e)
+- BCD deepseek se detuvo correctamente: 284 > 196. Director aprobo particion 20.3a query read-only (78), 20.3b accion (170), 20.3c UI (91+QA); Programador separo solo tests (resume de sesion; primer resume fallo por id de sesion de relleno puesto por el Director, sin efectos).
+- Director 59/59, eslint/tsc/build 0. verificar-identificador-ficha-arjun.cjs PASA interceptando /api/identificacion (0 Gemini): variante -> 5179, externo 006 incorporado con metadata del servidor (TERMOMETRO, packing 500) sin duplicar, sin opciones -> /inventario/nuevo; 006 borrado (0 stock/conteos).
+- QA inv-20-3-on PASA3/3, off PASA1/1; P-0930-1 BACKLOG baja (preexistente). Contador6 -> auditoria Senal2 inv-audit-20-3-A. Sin push/deploy/reset/prod.

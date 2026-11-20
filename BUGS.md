@@ -619,3 +619,6 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 - B3: __tests__/productos-update-validacion.test.ts usa codigo fijo TEST-UPD-001 sin afterAll (solo TEST). Migrar a tag unico + cleanup por id.
 - B4: auditoria update_codigo_personal guarda valor_anterior null (lib/actions/productos.ts). Opcion: leer valor previo si la auditoria debe reconstruir cambios.
 - Ponytail opcional: formateador de posicion duplicado FichaProducto/HistorialConteos; harness de hooks React duplicado en tests; filtro conteo_id redundante en consultas.ts.
+
+## 2026-11-20 — BACKLOG baja: "Sacar otra foto" sin foto previa no hace nada
+- QA inv-20-3-off EXP-1 (preexistente, ambos modos): en /entradas/identificar el boton reiniciar no cambia nada si no hay foto. Opcion: ocultarlo hasta que exista foto o resultado.
