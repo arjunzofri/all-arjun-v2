@@ -15,6 +15,14 @@ const m = vi.hoisted(() => ({
 }));
 
 vi.mock("@neondatabase/serverless", () => ({ neon: m.neonMock }));
+// identificacion.ts importa productos.ts → @/db, cuyo módulo construye drizzle
+// al importar. Se reemplaza el cliente neon-http para no depender del mock
+// de neon() (que en ese punto todavía no tiene implementación).
+vi.mock("@/db", async () => {
+  const { drizzle } = await import("drizzle-orm/neon-http");
+  const schema = await import("@/db/schema");
+  return { db: drizzle((async () => ({ rows: [] })) as never, { schema }) };
+});
 vi.mock("@/db/vidadigital", () => ({
   getVidaDigitalClient: () => ({ execute: m.executeMock }),
 }));
