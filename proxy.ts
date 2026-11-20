@@ -28,6 +28,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/_next/") ||
     pathname === "/api/seed-admin" ||
     pathname === "/api/sync/compras-anil" ||
+    pathname === "/api/sync/compras-anil/cron" ||
     pathname === "/api/sync/conciliacion" ||
     pathname === "/api/identificacion"
   ) {
