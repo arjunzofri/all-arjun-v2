@@ -1,0 +1,83 @@
+{
+ "url": "https://all-arjun-v2.vercel.app",
+ "roles": {
+  "admin": {
+   "debeVer": [
+    "Inventario",
+    "Crear producto",
+    "Usuarios"
+   ]
+  },
+  "operador": {
+   "debeVer": [
+    "Inventario"
+   ],
+   "noDebeVer": [
+    "Usuarios",
+    "Costo prom.",
+    "Mostrar valores"
+   ]
+  }
+ },
+ "publicas": [
+  {
+   "ruta": "/login",
+   "debeVerse": [
+    "Arjun v2",
+    "Iniciar sesión"
+   ]
+  }
+ ],
+ "privadas": [
+  {
+   "ruta": "/",
+   "debeVerse": [
+    "¿Qué producto vas a contar?",
+    "Compras"
+   ]
+  },
+  {
+   "ruta": "/inventario",
+   "debeVerse": [
+    "Inventario"
+   ]
+  },
+  {
+   "ruta": "/inventario/nuevo",
+   "debeVerse": [
+    "Crear producto"
+   ]
+  },
+  {
+   "ruta": "/entradas/identificar",
+   "debeVerse": [
+    "Identificar producto"
+   ]
+  },
+  {
+   "ruta": "/inventario?valores=1",
+   "roles": [
+    "admin"
+   ],
+   "debeVerse": [
+    "Costo prom.",
+    "Inversión según últimos conteos"
+   ]
+  },
+  {
+   "ruta": "/usuarios",
+   "roles": [
+    "admin"
+   ],
+   "debeVerse": [
+    "Usuarios"
+   ]
+  }
+ ],
+ "permitirPost": "^/(usuarios)$",
+ "enlacesExtra": 8,
+ "esperaSeg": 240,
+ "sesionUrl": "/api/auth/session",
+ "rolCampo": "user.role",
+ "_nota": "Version para el corte con inventario_bodega=true. Copiar sobre humoProd de .pbravot/qa-entorno.json en el momento del corte (ver docs/UAT-INVENTARIO.md). Rutas legacy redirigen a /inventario por diseno."
+}
