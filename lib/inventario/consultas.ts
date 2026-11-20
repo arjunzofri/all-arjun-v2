@@ -6,6 +6,8 @@ import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import { flagActivo } from "@/lib/feature-flags";
 import { resolverSugerenciaBodega, type SugerenciaBodega } from "@/lib/inventario/sugerencia-bodega";
+import { calcularValorizacionConteos, type LoteValorizacion, type PosicionValorizacion, type ValorizacionCodigo } from "@/lib/inventario/valorizacion";
+import { fechaChileDeTimestamp } from "@/lib/utils/fecha-chile";
 import { getBodegaPorCodigoIngreso } from "@/lib/utils/get-bodega-por-codigo-ingreso";
 
 export interface PosicionContada {
@@ -30,11 +32,19 @@ type FilaCruda = {
   conteo_id: number | string | null; bodega: number; planta: string; pasillo: string; posicion: string; cantidad: number; usuario_id: number; usuario: string; creado_en: string | Date;
 };
 const escaparLike = (texto: string) => texto.replace(/[\\%_]/g, (c) => `\\${c}`);
+const filtroProductos = (q: string) => q === "" ? sql`TRUE` : sql`(p.codigo ILIKE ${`%${escaparLike(q)}%`} ESCAPE '\\'
+    OR COALESCE(p.codigo_personal, '') ILIKE ${`%${escaparLike(q)}%`} ESCAPE '\\'
+    OR COALESCE(p.detalle, '') ILIKE ${`%${escaparLike(q)}%`} ESCAPE '\\')`;
 async function guard() {
   const sesion = await auth();
   const usuarioId = Number(sesion?.user?.id);
   if (!Number.isSafeInteger(usuarioId) || usuarioId <= 0) throw new Error("Sesión inválida. Inicie sesión nuevamente.");
   if (!flagActivo("inventario_bodega")) throw new Error("El inventario de bodega no está habilitado.");
+  return sesion;
+}
+async function guardAdmin() {
+  const sesion = await guard();
+  if ((sesion?.user as { role?: string } | undefined)?.role !== "admin") throw new Error("Se requiere rol de administrador.");
 }
 const aPosicion = (f: Pick<FilaCruda, "conteo_id" | "bodega" | "planta" | "pasillo" | "posicion" | "cantidad" | "usuario_id" | "usuario" | "creado_en">): PosicionContada => ({
   id: Number(f.conteo_id), bodega: f.bodega, planta: f.planta, pasillo: f.pasillo, posicion: f.posicion,
@@ -46,10 +56,7 @@ export async function listarInventario(input: unknown = {}): Promise<{ items: Fi
   const parsed = paramsSchema.safeParse(input);
   if (!parsed.success) throw new Error("Parámetros de búsqueda inválidos.");
   const { q, limit, cursor, productoId } = parsed.data;
-  const patron = `%${escaparLike(q)}%`;
-  const filtro = q === "" ? sql`TRUE` : sql`(p.codigo ILIKE ${patron} ESCAPE '\\'
-    OR COALESCE(p.codigo_personal, '') ILIKE ${patron} ESCAPE '\\'
-    OR COALESCE(p.detalle, '') ILIKE ${patron} ESCAPE '\\')`;
+  const filtro = filtroProductos(q);
   try {
     const resultado = await db.execute(sql`
       WITH pagina AS (
@@ -127,4 +134,74 @@ export async function getHistorialConteos(input: unknown): Promise<{ items: Posi
     const visibles = filas.slice(0, limit).map(aPosicion);
     return { items: visibles, nextCursor: filas.length > limit ? visibles[visibles.length - 1].id : null };
   } catch { throw new Error("No se pudo obtener el historial. Intente nuevamente."); }
+}
+export interface TotalesValorizacion {
+  valorTotal: number; unidadesSinCosto: number; incompleto: boolean;
+  fechaMin: string | null; fechaMax: string | null; fechasDistintas: boolean;
+  productosConConteo: number; productosSinContar: number;
+}
+export interface ValorizacionLista { porProducto: { productoId: number; valor: ValorizacionCodigo }[]; totales: TotalesValorizacion; }
+const valorizacionParamsSchema = z.strictObject({ q: z.string().trim().max(100).default("") });
+type FilaPosVal = { producto_id: number | string; conteo_id: number | string; bodega: number; cantidad: number; creado_en: string | Date };
+type FilaLoteVal = { producto_id: number | string; lote_id: number | string; folio: string; item: number | null; fecha_confirmacion: string; cantidad: number; precio_unitario: string | number | null };
+const filasDe = <T>(r: unknown) => (r as { rows?: T[] }).rows ?? [];
+const r2 = (x: number) => Math.round(x * 100) / 100;
+/** 3 queries para N productos. Solo costos: el llamador debe exigir admin. */
+async function valorizarProductos(q: string, productoId?: number) {
+  const filtroId = productoId === undefined ? sql`` : sql`AND p.id = ${productoId}`;
+  const ids = filasDe<{ id: number | string }>(await db.execute(sql`SELECT p.id FROM productos p WHERE ${filtroProductos(q)} ${filtroId} ORDER BY p.id`)).map((f) => Number(f.id));
+  const porProducto = new Map<number, ValorizacionCodigo>();
+  if (ids.length === 0) return { ids, porProducto };
+  const lista = sql.join(ids.map((id) => sql`${id}`), sql`, `);
+  const posiciones = filasDe<FilaPosVal>(await db.execute(sql`SELECT c.producto_id, c.id AS conteo_id, c.bodega, c.cantidad, c.creado_en
+    FROM conteos_vigentes c WHERE c.producto_id IN (${lista}) AND c.bodega IN (1, 2) ORDER BY c.producto_id, c.creado_en, c.id`));
+  const lotes = filasDe<FilaLoteVal>(await db.execute(sql`SELECT ci.producto_id, ci.id AS lote_id, ci.folio, ci.item,
+      ci.fecha_confirmacion::text AS fecha_confirmacion, ci.cantidad, ci.precio_unitario
+    FROM compras_importadas ci WHERE ci.producto_id IN (${lista})
+    ORDER BY ci.producto_id, ci.fecha_confirmacion DESC, ci.folio DESC, ci.id DESC`));
+  const posPor = new Map<number, PosicionValorizacion[]>();
+  for (const f of posiciones) {
+    const pid = Number(f.producto_id);
+    const pos: PosicionValorizacion = { id: Number(f.conteo_id), bodega: f.bodega === 2 ? 2 : 1, cantidad: f.cantidad,
+      fechaConteo: fechaChileDeTimestamp(new Date(f.creado_en)) };
+    posPor.set(pid, [...(posPor.get(pid) ?? []), pos]);
+  }
+  const lotesPor = new Map<number, LoteValorizacion[]>();
+  for (const f of lotes) {
+    const pid = Number(f.producto_id);
+    const lote: LoteValorizacion = { id: Number(f.lote_id), folio: f.folio, item: f.item, fechaConfirmacion: f.fecha_confirmacion,
+      cantidad: f.cantidad, precioUnitario: f.precio_unitario === null ? null : Number(f.precio_unitario) };
+    lotesPor.set(pid, [...(lotesPor.get(pid) ?? []), lote]);
+  }
+  for (const [pid, pos] of posPor) porProducto.set(pid, calcularValorizacionConteos(lotesPor.get(pid) ?? [], pos));
+  return { ids, porProducto };
+}
+/** Valorización admin de un producto; null si no tiene conteos vigentes. */
+export async function getValorizacionProducto(productoId: unknown): Promise<ValorizacionCodigo | null> {
+  await guardAdmin();
+  const parsed = idInt4.safeParse(productoId);
+  if (!parsed.success) throw new Error("Parámetros de búsqueda inválidos.");
+  try { return (await valorizarProductos("", parsed.data)).porProducto.get(parsed.data) ?? null; }
+  catch { throw new Error("No se pudo cargar la valorización. Intente nuevamente."); }
+}
+/** Valorización admin de todos los productos que matchean q (todas las páginas). */
+export async function getValorizacionLista(input: unknown = {}): Promise<ValorizacionLista> {
+  await guardAdmin();
+  const parsed = valorizacionParamsSchema.safeParse(input);
+  if (!parsed.success) throw new Error("Parámetros de búsqueda inválidos.");
+  try {
+    const { ids, porProducto } = await valorizarProductos(parsed.data.q);
+    const porProductoArr = [...porProducto.entries()].sort((a, b) => a[0] - b[0]).map(([productoId, valor]) => ({ productoId, valor }));
+    const min = porProductoArr.map((p) => p.valor.fechaConteoMin).filter((f): f is string => f !== null);
+    const max = porProductoArr.map((p) => p.valor.fechaConteoMax).filter((f): f is string => f !== null);
+    const unidadesSinCosto = porProductoArr.reduce((s, p) => s + p.valor.cantidadSinCosto, 0);
+    const fechaMin = min.length ? min.reduce((a, b) => (a < b ? a : b)) : null;
+    const fechaMax = max.length ? max.reduce((a, b) => (a > b ? a : b)) : null;
+    return { porProducto: porProductoArr, totales: {
+      valorTotal: r2(porProductoArr.reduce((s, p) => s + p.valor.valorTotal, 0)),
+      unidadesSinCosto, incompleto: unidadesSinCosto > 0, fechaMin, fechaMax,
+      fechasDistintas: fechaMin !== null && fechaMin !== fechaMax,
+      productosConConteo: porProductoArr.length, productosSinContar: ids.length - porProductoArr.length,
+    } };
+  } catch { throw new Error("No se pudo cargar la valorización. Intente nuevamente."); }
 }
