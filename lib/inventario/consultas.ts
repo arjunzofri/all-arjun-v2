@@ -135,6 +135,44 @@ export async function getHistorialConteos(input: unknown): Promise<{ items: Posi
     return { items: visibles, nextCursor: filas.length > limit ? visibles[visibles.length - 1].id : null };
   } catch { throw new Error("No se pudo obtener el historial. Intente nuevamente."); }
 }
+const comprasParamsSchema = z.strictObject({
+  productoId: idInt4, limit: z.number().int().min(1).max(100).default(20),
+  cursor: z.strictObject({ fechaConfirmacion: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER) }).optional(),
+});
+export interface CompraFicha {
+  id: number; folio: string; item: number | null; bodega: string | null; cantidad: number;
+  fechaConfirmacion: string; precioUnitario?: number | null;
+}
+type FilaCompra = { id: number | string; folio: string; item: number | null; bodega_codigo: string | null;
+  cantidad: number; fecha_confirmacion: string; precio_unitario?: string | number | null };
+/** Compras importadas del producto desde el ledger local. Solo lectura; el precio solo se selecciona para admin. */
+export async function getComprasProducto(input: unknown): Promise<{ items: CompraFicha[]; nextCursor: { fechaConfirmacion: string; id: number } | null }> {
+  const sesion = await guard();
+  const parsed = comprasParamsSchema.safeParse(input);
+  if (!parsed.success) throw new Error("Parámetros de búsqueda inválidos.");
+  const { productoId, limit, cursor } = parsed.data;
+  const esAdmin = (sesion?.user as { role?: string } | undefined)?.role === "admin";
+  try {
+    const filas = filasDe<FilaCompra>(await db.execute(sql`
+      SELECT ci.id, ci.folio, ci.item, ci.bodega_codigo, ci.cantidad, ci.fecha_confirmacion::text AS fecha_confirmacion
+        ${esAdmin ? sql`, ci.precio_unitario` : sql``}
+      FROM compras_importadas ci
+      WHERE ci.producto_id = ${productoId}
+        AND (${cursor ? sql`(ci.fecha_confirmacion, ci.id) < (${cursor.fechaConfirmacion}::date, ${cursor.id}::bigint)` : sql`TRUE`})
+      ORDER BY ci.fecha_confirmacion DESC, ci.id DESC LIMIT ${limit + 1}
+    `));
+    const items = filas.slice(0, limit).map((f) => {
+      const codigo = f.bodega_codigo?.trim() ?? null;
+      const item: CompraFicha = { id: Number(f.id), folio: f.folio, item: f.item ?? null,
+        bodega: getBodegaPorCodigoIngreso(codigo) ?? codigo, cantidad: f.cantidad, fechaConfirmacion: f.fecha_confirmacion };
+      if (esAdmin) item.precioUnitario = f.precio_unitario == null ? null : Number(f.precio_unitario);
+      return item;
+    });
+    const ultima = items[items.length - 1];
+    return { items, nextCursor: filas.length > limit && ultima ? { fechaConfirmacion: ultima.fechaConfirmacion, id: ultima.id } : null };
+  } catch { throw new Error("No se pudo cargar el historial de compras. Intente nuevamente."); }
+}
 export interface TotalesValorizacion {
   valorTotal: number; unidadesSinCosto: number; incompleto: boolean;
   fechaMin: string | null; fechaMax: string | null; fechasDistintas: boolean;
