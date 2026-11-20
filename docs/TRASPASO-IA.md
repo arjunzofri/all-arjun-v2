@@ -10,7 +10,11 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — 19.2 imagen CAS CERRADO 2412c71, siguiente creacion manual/ARJ + identificar foto a ficha
+## Punto exacto de reanudación — 20.1 c9635f4 y 20.2 d5416cb CERRADOS, siguiente 20.3 identificador a ficha
+- Contrato inv-20 ../_dt/logs/inv-20-A.md + decisiones ../_dt/prompts/inv-20-decisiones-director.md. Contador **3**.
+- 20.3: identificador ON -> /productos/[id] con incorporacion idempotente de externos (getProductoExternoPorCodigo SELECT-only + crearProductoManual). QA agente solo sin analisis de foto; Director reproduce con intercepcion de /api/identificacion. Nunca Gemini real.
+
+## (HISTORICO) 19.2 imagen CAS CERRADO 2412c71, siguiente creacion manual/ARJ + identificar foto a ficha
 - 19.2 commit 2412c71 (195 lineas). Contador **1**. Siguiente backlog: creacion manual/historico/ARJ e identificador de foto directo a ficha sin Entradas (Fase A inv-20).
 
 ## (HISTORICO) auditoria 19.1 y fix 12c337b CERRADOS, siguiente 19.2 imagen CAS

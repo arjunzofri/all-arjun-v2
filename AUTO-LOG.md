@@ -282,3 +282,9 @@
 - BCD deepseek 460s (11:33 UTC economico), rojo 6 fallos, 4 archivos 189+6=195. Custodias de auditoria respetadas (JSON siempre, isNull, cleanup try/catch, OFF literal, keys intactas).
 - Director 45/45 (imagen-cas, cloudinary, sync-imagen-merge, productos-api, ficha-lectura, editor-ficha-on), eslint4=0, tsc0, build0. Mutacion quitando gate extraerPublicId -> test Vida Digital rojo; restauracion: copia de respaldo fallo por error de parametro del Director, revertido por reemplazo exacto y numstat 59/2 identico + 9/9 verde.
 - QA inv-19-2-on PASA2/2 (solo rechazo .txt, sin Cloudinary real) y off PASA1/1. Pendientes 0846-1/-2 DESCARTADOS (400 esperado). Contador1. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — Contrato inv-20 y cierres 20.1 c9635f4 / 20.2 d5416cb
+- Fase A inv-20-A (11:49 UTC) aprobada, 8 preguntas opcion (a); decisiones ../_dt/prompts/inv-20-decisiones-director.md. QA agente no intercepta red: identificacion (20.3) la reproduce el Director con Puppeteer interceptando /api/identificacion; nunca Gemini real.
+- 20.1 crearProductoManual: rojo 7/7, 195 lineas, Director 35/35, eslint/tsc/build 0. ON CONFLICT de upsertProducto revisado (COALESCE no pisa ubicacion/imagen). Sin UI ni QA navegador.
+- 20.2 /inventario/nuevo + NuevoProducto + link shell: 193 lineas, Director 46/46, eslint/tsc/build 0. verificar-nuevo-producto-arjun.cjs: 20 sugerencias VD reales, relleno correcto (primer intento: selector incluia buscador de cabecera, script corregido).
+- QA inv-20-2-on PASA6/6, off PASA1/1. Pendientes 0912-1 y 0915-1 DESCARTADOS con evidencia. Productos QA 5538/5539 borrados de TEST: 0 filas stock/conteos/movimientos (confirma creacion sin stock). Contador3. Sin push/deploy/reset/prod.

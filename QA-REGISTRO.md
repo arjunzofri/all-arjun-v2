@@ -369,3 +369,11 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-20 08:48 - inv-19-2-off - commit 64b557f - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-19-2-off
 - Sin pendientes nuevos.
+
+## 2026-11-20 09:12 - inv-20-2-on - commit c9635f4 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-20-2-on
+- [x] P-20261120-0912-1 (baja) HALLAZGO: EXP-1 — El campo Código del formulario de crear producto no ofrece sugerencias históricas -> DESCARTADO: QA-CONTEO solo existe en TEST, no en catalogo historico VD; Director verifico sugerencias reales (termo: 20 resultados, API 200) y relleno codigo/detalle/packing (verificar-nuevo-producto-arjun.cjs).
+
+## 2026-11-20 09:15 - inv-20-2-off - commit c9635f4 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-20-2-off
+- [x] P-20261120-0915-1 (media) HALLAZGO: EXP-1 — Sin hallazgos en la navegación legada del área "inventario" -> DESCARTADO: el agente reporta sin defecto (redireccion controlada a /productos).
