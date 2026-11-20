@@ -6,6 +6,7 @@ import { neon } from "@neondatabase/serverless";
 import { syncComprasAnil, syncComprasAnilInventario } from "@/lib/sync/compras-anil";
 import { flagActivo } from "@/lib/feature-flags";
 import { registrarConciliacion } from "@/lib/sync/conciliacion-compras";
+import { ACCION_CORRIDA, MSG_ERROR_CORRIDA } from "@/lib/sync/estado-compras";
 
 export async function POST(): Promise<NextResponse> {
   const session = await auth();
@@ -14,7 +15,21 @@ export async function POST(): Promise<NextResponse> {
   }
 
   const on = flagActivo("inventario_bodega");
+  const usuarioId = Number(session.user.id);
   const sql = neon(process.env.DATABASE_URL!);
+
+  // Auditoría best-effort: si falla el log, la corrida responde igual.
+  const registrarCorrida = async (detalles: Record<string, unknown>) => {
+    try {
+      await sql`
+        INSERT INTO activity_log (usuario_id, accion, entidad, detalles)
+        VALUES (${usuarioId}, ${ACCION_CORRIDA}, 'compras',
+                ${JSON.stringify(detalles)}::jsonb)
+      `;
+    } catch (err) {
+      console.error("No se pudo registrar la corrida de compras:", err);
+    }
+  };
 
   try {
     let result: Awaited<ReturnType<typeof syncComprasAnil>> | null;
@@ -32,6 +47,16 @@ export async function POST(): Promise<NextResponse> {
       const corte = (rows as { value: string }[])[0]?.value ?? "2026-05-01";
       result = await syncComprasAnil(corte);
     }
+    if (on) {
+      await registrarCorrida({
+        ok: true,
+        procesadas: result.procesadas,
+        insertadas: result.insertadas,
+        omitidas: result.omitidas,
+        pendientes: result.pendientes,
+        watermark: result.watermark,
+      });
+    }
     if (result.conciliacion !== undefined) {
       // Auditoría best-effort: si falla el log, el sync responde 200 igual.
       try {
@@ -46,6 +71,7 @@ export async function POST(): Promise<NextResponse> {
     }
     return NextResponse.json(result);
   } catch (err) {
+    if (on) await registrarCorrida({ ok: false, error: MSG_ERROR_CORRIDA });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Error desconocido" },
       { status: 500 },
