@@ -335,3 +335,12 @@
 - Verificacion Director: 42 archivos/427 tests verdes (inventario+inversion), tsc 0, build 0 en cada slice con UI. QA: 24c PASA 4/4 (valores verificados a mano 160,00 / 2,29 / 10 sin costo y captura revisada), 24e PASA 5/5. Fixtures QA24 en compras_importadas TEST creados y limpiados.
 - Benchmark TEST desde PC Pablo (904 productos, 1488 lotes): 3 consultas ~770 ms en caliente (~250 ms de ida y vuelta Chile-us-east por consulta); en Vercel deberia ser menor. Sin indice nuevo.
 - Contador Senal2: 6 -> auditoria.
+
+## 2026-11-20 — auditoria 24 + fix, inv-25..inv-29
+- inv-audit-24-A sin bloqueantes; fix 27267e6 (aislar producto con datos invalidos, productos sin contar, /api/inversion 404 en ON). QA 24-fix: falla era del plan (filtro sin productos sin contar), DESCARTADA.
+- inv-25 compras en ficha: 25a c1defc1 accion (precio solo admin por sesion), 25b 0b92904 desplegable (particion por presupuesto 354 -> 152+196). QA PASA 4/4.
+- inv-26 22cfdb3 CA12 volver conserva q/cursor/valores (validado en servidor, sin open redirect). QA PASA 5/5.
+- inv-27 f8a9f7a fotos reducidas en navegador (<=3.5 MB, 2000 px) por limite 4.5 MB de Vercel (doc oficial verificada); servidor 4 MB. Fase E Director con POST interceptado: 12,4 MB -> 1,25 MB JPEG.
+- inv-28 e390c7a errores esperados de Usuarios como valor. QA: politica de contrasena minima inexistente -> pregunta UAT.
+- inv-29 29e61d0 lecturas legacy con gate de modo. QA OFF PASA.
+- Fixtures QA (QA24 compras, usuarios qa28-*) creados y limpiados. Flags false. Contador Senal2: 6 -> auditoria.
