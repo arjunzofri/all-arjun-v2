@@ -23,7 +23,9 @@ export interface EstadoCompras {
 export async function getEstadoCompras(): Promise<EstadoCompras> {
   const sql = neon(process.env.DATABASE_URL!);
   const runs = (await sql`
-    SELECT detalles, created_at FROM activity_log
+    -- created_at es timestamp SIN zona guardado en UTC; sin AT TIME ZONE el
+    -- driver lo entrega sin offset y new Date() lo lee como hora local.
+    SELECT detalles, created_at AT TIME ZONE 'UTC' AS created_at FROM activity_log
     WHERE accion = ${ACCION_CORRIDA}
     ORDER BY id DESC LIMIT 1
   `) as { detalles: unknown; created_at: Date | string }[];

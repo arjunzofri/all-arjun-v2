@@ -86,4 +86,25 @@ describe("getEstadoCompras", () => {
   it("sin corridas devuelve ultima null", async () => {
     expect(await getEstadoCompras()).toEqual({ ultima: null, watermark: null });
   });
+
+  it("created_at sin zona (Neon) se interpreta como UTC, no como hora local", async () => {
+    m.sql.mockImplementation(async (s: TemplateStringsArray) => {
+      const texto = s.join("?");
+      llamadas.push({ texto, params: [] });
+      if (texto.includes("FROM activity_log")) {
+        // Neon en texto: timestamp sin zona => "2026-11-20 16:52:00" (UTC real);
+        // timestamptz => lleva offset y Date lo interpreta bien.
+        return [{
+          detalles: { ok: true },
+          created_at: texto.includes("AT TIME ZONE 'UTC'")
+            ? "2026-11-20 16:52:00+00"
+            : "2026-11-20 16:52:00",
+        }];
+      }
+      return [];
+    });
+    const estado = await getEstadoCompras();
+    expect(llamadas.some((l) => l.texto.includes("AT TIME ZONE 'UTC'"))).toBe(true);
+    expect(estado.ultima?.createdAt).toBe("2026-11-20T16:52:00.000Z");
+  });
 });
