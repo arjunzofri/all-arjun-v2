@@ -32,7 +32,10 @@ describe("ON — solo ledger", () => {
   it("cero SQL a stock/movimientos, sin conciliación, fila en el ledger", async () => {
     mockGet.mockResolvedValue([compra()]);
     const res = await syncComprasAnil("1900-01-01", { modo: "on" });
-    expect(res).toEqual({ procesadas: 1, watermark: "2026-10-02", pendientes: false });
+    expect(res).toEqual({
+      procesadas: 1, insertadas: 1, omitidas: 0,
+      watermark: "2026-10-02", pendientes: false,
+    });
     expect(mockConcil).not.toHaveBeenCalled();
     expect(mockGet).toHaveBeenCalledWith("1900-01-01", {
       incluirSinMetadata: true,
@@ -78,6 +81,24 @@ describe("ON — solo ledger", () => {
     expect(p.detalle).toBeNull();
   });
 
+  it("D-2: fila con código null/vacío/>30 se omite sin romper el lote", async () => {
+    mockGet.mockResolvedValue([
+      compra({ folio: cod("NULL"), codigo: null }),
+      compra({ folio: cod("VACIO"), codigo: "" }),
+      compra({ folio: cod("LARGO"), codigo: "x".repeat(31) }),
+      compra({ folio: cod("OK"), codigo: cod("POK") }),
+    ]);
+    const res = await syncComprasAnil("1900-01-01", { modo: "on" });
+    expect(res).toMatchObject({
+      procesadas: 1, insertadas: 1, omitidas: 3, pendientes: false,
+    });
+    expect(await filas(
+      `SELECT count(*)::int n FROM compras_importadas
+       WHERE folio IN ($1,$2,$3,$4)`,
+      [cod("NULL"), cod("VACIO"), cod("LARGO"), cod("OK")],
+    )).toEqual([{ n: 1 }]);
+  });
+
   it("replay no duplica; watermark ON no retrocede y la key legacy intacta", async () => {
     const antes = await filas(`SELECT value FROM sync_watermark WHERE key='compras-anil'`, []);
     await realSql.query(
@@ -88,6 +109,8 @@ describe("ON — solo ledger", () => {
     const r1 = await syncComprasAnil("2026-11-10", { modo: "on" });
     const r2 = await syncComprasAnil("2026-11-10", { modo: "on" });
     expect([r1.watermark, r2.watermark]).toEqual(["2026-11-10", "2026-11-10"]);
+    // D-5: el replay procesa pero no inserta.
+    expect([r1.insertadas, r2.insertadas]).toEqual([1, 0]);
     expect(textos().join("\n")).toContain("GREATEST(sync_watermark.value, EXCLUDED.value)");
     expect(await filas(`SELECT count(*)::int n FROM compras_importadas WHERE folio=$1`, [cod("REPLAY")]))
       .toEqual([{ n: 1 }]);

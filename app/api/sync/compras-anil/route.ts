@@ -15,13 +15,14 @@ export async function POST(): Promise<NextResponse> {
 
   const on = flagActivo("inventario_bodega");
   const sql = neon(process.env.DATABASE_URL!);
-  const rows = on
-    ? await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil-ledger'`
-    : await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil'`;
-  const corte =
-    (rows as { value: string }[])[0]?.value ?? (on ? "1900-01-01" : "2026-05-01");
 
   try {
+    const rows = on
+      ? await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil-ledger'`
+      : await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil'`;
+    const corte =
+      (rows as { value: string }[])[0]?.value ?? (on ? "1900-01-01" : "2026-05-01");
+
     const result = on
       ? await syncComprasAnil(corte, { modo: "on" })
       : await syncComprasAnil(corte);

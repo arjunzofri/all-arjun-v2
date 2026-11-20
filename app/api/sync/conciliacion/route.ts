@@ -27,6 +27,13 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Solo admin" }, { status: 403 });
   }
 
+  if (flagActivo("inventario_bodega")) {
+    return NextResponse.json(
+      { error: "Conciliación omitida en modo inventario" },
+      { status: 404 },
+    );
+  }
+
   if (!flagActivo("conciliacion_compras")) {
     return NextResponse.json(
       { error: "Conciliación deshabilitada" },

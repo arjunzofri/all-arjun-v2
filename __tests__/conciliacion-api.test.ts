@@ -76,7 +76,8 @@ beforeEach(() => {
   mockSql.mockResolvedValue([]);
   mockAuth.mockReset();
   mockFlag.mockReset();
-  mockFlag.mockReturnValue(true);
+  // Inventario OFF por defecto: la conciliación es legacy.
+  mockFlag.mockImplementation((k: string) => k !== "inventario_bodega");
   mockConciliar.mockReset();
   mockConciliar.mockResolvedValue(RESULTADO);
   mockSync.mockReset();
@@ -103,6 +104,24 @@ describe("GET /api/sync/conciliacion — gate", () => {
     expect(res.status).toBe(403);
     expect((await res.json()).error).toBe("Solo admin");
     expect(mockConciliar).not.toHaveBeenCalled();
+  });
+
+  it("D-3: inventario ON → 404 JSON aunque conciliación esté activa", async () => {
+    mockAuth.mockResolvedValue(ADMIN);
+    mockFlag.mockImplementation((k: string) => k === "inventario_bodega");
+
+    const res = await GET(getUrl("?desde=2026-07-01"));
+    expect(res.status).toBe(404);
+    expect((await res.json()).error).toBe("Conciliación omitida en modo inventario");
+    expect(mockConciliar).not.toHaveBeenCalled();
+  });
+
+  it("D-3: inventario OFF → misma conciliación que antes", async () => {
+    mockAuth.mockResolvedValue(ADMIN);
+
+    const res = await GET(getUrl("?desde=2026-07-01"));
+    expect(res.status).toBe(200);
+    expect(mockConciliar).toHaveBeenCalledWith("2026-07-01");
   });
 
   it("26: flag off → 404", async () => {
@@ -187,6 +206,15 @@ describe("GET /api/sync/conciliacion — ok", () => {
 
 // ── 30-31: log best-effort en el POST ───────────────────────────────────
 describe("POST /api/sync/compras-anil — log de conciliación", () => {
+  it("D-4: error de DB al leer el corte → JSON 500", async () => {
+    mockAuth.mockResolvedValue(ADMIN);
+    mockSql.mockRejectedValue(new Error("db caída"));
+
+    const res = await POST();
+    expect(res.status).toBe(500);
+    expect((await res.json()).error).toBe("db caída");
+  });
+
   it("30a: con conciliacion escribe activity_log y responde 200", async () => {
     mockAuth.mockResolvedValue(ADMIN);
     mockSql.mockResolvedValue([{ value: "2026-06-01" }]);

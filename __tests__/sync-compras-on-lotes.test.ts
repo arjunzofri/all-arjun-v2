@@ -56,6 +56,29 @@ describe("ON — lotes", () => {
     expect(folios.size).toBe(total);
   });
 
+  it("D-1: la guarda no corta dentro del día del corte; completa el día y avanza", async () => {
+    setForward(false);
+    let t = 0;
+    const ahora = () => (t += 3000);
+    const todas = Array.from({ length: 6 }, (_, i) =>
+      compra({
+        folio: cod(`D1-${i}`),
+        codigo: cod(`D1P-${i}`),
+        fechconf: i < 4 ? "2026-03-01" : "2026-03-02",
+      }));
+
+    // El prefijo del día del corte (4 filas) ya supera la guarda (8 s).
+    mockGet.mockResolvedValueOnce(todas);
+    const r1 = await syncComprasAnil("2026-03-01", { modo: "on", ahora });
+    // Completa todo el día del corte (4 filas) y recién ahí corta hacia el 03-02.
+    expect(r1).toMatchObject({ procesadas: 4, pendientes: true, watermark: "2026-03-02" });
+
+    mockGet.mockResolvedValueOnce(todas.slice(4));
+    let t2 = 0;
+    const r2 = await syncComprasAnil(r1.watermark, { modo: "on", ahora: () => (t2 += 3000) });
+    expect(r2).toMatchObject({ procesadas: 2, pendientes: false, watermark: "2026-03-02" });
+  });
+
   it("corte por tiempo → pendientes, watermark en la primera no procesada, siguiente completa", async () => {
     setForward(false);
     let t = 0;
@@ -78,8 +101,8 @@ describe("ON — lotes", () => {
     await expect(syncComprasAnil("1900-01-01", { modo: "on" })).rejects.toThrow(
       /LIMITE_LOTE_COMPRAS/,
     );
-    // Solo el INSERT inicial de compras-anil-ledger-desde; nada del ledger ni compras.
-    expect(textos().filter((t) => t.includes("INSERT INTO sync_watermark"))).toHaveLength(1);
+    // Sin watermark de ledger: el error ocurre antes de escribir compras.
+    expect(textos().filter((t) => t.includes("INSERT INTO sync_watermark"))).toHaveLength(0);
     expect(textos().join("\n")).not.toContain("INSERT INTO compras_importadas");
   });
 

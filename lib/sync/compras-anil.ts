@@ -18,7 +18,6 @@ const BODEGA_ID: Record<string, number> = {
 const SYNC_KEY = "compras-anil";
 const ORIGEN_KEY = "compras-anil-desde";
 const LEDGER_KEY = "compras-anil-ledger";
-const LEDGER_DESDE_KEY = "compras-anil-ledger-desde";
 
 /** Filas de VD leídas por corrida en modo ON (backfill por lotes). */
 export const LIMITE_LOTE_COMPRAS = 100;
@@ -31,6 +30,10 @@ export interface SyncComprasAnilResultado {
   conciliacion?: ResultadoConciliacion | { error: string };
   /** ON: true si quedan filas para la próxima corrida. */
   pendientes?: boolean;
+  /** ON: inserciones reales en el ledger (los replay no cuentan). */
+  insertadas?: number;
+  /** ON: filas omitidas por código inválido (null/vacío/>30). */
+  omitidas?: number;
 }
 
 // ── Upsert de producto (compartido: sync Anil + entrada manual) ──
@@ -128,12 +131,6 @@ async function syncLedger(
   corte: string,
   ahora: () => number,
 ): Promise<SyncComprasAnilResultado> {
-  await sql`
-    INSERT INTO sync_watermark (key, value)
-    VALUES (${LEDGER_DESDE_KEY}, '1900-01-01')
-    ON CONFLICT (key) DO NOTHING
-  `;
-
   // Lote + 1: la fila extra dice si quedan filas para la próxima corrida.
   const filas = await getComprasAnilDesde(corte, {
     incluirSinMetadata: true,
@@ -153,30 +150,45 @@ async function syncLedger(
 
   const inicio = ahora();
   let procesadas = 0;
+  let insertadas = 0;
+  let omitidas = 0;
   let pendientes = extra !== null;
   // Re-lectura inclusiva: el watermark es la fecha de la primera fila no procesada.
   let watermark = extra?.fechconf ?? maxFecha;
   for (let i = 0; i < lote.length; i++) {
     const compra = lote[i];
     if (compra.fechconf) {
-      await upsertProducto(sql, compra); // nunca escribe ubicación ni pisa campos manuales
-      const prod = (await sql`
-        SELECT id FROM productos WHERE codigo = ${compra.codigo}
-      `) as { id: number }[];
-      if (prod[0]) {
-        await guardarCompraImportada(sql, {
-          ...compra,
-          productoId: prod[0].id,
-          bodegaCodigo: compra.bodegaCodigo ?? null,
-          fechaNota: compra.fechanvt,
-          fechaConfirmacion: compra.fechconf,
-        });
-        procesadas++;
+      // D-2: codunico nulo/vacío/>30 rompería productos.codigo NOT NULL/varchar(30).
+      if (!compra.codigo || compra.codigo.length > 30) {
+        omitidas++;
+      } else {
+        await upsertProducto(sql, compra); // nunca escribe ubicación ni pisa campos manuales
+        const prod = (await sql`
+          SELECT id FROM productos WHERE codigo = ${compra.codigo}
+        `) as { id: number }[];
+        if (prod[0]) {
+          const insertada = await guardarCompraImportada(sql, {
+            ...compra,
+            productoId: prod[0].id,
+            bodegaCodigo: compra.bodegaCodigo ?? null,
+            fechaNota: compra.fechanvt,
+            fechaConfirmacion: compra.fechconf,
+          });
+          procesadas++;
+          if (insertada) insertadas++;
+        }
       }
     }
-    if (ahora() - inicio > LIMITE_MS_LOTE_COMPRAS && i + 1 < lote.length) {
+    // D-1: solo cortar si la próxima fila es de un día posterior al corte; si no,
+    // la re-lectura inclusiva repetiría el mismo prefijo y nunca avanzaría.
+    const proxima = lote[i + 1]?.fechconf;
+    if (
+      ahora() - inicio > LIMITE_MS_LOTE_COMPRAS &&
+      i + 1 < lote.length &&
+      proxima && proxima > corte
+    ) {
       pendientes = true;
-      watermark = lote[i + 1].fechconf ?? watermark;
+      watermark = proxima;
       break;
     }
   }
@@ -187,7 +199,7 @@ async function syncLedger(
     ON CONFLICT (key) DO UPDATE
       SET value = GREATEST(sync_watermark.value, EXCLUDED.value)
   `;
-  return { procesadas, watermark, pendientes };
+  return { procesadas, insertadas, omitidas, watermark, pendientes };
 }
 
 // ── Sync principal ────────────────────────────────────────────────────
