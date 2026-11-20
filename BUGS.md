@@ -637,3 +637,9 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 
 ## 2026-11-20 — RIESGO release: duracion del sync ON en Vercel
 - 22b-3: cada fila hace ~3 consultas HTTP a Neon. Lote 100 + guarda 8 s. Docs Vercel actuales: Fluid compute 300 s por defecto en todos los planes; sin Fluid, Hobby 10 s (hasta 60 s). No verificado que modo usa el proyecto. Si un dia con muchas filas tardara > 8 s, el watermark no avanzaria (re-lee el mismo dia). Medir en UAT el tiempo real por corrida (respuesta procesadas/pendientes) y ajustar LIMITE_MS o maxDuration antes de activar cron-job.org.
+
+## 2026-11-20 — BACKLOG baja (tests): harness del sync borra keys globales de sync_watermark en TEST
+- __tests__/helpers/sync-on-harness.ts limpia 'compras-anil-ledger' (y lease) en beforeAll/afterAll. Cada corrida de esos tests reinicia el backfill del ledger en la rama TEST (observado 2 veces por el Director; idempotencia del ledger confirmada: replays con 0 inserciones). Solo TEST. Fix: snapshot y restore del valor previo en vez de DELETE.
+
+## 2026-11-20 — ARREGLADO bec410a / 46e01c1 / 51342c3 (22d): fetch sin contexto, hora +3h, guarda dia lleno
+- Reproducidos por el Director con backfill real en TEST (boton y ruta). Ver commits.
