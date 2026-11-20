@@ -18,6 +18,17 @@ export type Resultado = {
   corridas: number;
 };
 
+/**
+ * El navegador exige que `fetch` se invoque con this global/undefined; pasarlo
+ * suelto a crearActualizador hace que `deps.fetch(...)` lo llame como metodo.
+ */
+export function crearDepsActualizar(alProgresar?: (insertadas: number) => void) {
+  return {
+    fetch: (url: string, init: { method: string }) => fetch(url, init),
+    alProgresar,
+  };
+}
+
 /** Encadena corridas mientras el server reporte pendientes; doble clic comparte la cadena. */
 export function crearActualizador(deps: {
   fetch: FetchLike;
@@ -57,7 +68,7 @@ export default function ActualizarCompras() {
   const router = useRouter();
   const [fase, setFase] = useState<"idle" | "corriendo" | "listo" | "ocupado" | "error">("idle");
   const [insertadas, setInsertadas] = useState(0);
-  const [actualizador] = useState(() => crearActualizador({ fetch, alProgresar: setInsertadas }));
+  const [actualizador] = useState(() => crearActualizador(crearDepsActualizar(setInsertadas)));
 
   const onClick = async () => {
     setFase("corriendo");

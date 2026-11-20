@@ -3,7 +3,7 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import {
-  crearActualizador, MAX_CORRIDAS, MSG_EN_CURSO, MSG_ERROR,
+  crearActualizador, crearDepsActualizar, MAX_CORRIDAS, MSG_EN_CURSO, MSG_ERROR,
 } from "@/components/inventario/ActualizarCompras";
 
 const respuesta = (status: number, body: unknown) => ({
@@ -52,5 +52,24 @@ describe("crearActualizador (logica pura)", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     liberar(respuesta(200, { pendientes: false, insertadas: 0 }));
     expect(await p1).toEqual(await p2);
+  });
+
+  it("las deps del componente no pierden el contexto del fetch global", async () => {
+    // Simula el navegador: fetch global lanza "Illegal invocation" si se llama
+    // como metodo de otro objeto (this !== undefined y !== globalThis).
+    const llamadas: string[] = [];
+    const fetchGlobal = function (this: unknown, url: string) {
+      if (this !== undefined && this !== globalThis) throw new TypeError("Illegal invocation");
+      llamadas.push(url);
+      return Promise.resolve(respuesta(200, { pendientes: false, insertadas: 1 }));
+    };
+    vi.stubGlobal("fetch", fetchGlobal);
+    try {
+      const r = await crearActualizador(crearDepsActualizar())();
+      expect(r).toMatchObject({ estado: "ok", insertadas: 1 });
+      expect(llamadas).toEqual(["/api/sync/compras-anil"]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
