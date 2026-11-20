@@ -330,3 +330,12 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-19 22:45 - inv-18-2-off - commit 75408ac - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-18-2-off
 - Sin pendientes nuevos.
+
+## 2026-11-19 22:56 - inv-usuarios-r8-on - commit ab933f0 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-usuarios-r8-on
+- [x] P-20261119-2256-1 (baja) HALLAZGO: EXP-3 — Error 500 en consola al rechazar un username duplicado (evidencia auxiliar) -> BACKLOG media: preexistente (throw "El username ya existe" sin cambios desde ab933f0); en build prod Next oculta el mensaje. Ver BUGS 2026-11-19 errores esperados Usuarios.
+- [x] P-20261119-2256-2 (alta) CONSOLA: Failed to load resource: the server responded with a status of 500 (Internal Server Error) (/usuarios) -> DESCARTADO duplicado de P-20261119-2256-1 (mismo POST duplicado; 403 restante es proxy esperado para operador)
+
+## 2026-11-19 23:23 - inv-usuarios-r8-off - commit ab933f0 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-usuarios-r8-off
+- Sin pendientes nuevos.

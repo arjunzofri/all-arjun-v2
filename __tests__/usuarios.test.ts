@@ -4,16 +4,26 @@
  * R4 login con credenciales inválidas, R5 seed-admin con username.
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, afterAll, vi } from "vitest";
+
+vi.mock("@/lib/auth", () => ({
+  auth: vi.fn(async () => ({ user: { id: "1", role: "admin" } })),
+}));
 
 // Import real — si el módulo no existe (Fase B), MODULE_NOT_FOUND.
 import { crearUsuario, listarUsuarios } from "@/lib/actions/usuarios";
 import { GET as getSeedAdmin } from "@/app/api/seed-admin/route";
 
-beforeAll(async () => {
+// Prefijo único por ejecución: solo se borran los ids creados por este archivo.
+const PREFIJO = `t${Date.now().toString(36)}-`;
+const idsCreados: number[] = [];
+
+afterAll(async () => {
   const { neon } = await import("@neondatabase/serverless");
   const sql = neon(process.env.DATABASE_URL!);
-  await sql`DELETE FROM users WHERE username LIKE '%test-%'`;
+  for (const id of idsCreados) {
+    await sql`DELETE FROM users WHERE id = ${id}`;
+  }
 });
 
 // ── Validación ─────────────────────────────────────────────────────────
@@ -26,38 +36,57 @@ describe("crearUsuario() — validación", () => {
 
   it("rechaza password de 0 caracteres", async () => {
     await expect(
-      crearUsuario({ username: "test-user1", password: "", role: "operador" })
+      crearUsuario({ username: `${PREFIJO}user1`, password: "", role: "operador" })
     ).rejects.toThrow(/password|mínimo|contraseña/i);
   });
 
   it("acepta username y password mínimos", async () => {
     const u = await crearUsuario({
-      username: "test-user2",
+      username: `${PREFIJO}user2`,
       password: "a",
       role: "operador",
     });
+    idsCreados.push(u.id);
     expect(u).toHaveProperty("id");
-    expect(u).toHaveProperty("username", "test-user2");
-    // No debe tener email
+    expect(u).toHaveProperty("username", `${PREFIJO}user2`);
+    // No debe tener email ni hash
     expect(u).not.toHaveProperty("email");
+    expect(u).not.toHaveProperty("passwordHash");
   });
 });
 
 // ── R3: Username duplicado ─────────────────────────────────────────────
 describe("crearUsuario() — username único", () => {
   it("rechaza username duplicado", async () => {
-    await crearUsuario({
-      username: "test-dup",
+    const u = await crearUsuario({
+      username: `${PREFIJO}dup`,
       password: "123456",
       role: "operador",
     });
+    idsCreados.push(u.id);
     await expect(
       crearUsuario({
-        username: "test-dup",
+        username: `${PREFIJO}dup`,
         password: "abcdef",
         role: "admin",
       })
     ).rejects.toThrow(/username|duplicado|existe/i);
+  });
+});
+
+// ── Listado bajo admin ─────────────────────────────────────────────────
+describe("listarUsuarios() — bajo admin", () => {
+  it("devuelve solo campos públicos sin hash", async () => {
+    const lista = await listarUsuarios();
+    expect(lista.length).toBeGreaterThan(0);
+    for (const u of lista) {
+      expect(Object.keys(u).sort()).toEqual([
+        "createdAt",
+        "id",
+        "role",
+        "username",
+      ]);
+    }
   });
 });
 
@@ -71,14 +100,16 @@ describe("login con username", () => {
   });
 
   it("password incorrecto rechaza login", async () => {
-    await crearUsuario({
-      username: "test-login",
+    const username = `${PREFIJO}login`;
+    const u = await crearUsuario({
+      username,
       password: "correcta",
       role: "admin",
     });
+    idsCreados.push(u.id);
     const { neon } = await import("@neondatabase/serverless");
     const sql = neon(process.env.DATABASE_URL!);
-    const rows = await sql`SELECT password_hash FROM users WHERE username = 'test-login'`;
+    const rows = await sql`SELECT password_hash FROM users WHERE username = ${username}`;
     const hash = (rows as unknown as { password_hash: string }[])[0]?.password_hash;
     // El hash no debe ser la contraseña en texto plano
     expect(hash).toBeDefined();

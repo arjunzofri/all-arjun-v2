@@ -5,6 +5,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcrypt";
+import { auth } from "@/lib/auth";
 
 const crearUsuarioSchema = z.object({
   username: z.string().min(1, "Username requerido"),
@@ -14,19 +15,18 @@ const crearUsuarioSchema = z.object({
 
 export type CrearUsuarioInput = z.infer<typeof crearUsuarioSchema>;
 
-export async function crearUsuario(
-  input: CrearUsuarioInput,
-  requestUserId?: number
-) {
-  if (requestUserId) {
-    const [actor] = await db
-      .select({ role: users.role })
-      .from(users)
-      .where(eq(users.id, requestUserId));
-    if (!actor || actor.role !== "admin") {
-      throw new Error("No autorizado: solo admin puede crear usuarios");
-    }
+async function exigirAdmin(): Promise<void> {
+  const session = await auth();
+  const sessionId = session?.user?.id;
+  const id = Number(sessionId);
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  if (!sessionId || !Number.isSafeInteger(id) || id <= 0 || role !== "admin") {
+    throw new Error("No autorizado: solo admin puede administrar usuarios");
   }
+}
+
+export async function crearUsuario(input: CrearUsuarioInput) {
+  await exigirAdmin();
 
   const parsed = crearUsuarioSchema.parse(input);
 
@@ -48,12 +48,18 @@ export async function crearUsuario(
       role: parsed.role,
       passwordHash,
     })
-    .returning();
+    .returning({
+      id: users.id,
+      username: users.username,
+      role: users.role,
+      createdAt: users.createdAt,
+    });
 
   return created;
 }
 
 export async function listarUsuarios() {
+  await exigirAdmin();
   return db
     .select({
       id: users.id,
