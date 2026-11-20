@@ -10,7 +10,10 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — auditoria 19.1 y fix 12c337b CERRADOS, siguiente 19.2 imagen CAS
+## Punto exacto de reanudación — 19.2 imagen CAS CERRADO 2412c71, siguiente creacion manual/ARJ + identificar foto a ficha
+- 19.2 commit 2412c71 (195 lineas). Contador **1**. Siguiente backlog: creacion manual/historico/ARJ e identificador de foto directo a ficha sin Entradas (Fase A inv-20).
+
+## (HISTORICO) auditoria 19.1 y fix 12c337b CERRADOS, siguiente 19.2 imagen CAS
 - Auditoria inv-audit-19-1-A sin bloqueantes; fix B1/B2 12c337b. Contador **0**. Riesgo release imagen 4.5MB Vercel en BUGS.
 - 19.2: prompt ../_dt/prompts/inv-19-2-BCD.md (con custodias de auditoria) y QA ../_dt/qa/inv-19-2-on/off.casos.md. Nunca Cloudinary real.
 

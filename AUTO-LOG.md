@@ -277,3 +277,8 @@
 - Auditoria (11:21 UTC) sin bloqueantes para 19.2; decision ../_dt/prompts/inv-audit-19-1-decision.md. B1/B2 defectos de 19.1 -> fix inmediato; riesgo release 4.5MB Vercel confirmado en docs -> BUGS; B3/B4/opciones -> backlog. Custodias agregadas al prompt 19.2.
 - Fix 19.1b DEBUG deepseek: rojo 2, 30 lineas codigo+tests + QA4. Director 22/22, eslint0, tsc0, build0. QA inv-19-1b-on PASA2/2. 5179 restaurado.
 - Contador reiniciado a 0 tras auditoria + fix. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — Cierre 19.2 imagen CAS 2412c71
+- BCD deepseek 460s (11:33 UTC economico), rojo 6 fallos, 4 archivos 189+6=195. Custodias de auditoria respetadas (JSON siempre, isNull, cleanup try/catch, OFF literal, keys intactas).
+- Director 45/45 (imagen-cas, cloudinary, sync-imagen-merge, productos-api, ficha-lectura, editor-ficha-on), eslint4=0, tsc0, build0. Mutacion quitando gate extraerPublicId -> test Vida Digital rojo; restauracion: copia de respaldo fallo por error de parametro del Director, revertido por reemplazo exacto y numstat 59/2 identico + 9/9 verde.
+- QA inv-19-2-on PASA2/2 (solo rechazo .txt, sin Cloudinary real) y off PASA1/1. Pendientes 0846-1/-2 DESCARTADOS (400 esperado). Contador1. Sin push/deploy/reset/prod.

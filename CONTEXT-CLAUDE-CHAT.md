@@ -5,7 +5,7 @@
 - Repo anidado app-arjun-v2/app-arjun-v2, rama feat/inventario-bodega.
 - API25262d0, conteos17.3b c51cff5 y formato18.1 e09a114 e historial18.2 69a9e05 UsuariosR8 c6878dc AuthWRITE productos b62f69b y editor ficha 19.1 4b71811 CERRADOS con verificación propia y QAON/OFF. Siguiente ver TRASPASO.
 - Respaldo ../_dt/handoff-2026-11-19, NO aplicar sobre cambios presentes.
-- Auditoría inv-audit-17-3b-A cerrada sin bloqueantes, auditoria inv-audit-19-1-A cerrada, fix 12c337b; contador0. Árbolsinproducto pendiente, sin trabajos activos, flagsfalse, sinpush/deploy/resetreal.
+- Auditoría inv-audit-17-3b-A cerrada sin bloqueantes, auditoria inv-audit-19-1-A cerrada, fix 12c337b, imagen 19.2 2412c71; contador1. Árbolsinproducto pendiente, sin trabajos activos, flagsfalse, sinpush/deploy/resetreal.
 
 
 ## VIGENTE 2026-11-17 — GO modo inventario

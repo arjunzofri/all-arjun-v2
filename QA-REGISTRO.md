@@ -360,3 +360,12 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-20 08:32 - inv-19-1b-on - commit a123df3 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-19-1b-on
 - Sin pendientes nuevos.
+
+## 2026-11-20 08:46 - inv-19-2-on - commit 64b557f - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-19-2-on
+- [x] P-20261120-0846-1 (baja) HALLAZGO: EXP-1 — Tarjeta de imagen en móvil 360: sin defectos; error de consola esperado al rechazar el archivo -> DESCARTADO: el propio agente reporta sin defecto (tarjeta 360 correcta).
+- [x] P-20261120-0846-2 (media) CONSOLA: Failed to load resource: the server responded with a status of 400 (Bad Request) (/api/productos/5179/imagen) -> DESCARTADO: 400 esperado del rechazo de formato no permitido, validado en servidor antes de subir.
+
+## 2026-11-20 08:48 - inv-19-2-off - commit 64b557f - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-19-2-off
+- Sin pendientes nuevos.
