@@ -76,6 +76,19 @@ describe("getComprasAnilDesde() — limite (lotes)", () => {
   });
 });
 
+describe("getComprasAnilDesde() — porLinea (solo ON)", () => {
+  it("una fila por linea real de VD, con su item", async () => {
+    m.execute.mockResolvedValue({
+      rows: [
+        fila({ item: 1, cantidad: 20 }),
+        fila({ item: 2, cantidad: 40 }),
+      ],
+    });
+    const compras = await getComprasAnilDesde("2026-01-01", { porLinea: true });
+    expect(compras.map((c) => [c.item, c.cantidad])).toEqual([[1, 20], [2, 40]]);
+  });
+});
+
 describe("getComprasAnilDesde() — bodegaCodigo", () => {
   it("mapea el GL crudo, conocido y desconocido", async () => {
     m.execute.mockResolvedValue({

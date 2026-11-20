@@ -1,5 +1,5 @@
-/** inv-22a — ledger ON: R1 datos, R2 replay, R3 NULLS NOT DISTINCT, R4 otra bodega, R5 sin stock/mov, R6 FK. DB TEST real; 0003 idempotente. */
-import { readFileSync } from "node:fs";
+/** inv-22a — ledger ON: R1 datos, R2 replay, R3 NULLS NOT DISTINCT, R4 otra bodega, R5 sin stock/mov, R6 FK. DB TEST real; 0003+0004 idempotentes. */
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { neon } from "@neondatabase/serverless";
@@ -7,16 +7,17 @@ import { guardarCompraImportada } from "@/lib/sync/compras-importadas";
 
 const sql = neon(process.env.DATABASE_URL!);
 const M3 = resolve(__dirname, "../db/migrations/0003_compras_importadas.sql");
+const M4 = resolve(__dirname, "../db/migrations/0004_compras_importadas_item.sql");
 const tag = `CI22A-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 let productoId = 0;
 
 type Fila = {
-  producto_id: number; bodega_codigo: string | null; cantidad: number;
+  producto_id: number; bodega_codigo: string | null; item: number | null; cantidad: number;
   precio_unitario: string | null; fecha_nota: string | null; fecha_confirmacion: string;
   visaciones: { nroIngreso: string; cantidad: number }[];
 };
 const filas = async (folio: string) => (await sql`
-  SELECT producto_id, bodega_codigo, cantidad, precio_unitario, fecha_nota::text AS fecha_nota,
+  SELECT producto_id, bodega_codigo, item, cantidad, precio_unitario, fecha_nota::text AS fecha_nota,
          fecha_confirmacion::text AS fecha_confirmacion, visaciones
   FROM compras_importadas WHERE folio = ${folio} ORDER BY id`) as unknown as Fila[];
 
@@ -28,8 +29,12 @@ beforeAll(async () => {
   // Guardia ANTES de cualquier SQL: el DDL no puede tocar producción.
   if (new URL(process.env.DATABASE_URL!).host === process.env.PROD_DATABASE_URL_HOST)
     throw new Error("DATABASE_URL apunta a producción: se aborta antes de ejecutar SQL");
-  const sts = readFileSync(M3, "utf8").split(/;\s*(?:\r?\n|$)/).map((s) => s.trim()).filter(Boolean);
-  for (const st of sts) await sql.query(st);
+  // 0004 llega con el fix; en ROJO se omite y la ausencia de la columna item rompe igual.
+  for (const m of [M3, M4]) {
+    if (!existsSync(m)) continue;
+    const sts = readFileSync(m, "utf8").split(/;\s*(?:\r?\n|$)/).map((s) => s.trim()).filter(Boolean);
+    for (const st of sts) await sql.query(st);
+  }
   const r = (await sql`
     INSERT INTO productos (codigo, detalle) VALUES (${tag}, 'fixture inv-22a') RETURNING id
   `) as unknown as { id: number }[];
@@ -90,6 +95,27 @@ describe("guardarCompraImportada — ledger ON (integración real)", () => {
     const s = (await sql`SELECT count(*)::int AS n FROM stock WHERE producto_id = ${productoId}`) as unknown as { n: number }[];
     const m = (await sql`SELECT count(*)::int AS n FROM movimientos WHERE producto_id = ${productoId}`) as unknown as { n: number }[];
     expect([s[0].n, m[0].n]).toEqual([0, 0]);
+  });
+
+  it("R7: mismo folio/producto/bodega con item distinto → 2 filas", async () => {
+    const folio = `${tag}-R7`;
+    expect(await guardarCompraImportada(sql, compra(folio, { item: 1, cantidad: 20 }))).toBe(true);
+    expect(await guardarCompraImportada(sql, compra(folio, { item: 2, cantidad: 40 }))).toBe(true);
+    expect((await filas(folio)).map((f) => [f.item, f.cantidad])).toEqual([[1, 20], [2, 40]]);
+  });
+
+  it("R8: replay del mismo folio+item no duplica", async () => {
+    const c = compra(`${tag}-R8`, { item: 7, cantidad: 3 });
+    expect(await guardarCompraImportada(sql, c)).toBe(true);
+    expect(await guardarCompraImportada(sql, c)).toBe(false);
+    expect(await filas(c.folio)).toHaveLength(1);
+  });
+
+  it("R9: item null repetido no duplica", async () => {
+    const c = compra(`${tag}-R9`, { item: null, cantidad: 4 });
+    expect(await guardarCompraImportada(sql, c)).toBe(true);
+    expect(await guardarCompraImportada(sql, c)).toBe(false);
+    expect(await filas(c.folio)).toHaveLength(1);
   });
 
   it("R6: producto inexistente → error, sin fila huérfana", async () => {

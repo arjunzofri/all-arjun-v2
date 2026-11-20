@@ -21,6 +21,8 @@ export interface CompraAnil {
   bodega: string;
   /** Código GL crudo del ingreso (GLP/GL1/GL2 o desconocido); null si no viene. */
   bodegaCodigo?: string | null;
+  /** Item de la línea (kdocitem) para conservar líneas repetidas. ON; OFF no lo usa. */
+  item?: number | null;
   visaciones: Visacion[];
   precioUnitario: number | null;
 }
@@ -75,7 +77,7 @@ export interface ProductoCatalogoVD {
  */
 export async function getComprasAnilDesde(
   fecha: string,
-  opciones: { incluirSinMetadata?: boolean; limite?: number } = {},
+  opciones: { incluirSinMetadata?: boolean; limite?: number; porLinea?: boolean } = {},
 ): Promise<CompraAnil[]> {
   const db = getVidaDigitalClient();
   const sinMeta = opciones.incluirSinMetadata === true;
@@ -92,12 +94,14 @@ export async function getComprasAnilDesde(
         p.cantcaja,
         p.imagen_url AS imagen_url,
         i.precdocd  AS precdocd,
-        i.knumezet AS nro_ingreso
+        i.knumezet AS nro_ingreso,
+        i.item
       FROM (
         SELECT DISTINCT ON (
           i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int
         )
           i.knumfoli, i.codunico, i.cantsali, i.precdocd, i.knumezet,
+          NULLIF(TRIM(i.kdocitem), '')::int AS item,
           m.fechanvt, m.fechconf::date::text AS fechconf
         FROM vida.itemdcto i
         JOIN vida.movidcto m ON i.knumfoli = m.knumfoli
@@ -128,12 +132,14 @@ export async function getComprasAnilDesde(
         p.cantcaja,
         p.imagen_url AS imagen_url,
         i.precdocd  AS precdocd,
-        i.knumezet AS nro_ingreso
+        i.knumezet AS nro_ingreso,
+        i.item
       FROM (
         SELECT DISTINCT ON (
           i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int
         )
           i.knumfoli, i.codunico, i.cantsali, i.precdocd, i.knumezet,
+          NULLIF(TRIM(i.kdocitem), '')::int AS item,
           m.fechanvt, m.fechconf::date::text AS fechconf
         FROM sanjh.itemdcto i
         JOIN sanjh.movidcto m ON i.knumfoli = m.knumfoli
@@ -171,8 +177,28 @@ export async function getComprasAnilDesde(
       imagen_url: string | null;
       nro_ingreso: string | null;
       precdocd: string | null;
+      item: number | null;
     }[];
   };
+
+  // ON (porLinea): una entrada por línea real de VD, con su item. Sin esto
+  // el ledger colapsa líneas repetidas del mismo producto y pierde cantidad/costo.
+  // ponytail: duplica la agregación de abajo; si aparece un tercer consumidor, unificar.
+  if (opciones.porLinea) {
+    return rows.map((r) => {
+      const codigoBodega = r.nro_ingreso?.split("-")[4] ?? null;
+      return {
+        folio: r.folio, fechanvt: r.fechanvt, fechconf: r.fechconf,
+        codigo: r.codigo, detalle: r.detalle, cantidad: Number(r.cantidad),
+        cantcaja: r.cantcaja, imagenUrl: r.imagen_url,
+        bodega: getBodegaPorCodigoIngreso(codigoBodega) ?? "Bodega desconocida",
+        bodegaCodigo: codigoBodega,
+        visaciones: [{ nroIngreso: r.nro_ingreso ?? "", cantidad: Number(r.cantidad) }],
+        precioUnitario: r.precdocd !== null ? Number(r.precdocd) : null,
+        item: r.item,
+      };
+    });
+  }
 
   // ── Agregación en dos niveles ──────────────────────────────────────
   // Nivel 1: agrupar por (folio, codigo, bodega, knumezet) → visaciones.
@@ -215,6 +241,7 @@ export async function getComprasAnilDesde(
         imagenUrl: r.imagen_url,
         bodega,
         bodegaCodigo: codigoBodega,
+        item: r.item,
         visaciones: [],
         precioUnitario: r.precdocd !== null ? Number(r.precdocd) : null,
         _visMap: new Map(),

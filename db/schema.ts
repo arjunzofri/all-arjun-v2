@@ -168,6 +168,7 @@ export const comprasImportadas = pgTable(
       .notNull()
       .references(() => productos.id, { onDelete: "restrict", onUpdate: "restrict" }),
     bodegaCodigo: text("bodega_codigo"),
+    item: integer("item"),
     cantidad: integer("cantidad").notNull(),
     precioUnitario: numeric("precio_unitario", { precision: 10, scale: 4 }),
     fechaNota: date("fecha_nota"),
@@ -176,9 +177,9 @@ export const comprasImportadas = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
-    // Idempotencia folio+producto+bodega; bodega nullable (GL desconocido).
+    // Idempotencia folio+producto+bodega+item; nullable (GL desconocido / sin item).
     unique("uq_compras_importadas_folio_producto_bodega")
-      .on(t.folio, t.productoId, t.bodegaCodigo)
+      .on(t.folio, t.productoId, t.bodegaCodigo, t.item)
       .nullsNotDistinct(),
     index("idx_compras_importadas_fecha").on(t.fechaConfirmacion),
   ]

@@ -7,6 +7,7 @@ export interface CompraImportadaInput {
   folio: string;
   productoId: number;
   bodegaCodigo: string | null;
+  item?: number | null;
   cantidad: number;
   precioUnitario?: number | string | null;
   fechaNota?: string | null;
@@ -21,13 +22,13 @@ export async function guardarCompraImportada(
 ): Promise<boolean> {
   const rows = (await sql`
     INSERT INTO compras_importadas
-      (folio, producto_id, bodega_codigo, cantidad, precio_unitario,
+      (folio, producto_id, bodega_codigo, item, cantidad, precio_unitario,
        fecha_nota, fecha_confirmacion, visaciones)
     VALUES (${compra.folio}, ${compra.productoId}, ${compra.bodegaCodigo ?? null},
-      ${compra.cantidad}, ${compra.precioUnitario ?? null},
+      ${compra.item ?? null}, ${compra.cantidad}, ${compra.precioUnitario ?? null},
       ${compra.fechaNota ?? null}::date, ${compra.fechaConfirmacion}::date,
       ${JSON.stringify(compra.visaciones ?? [])}::jsonb)
-    ON CONFLICT (folio, producto_id, bodega_codigo) DO NOTHING
+    ON CONFLICT (folio, producto_id, bodega_codigo, item) DO NOTHING
     RETURNING id
   `) as unknown as { id: number }[];
   return rows.length > 0;

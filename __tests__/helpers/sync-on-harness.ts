@@ -5,7 +5,7 @@
  * Los vi.mock viven en cada test file (guardia tests-no-escriben-prod-sync).
  */
 import { afterAll, beforeAll, beforeEach, vi } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getComprasAnilDesde } from "@/db/vidadigital/queries";
 import { conciliarComprasAnil } from "@/lib/sync/conciliacion-compras";
@@ -73,12 +73,16 @@ export function registrarHarness(mockSql: ReturnType<typeof vi.fn>) {
     realSql = actual.neon(process.env.DATABASE_URL!);
     if (new URL(process.env.DATABASE_URL!).host === process.env.PROD_DATABASE_URL_HOST)
       throw new Error("DATABASE_URL apunta a producción: se aborta antes de ejecutar SQL");
-    const ddl = readFileSync(
-      join(process.cwd(), "db/migrations/0003_compras_importadas.sql"),
-      "utf8",
-    );
-    for (const st of ddl.split(/;\s*(?:\r?\n|$)/).map((s) => s.trim()).filter(Boolean))
-      await realSql.query(st, []);
+    for (const migracion of [
+      "0003_compras_importadas.sql",
+      "0004_compras_importadas_item.sql",
+    ]) {
+      const ruta = join(process.cwd(), "db/migrations", migracion);
+      if (!existsSync(ruta)) continue; // 0004 llega con el fix; en ROJO falta la columna item.
+      const ddl = readFileSync(ruta, "utf8");
+      for (const st of ddl.split(/;\s*(?:\r?\n|$)/).map((s) => s.trim()).filter(Boolean))
+        await realSql.query(st, []);
+    }
     await limpiar();
     await realSql.query(
       `INSERT INTO productos (codigo, detalle, packing, codigo_personal, observaciones, imagen_url)

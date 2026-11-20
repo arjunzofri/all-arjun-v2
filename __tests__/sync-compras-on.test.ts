@@ -39,6 +39,7 @@ describe("ON — solo ledger", () => {
     expect(mockConcil).not.toHaveBeenCalled();
     expect(mockGet).toHaveBeenCalledWith("1900-01-01", {
       incluirSinMetadata: true,
+      porLinea: true,
       limite: LIMITE_LOTE_COMPRAS + 1,
     });
     const t = textos().join("\n");
@@ -57,6 +58,19 @@ describe("ON — solo ledger", () => {
       [cod("P1")],
     );
     expect(n).toEqual({ s: 0, m: 0 });
+  });
+
+  it("item: dos lineas repetidas del mismo producto en VD → 2 filas en el ledger", async () => {
+    mockGet.mockResolvedValue([
+      compra({ folio: cod("DUP"), codigo: cod("PDUP"), item: 1, cantidad: 20 }),
+      compra({ folio: cod("DUP"), codigo: cod("PDUP"), item: 2, cantidad: 40 }),
+    ]);
+    const res = await syncComprasAnil("1900-01-01", { modo: "on" });
+    expect(res).toMatchObject({ procesadas: 2, insertadas: 2 });
+    expect(await filas(
+      `SELECT item, cantidad FROM compras_importadas WHERE folio=$1 ORDER BY item`,
+      [cod("DUP")],
+    )).toEqual([{ item: 1, cantidad: 20 }, { item: 2, cantidad: 40 }]);
   });
 
   it("GL desconocido y compra sin metadata entran al ledger", async () => {

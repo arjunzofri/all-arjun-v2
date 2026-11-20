@@ -139,6 +139,7 @@ async function syncLedger(
   // Lote + 1: la fila extra dice si quedan filas para la próxima corrida.
   const filas = await getComprasAnilDesde(corte, {
     incluirSinMetadata: true,
+    porLinea: true,
     limite: LIMITE_LOTE_COMPRAS + 1,
   });
   const extra = filas.length > LIMITE_LOTE_COMPRAS ? filas[LIMITE_LOTE_COMPRAS] : null;
@@ -176,6 +177,7 @@ async function syncLedger(
             ...compra,
             productoId: prod[0].id,
             bodegaCodigo: compra.bodegaCodigo ?? null,
+            item: compra.item ?? null,
             fechaNota: compra.fechanvt,
             fechaConfirmacion: compra.fechconf,
           });
