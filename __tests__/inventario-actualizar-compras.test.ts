@@ -4,6 +4,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   crearActualizador, crearDepsActualizar, MAX_CORRIDAS, MSG_EN_CURSO, MSG_ERROR,
+  MSG_INCOMPLETO,
 } from "@/components/inventario/ActualizarCompras";
 
 const respuesta = (status: number, body: unknown) => ({
@@ -20,11 +21,12 @@ describe("crearActualizador (logica pura)", () => {
     expect(r).toEqual({ estado: "ok", insertadas: 5, corridas: 2 });
   });
 
-  it("respeta el tope MAX_CORRIDAS", async () => {
+  it("D8: tope MAX_CORRIDAS con pendientes -> incompleto", async () => {
     const fetch = vi.fn(async () => respuesta(200, { pendientes: true, insertadas: 1 }));
     const r = await crearActualizador({ fetch })();
     expect(fetch).toHaveBeenCalledTimes(MAX_CORRIDAS);
-    expect(r).toMatchObject({ estado: "ok", insertadas: MAX_CORRIDAS, corridas: MAX_CORRIDAS });
+    expect(r).toMatchObject({ estado: "incompleto", insertadas: MAX_CORRIDAS, corridas: MAX_CORRIDAS });
+    expect(MSG_INCOMPLETO).toBe("Quedan compras por importar: presiona ACTUALIZAR de nuevo");
   });
 
   it("409 -> mensaje de sincronizacion en curso", async () => {

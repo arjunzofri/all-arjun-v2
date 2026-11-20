@@ -104,6 +104,26 @@ describe("sync ON concurrente y route", () => {
     expect(mockGet).not.toHaveBeenCalled();
   });
 
+  it("D9: si liberar lanza, se propaga el error original del sync", async () => {
+    const original = new Error("fallo del sync");
+    mockGet.mockRejectedValue(original);
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockSql.mockImplementation(async (s: TemplateStringsArray) => {
+      const texto = s.join("?");
+      if (texto.includes("INSERT INTO sync_watermark")) return [{ value: "x" }];
+      if (texto.includes("SELECT value FROM sync_watermark")) return [{ value: "2026-01-01" }];
+      if (texto.includes("UPDATE sync_watermark")) {
+        const e = new Error("liberar falló");
+        e.name = "LiberarError";
+        throw e;
+      }
+      return [];
+    });
+    await expect(syncComprasAnilInventario()).rejects.toBe(original);
+    expect(errorLog.mock.calls.flat().join(" ")).toContain("LiberarError");
+    errorLog.mockRestore();
+  });
+
   it("OFF no toca la key de lease", async () => {
     mockFlag.mockReturnValue(false);
     setForward(false);

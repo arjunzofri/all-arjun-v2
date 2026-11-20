@@ -18,8 +18,11 @@ import { syncComprasAnil } from "@/lib/sync/compras-anil";
 import {
   cod,
   compra,
+  filas,
+  limpiar,
   llamadas,
   mockGet,
+  realSql,
   registrarHarness,
   setForward,
   textos,
@@ -138,5 +141,24 @@ describe("ON — lotes", () => {
 
     const r = await syncComprasAnil("1900-01-01", { modo: "on" });
     expect(r).toMatchObject({ procesadas: 2, pendientes: false, watermark: "2026-04-03" });
+  });
+
+  it("D4: sin filas y corte inicial no persiste watermark 1900-01-01", async () => {
+    setForward(false);
+    mockGet.mockResolvedValue([]);
+    const r = await syncComprasAnil("1900-01-01", { modo: "on" });
+    expect(r).toMatchObject({ procesadas: 0, watermark: "1900-01-01" });
+    expect(textos().filter((t) => t.includes("INSERT INTO sync_watermark"))).toHaveLength(0);
+  });
+
+  it("D7: cleanup del harness borra la key real compras-anil-desde", async () => {
+    await realSql.query(
+      `INSERT INTO sync_watermark (key,value) VALUES ('compras-anil-desde','2026-01-01')
+       ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value`,
+    );
+    await limpiar();
+    expect(
+      await filas(`SELECT value FROM sync_watermark WHERE key='compras-anil-desde'`, []),
+    ).toHaveLength(0);
   });
 });

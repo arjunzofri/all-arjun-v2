@@ -74,10 +74,12 @@ export default async function DashboardPage() {
   const user = session.user as { username?: string } | undefined;
   if (flagActivo("inventario_bodega")) {
     let estadoCompras: EstadoCompras | null = null;
+    let estadoComprasError = false;
     try {
       estadoCompras = await getEstadoCompras();
     } catch (err) {
       // El estado de compras es informativo: nunca bloquea el inicio.
+      estadoComprasError = true;
       console.error("No se pudo leer el estado de compras:", err);
     }
     return (
@@ -85,6 +87,7 @@ export default async function DashboardPage() {
         username={user?.username ?? "---"}
         mostrarIdentificacion={flagActivo("identificacion_foto")}
         estadoCompras={estadoCompras}
+        estadoComprasError={estadoComprasError}
       />
     );
   }

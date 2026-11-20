@@ -4,8 +4,9 @@ import ActualizarCompras from "@/components/inventario/ActualizarCompras";
 import { formatearFechaChile, formatearFechaISO, formatearHoraChile } from "@/lib/utils/fecha-chile";
 import type { EstadoCompras } from "@/lib/sync/estado-compras";
 
-export default function InicioInventario({ username, mostrarIdentificacion, estadoCompras }: {
+export default function InicioInventario({ username, mostrarIdentificacion, estadoCompras, estadoComprasError }: {
   username: string; mostrarIdentificacion: boolean; estadoCompras?: EstadoCompras | null;
+  estadoComprasError?: boolean;
 }) {
   return (
     <section className="mx-auto flex max-w-3xl flex-col items-center gap-6 py-10 text-center">
@@ -25,7 +26,9 @@ export default function InicioInventario({ username, mostrarIdentificacion, esta
             <h2 className="text-sm font-bold text-slate-800">Compras</h2>
             <ActualizarCompras />
           </div>
-          {estadoCompras?.ultima ? (
+          {estadoComprasError ? (
+            <p className="mt-3 text-sm text-red-600">No se pudo leer el estado de compras</p>
+          ) : estadoCompras?.ultima ? (
             <div className="mt-3 space-y-1 text-sm text-slate-600">
               <p>
                 Última actualización: {formatearFechaChile(estadoCompras.ultima.createdAt)}{" "}
@@ -43,6 +46,10 @@ export default function InicioInventario({ username, mostrarIdentificacion, esta
                 <p>Compras al: {formatearFechaISO(estadoCompras.watermark)}</p>
               )}
             </div>
+          ) : estadoCompras?.watermark ? (
+            <p className="mt-3 text-sm text-slate-600">
+              Compras al: {formatearFechaISO(estadoCompras.watermark)}
+            </p>
           ) : (
             <p className="mt-3 text-sm text-slate-500">Aún no se han importado compras</p>
           )}

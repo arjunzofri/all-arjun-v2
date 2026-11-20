@@ -6,6 +6,7 @@ import { useState } from "react";
 export const MAX_CORRIDAS = 30;
 export const MSG_EN_CURSO = "Sincronización en curso. Intenta en unos minutos.";
 export const MSG_ERROR = "No se pudo actualizar las compras. Intenta nuevamente.";
+export const MSG_INCOMPLETO = "Quedan compras por importar: presiona ACTUALIZAR de nuevo";
 
 type FetchLike = (
   url: string,
@@ -13,7 +14,7 @@ type FetchLike = (
 ) => Promise<{ status: number; ok: boolean; json: () => Promise<unknown> }>;
 
 export type Resultado = {
-  estado: "ok" | "ocupado" | "error";
+  estado: "ok" | "ocupado" | "error" | "incompleto";
   insertadas: number;
   corridas: number;
 };
@@ -55,7 +56,7 @@ export function crearActualizador(deps: {
       deps.alProgresar?.(insertadas);
       if (!data.pendientes) return { estado: "ok", insertadas, corridas: i + 1 };
     }
-    return { estado: "ok", insertadas, corridas: MAX_CORRIDAS };
+    return { estado: "incompleto", insertadas, corridas: MAX_CORRIDAS };
   };
 
   return () => {
@@ -66,7 +67,7 @@ export function crearActualizador(deps: {
 
 export default function ActualizarCompras() {
   const router = useRouter();
-  const [fase, setFase] = useState<"idle" | "corriendo" | "listo" | "ocupado" | "error">("idle");
+  const [fase, setFase] = useState<"idle" | "corriendo" | "listo" | "ocupado" | "error" | "incompleto">("idle");
   const [insertadas, setInsertadas] = useState(0);
   const [actualizador] = useState(() => crearActualizador(crearDepsActualizar(setInsertadas)));
 
@@ -93,6 +94,7 @@ export default function ActualizarCompras() {
       {corriendo && <p className="text-xs text-slate-500">{insertadas} compras nuevas</p>}
       {fase === "ocupado" && <p className="text-xs text-amber-600">{MSG_EN_CURSO}</p>}
       {fase === "error" && <p className="text-xs text-red-600">{MSG_ERROR}</p>}
+      {fase === "incompleto" && <p className="text-xs text-amber-600">{MSG_INCOMPLETO}</p>}
     </div>
   );
 }

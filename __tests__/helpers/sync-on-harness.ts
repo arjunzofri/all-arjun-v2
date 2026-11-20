@@ -49,7 +49,7 @@ export function compra(over: Record<string, unknown> = {}) {
   };
 }
 
-async function limpiar() {
+export async function limpiar() {
   const p = [`${tag}%`];
   await realSql.query("DELETE FROM compras_importadas WHERE folio LIKE $1", p);
   for (const q of [
@@ -59,7 +59,7 @@ async function limpiar() {
   ]) await realSql.query(q, p);
   await realSql.query("DELETE FROM productos WHERE codigo LIKE $1", p);
   await realSql.query(
-    "DELETE FROM sync_watermark WHERE key IN ('compras-anil-ledger','compras-anil-ledger-desde')",
+    "DELETE FROM sync_watermark WHERE key IN ('compras-anil-ledger','compras-anil-desde')",
     [],
   );
 }

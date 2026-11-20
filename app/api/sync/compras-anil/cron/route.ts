@@ -44,8 +44,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     `) as { id: number }[];
     usuarioId = admin[0]?.id ?? null;
     const result = await syncComprasAnilInventario();
-    if (result === null)
-      return NextResponse.json({ error: "Sincronización en curso", enCurso: true }, { status: 409 });
+    // Cron ocupado: 200 para no disparar alertas falsas; el boton sigue 409.
+    if (result === null) return NextResponse.json({ enCurso: true });
     await registrar({
       origen: "cron", ok: true, procesadas: result.procesadas, insertadas: result.insertadas,
       omitidas: result.omitidas, pendientes: result.pendientes, watermark: result.watermark,

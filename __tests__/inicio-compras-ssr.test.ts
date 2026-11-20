@@ -58,6 +58,23 @@ describe("inicio SSR", () => {
     expect(await render()).toContain("Aún no se han importado compras");
   });
 
+  it("D2: si falla la lectura del estado no miente y el boton sigue", async () => {
+    m.sql.mockRejectedValue(new Error("db caida"));
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    const html = await render();
+    expect(html).toContain("No se pudo leer el estado de compras");
+    expect(html).toContain("ACTUALIZAR");
+    expect(html).not.toContain("Aún no se han importado compras");
+    errorLog.mockRestore();
+  });
+
+  it("D2: sin corrida pero con watermark muestra Compras al", async () => {
+    watermarks = [{ value: "2026-11-10" }];
+    const html = await render();
+    expect(html).toContain("Compras al: 10-11-2026");
+    expect(html).not.toContain("Aún no se han importado compras");
+  });
+
   it("OFF no muestra la seccion nueva", async () => {
     m.flags.inventario_bodega = false;
     const html = await render();

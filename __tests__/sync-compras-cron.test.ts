@@ -98,11 +98,11 @@ describe("inv-22e — modo y corrida", () => {
     expect(m.syncLegacy).not.toHaveBeenCalled();
   });
 
-  it("ocupado (null) -> 409 enCurso sin registro", async () => {
+  it("ocupado (null) -> 200 enCurso sin registro", async () => {
     m.sync.mockResolvedValue(null);
     const res = await POST(req(AUTH));
-    expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: "Sincronización en curso", enCurso: true });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ enCurso: true });
     expect(logs()).toHaveLength(0);
   });
 

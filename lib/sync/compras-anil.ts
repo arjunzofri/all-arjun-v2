@@ -200,12 +200,15 @@ async function syncLedger(
     }
   }
 
-  await sql`
-    INSERT INTO sync_watermark (key, value)
-    VALUES (${LEDGER_KEY}, ${watermark})
-    ON CONFLICT (key) DO UPDATE
-      SET value = GREATEST(sync_watermark.value, EXCLUDED.value)
-  `;
+  // D4: sin watermark previo y sin filas, no persistir el 1900-01-01 inicial.
+  if (!(procesadas === 0 && corte === "1900-01-01")) {
+    await sql`
+      INSERT INTO sync_watermark (key, value)
+      VALUES (${LEDGER_KEY}, ${watermark})
+      ON CONFLICT (key) DO UPDATE
+        SET value = GREATEST(sync_watermark.value, EXCLUDED.value)
+    `;
+  }
   return { procesadas, insertadas, omitidas, watermark, pendientes };
 }
 
@@ -255,7 +258,12 @@ export async function syncComprasAnilInventario(
     `) as { value: string }[];
     return await syncLedger(sql, rows[0]?.value ?? "1900-01-01", ahora);
   } finally {
-    await lease.liberar();
+    try {
+      await lease.liberar();
+    } catch (err) {
+      // D9: no enmascarar el error original del sync.
+      console.error("No se pudo liberar el lease de compras:", err instanceof Error ? err.name : "error");
+    }
   }
 }
 
