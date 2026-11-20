@@ -21,6 +21,7 @@ export default function InventarioShell({ userId, username, esAdmin, children }:
           <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold text-slate-900"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-600 text-xs font-bold text-white">A</span>Arjun</Link>
           <nav className="flex min-w-0 flex-wrap items-center gap-1 text-sm">
             <Link href="/inventario" className={enlace}>Inventario</Link>
+            <Link href="/inventario/nuevo" className={enlace}>Crear producto</Link>
             {esAdmin && <Link href="/usuarios" className={enlace}>Usuarios</Link>}
           </nav>
           <div className="ml-auto flex min-w-0 flex-wrap items-center gap-3">
