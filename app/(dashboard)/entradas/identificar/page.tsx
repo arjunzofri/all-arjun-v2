@@ -9,5 +9,5 @@ export default async function IdentificarPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   if (!flagActivo("identificacion_foto")) notFound();
-  return <IdentificarProducto />;
+  return <IdentificarProducto modoInventario={flagActivo("inventario_bodega")} />;
 }

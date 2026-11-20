@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CamaraBoton } from "@/components/CamaraBoton";
 import { comprimirImagen, miniaturaCloudinary } from "@/lib/utils/comprimir-imagen";
-import { generarCodigoAlternativo } from "@/lib/actions/identificacion";
+import { abrirProductoIdentificado, generarCodigoAlternativo } from "@/lib/actions/identificacion";
 
 type Opcion = { codigo: string; codigos: string[]; detalle: string | null; imagenUrl: string; razon: string; fuente?: "visual" | "preseleccion" };
 type Resultado = { opciones: Opcion[]; avisos?: string[] };
@@ -29,7 +29,7 @@ export function AvisoAnalizando({ segundos }: { segundos: number }) {
   );
 }
 
-export default function IdentificarProducto() {
+export default function IdentificarProducto({ modoInventario = false }: { modoInventario?: boolean }) {
   const router = useRouter();
   const [foto, setFoto] = useState<string | null>(null);
   const [analizando, setAnalizando] = useState(false);
@@ -38,6 +38,8 @@ export default function IdentificarProducto() {
   const [elegidos, setElegidos] = useState<Record<number, string>>({});
   const [creandoCodigo, setCreandoCodigo] = useState(false);
   const [errorCodigo, setErrorCodigo] = useState("");
+  const [abriendo, setAbriendo] = useState(false);
+  const [errorAbrir, setErrorAbrir] = useState("");
   const [segundos, setSegundos] = useState(0);
   const fotoRef = useRef<string | null>(null);
   useEffect(() => () => { if (fotoRef.current) URL.revokeObjectURL(fotoRef.current); }, []);
@@ -72,11 +74,26 @@ export default function IdentificarProducto() {
     setCreandoCodigo(true); setErrorCodigo("");
     try {
       const { codigo } = await generarCodigoAlternativo();
-      router.push(`/entradas?codigo=${encodeURIComponent(codigo)}&nuevo=1`);
+      router.push(
+        modoInventario
+          ? `/inventario/nuevo?codigo=${encodeURIComponent(codigo)}`
+          : `/entradas?codigo=${encodeURIComponent(codigo)}&nuevo=1`,
+      );
     } catch (err) {
       setErrorCodigo(err instanceof Error ? err.message : "No se pudo crear el código");
       setCreandoCodigo(false);
     }
+  };
+
+  const abrirFicha = async (codigos: string[], codigo: string) => {
+    setAbriendo(true); setErrorAbrir("");
+    try {
+      const r = await abrirProductoIdentificado({ codigos, codigo });
+      if (!r.ok) return setErrorAbrir(r.error);
+      router.push(`/productos/${r.id}`);
+    } catch {
+      setErrorAbrir("No se pudo abrir la ficha. Intenta de nuevo.");
+    } finally { setAbriendo(false); }
   };
 
   const reiniciar = () => {
@@ -129,7 +146,13 @@ export default function IdentificarProducto() {
                     </label>
                   ))}
                   <button type="button" className={BOTON_USAR}
-                    onClick={() => router.push(`/entradas?codigo=${encodeURIComponent(elegido)}`)}>Usar este código</button>
+                    disabled={modoInventario && abriendo}
+                    onClick={() => modoInventario
+                      ? abrirFicha(op.codigos, elegido)
+                      : router.push(`/entradas?codigo=${encodeURIComponent(elegido)}`)}>
+                    {modoInventario ? "Abrir ficha" : "Usar este código"}
+                  </button>
+                  {errorAbrir && <p role="alert" className="mt-1 text-xs text-red-600">{errorAbrir}</p>}
                 </div>
               </div>
             );
@@ -139,7 +162,7 @@ export default function IdentificarProducto() {
 
       <div className="mt-6 space-y-3 text-center">
         <p className="text-sm text-slate-500">¿Ninguno es el producto?</p>
-        <Link href="/entradas" className="inline-block text-sm font-medium text-violet-600 hover:underline">Buscar manualmente</Link>
+        <Link href={modoInventario ? "/inventario/nuevo" : "/entradas"} className="inline-block text-sm font-medium text-violet-600 hover:underline">Buscar manualmente</Link>
         <div>
           <button type="button" onClick={crearCodigoNuevo} disabled={creandoCodigo}
             className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 transition-colors disabled:opacity-50">
