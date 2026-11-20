@@ -1,4 +1,4 @@
-# Traspaso Arjun — vigente 2026-11-19
+# Traspaso Arjun — vigente 2026-11-19 22:50 Chile
 
 Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, CLAUDE.md, BUGS.md, QA-REGISTRO.md, AUTO-LOG.md y archivos reales. Este estado prevalece sobre los estados HISTORICOS de CONTEXT-CLAUDE-CHAT.md.
 
@@ -10,7 +10,14 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — 18.1 CERRADO, siguiente18.2
+## Punto exacto de reanudación — 18.2 CERRADO 69a9e05, siguiente UsuariosR8 auth
+- Commit producto **69a9e05** historial de conteos a demanda: 5archivos196 lineas; registro QA en commit docs. Ver AUTO-LOG 2026-11-19 Cierre18.2.
+- QA inv-18-2-on PASA6/6 y inv-18-2-off PASA1/1; Director verificar-historial-arjun.cjs PASA (montaje sin accion, carga, teclado, offline/Reintentar, respuesta tardia otroSKU, 360, JS0).
+- Fixtures historial: workspace Director preparar-historial-qa.cjs (solo5179/5180/5181 TEST). QA y verificacion agregaron versiones a5179 (81/82 A1F, 7 A2P); re-correr el preparador antes de reusar.
+- **Sin codigo pendiente de commit. Sin Programador/QA activos; TEST apagado, flagsfalse, next-env restaurado.** Contador **2** slices desde inv-audit-17-3b-A.
+- Siguiente: UsuariosR8 (crearUsuario/listarUsuarios auth dentro de accion). Contrato ../_dt/logs/inv-usuarios-auth-A.md + ajustes ../_dt/prompts/inv-usuarios-auth-ajustes-director.md. Preparar planQA y prompt BCD; no reabrir18.x.
+
+## (HISTORICO) Punto de reanudación anterior — 18.1 CERRADO, siguiente18.2
 Último commit producto **e09a114**, formato fecha/hora Chile y miles;57add+16del=73 incluyendoQA.
 - Director34/34 propias, eslint6=0, tsc0/build0 (warningroot preexistente), diff6archivos revisado.
 - QA inv-18-1-on PASA1/1/auditoría0/7imágenes; inv-18-1-off PASA1/1/auditoría0/3imágenes, sin defectos ni consola.
@@ -87,7 +94,7 @@ DTO operador sin costos/nonce/ubicación librelegacy. Imagen no destruir antes d
 
 ## Backlog restante aprobado
 -18.1 CERRADO e09a114; hora/miles/lista ya hechos. Sigue18.2; contratos de18.1 quedan como evidencia.
--18.2 historial lazy con details nativo, cursor/mounted/error/retry, keyhistorial versiones sin cambiar keyform. Estimaciónoriginal205rechazada; simplificar estados, no quitar riesgos.
+-18.2 CERRADO 69a9e05. (Era: historial lazy con details nativo, cursor/mounted/error/retry, keyhistorial versiones sin cambiar keyform. Estimaciónoriginal205rechazada; simplificar estados, no quitar riesgos.
 -UsuariosR8: crearUsuario/listarUsuarios sin auth dentroacción; actoropcional y returninghash. No explotaciónHTTP afirmada. inv-usuarios-auth-A.md / inv-usuarios-auth-ajustes-director.md listos. Limpieza solo propios, no %test-% global.
 -AuthWRITEproductos/PATCH, alias/packing/observaciones; ocultar campo ubicaciónlibreON. Contratos inv-15-B.md / inv-13-lectura-A.md.
 -Imagen uploadprimero->CAS DB->cleanupviejo bestEffort; fallo/race limpia nuevo; proteger cloudexterno VD. Integrar editorficha.

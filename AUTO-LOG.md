@@ -244,3 +244,12 @@
 - TESTapagado/nextenvrestaurado/flagsfalse. Código e09a114 cerrado; contador1 desdeaudit17.3b.
 - Traspaso canónico docs/TRASPASO-IA.md actualizado: ningúntrabajoactivo; siguiente18.2 prompt ../_dt/prompts/inv-18-2-BCD.md preparado NOlanzado. Director siguiente prepara planQA/fixtures12versiones solosintéticos antesB.
 - Backlogrestante explicado y contratos/rutas/evidencias/localizadores exactos. Respaldos17.3b y18.1 en ../_dt/handoff-2026-11-19 ya incorporados, NO reaplicar. Sinpush/deploy/resetreal/prod.
+
+## 2026-11-19 — Cierre18.2 69a9e05 historial de conteos a demanda
+- Programador deepseek BCD 268s. 5archivos196add+0del codigo+tests; QA-REGISTRO8 (ON+OFF) va en commit docs para no exceder200. Borrador inicial205 compactado en harness de hooks: mismo estilo denso ya commiteado en inventario-envio-hook.test.ts (proyecto sin prettier); 7casos de riesgo completos. Aceptado por Director, anotado.
+- Log BCD sin evidencia explicita de rojo; Director hizo mutacion propia (quitar lock enCurso y guard montado): 2rojos exactos, archivo restaurado hash identico.
+- Director48/48 dirigidos (historial/ficha/consultas/fecha/lista/envio), eslint5=0, tsc0, build0 (warningroot preexistente).
+- Fixtures Director preparar-historial-qa.cjs SOLO TEST: 5179 13versiones B1A1F vigente80 (incluye0 y148163), 5180 sinconteos, 5181 cero. Sin reset global.
+- QA inv-18-2-on PASA6/6 auditoria0/17imagenes consola0; inv-18-2-off PASA1/1 auditoria0/5imagenes. Sin defectos ni pendientes.
+- Director navegador verificar-historial-arjun.cjs PASA: 0 server actions al montar, Cargando visible con respuesta demorada, 1consulta, reabrir sin refetch, Enter abre, offline->mensaje fijo->Reintentar, respuesta tardia con cambio a5181 no contamina, 360 sin desborde, JS0.
+- Flagsfalse, nextenv restaurado, puerto3123 libre. Contador2 desde audit17.3b. Sin push/deploy/reset/prod.

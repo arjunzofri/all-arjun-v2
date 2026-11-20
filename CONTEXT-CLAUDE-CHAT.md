@@ -3,9 +3,9 @@
 ## LEER PRIMERO — continuidad vigente 2026-11-19
 **[docs/TRASPASO-IA.md](docs/TRASPASO-IA.md) contiene el estado exacto y prevalece sobre estados HISTORICOS debajo.**
 - Repo anidado app-arjun-v2/app-arjun-v2, rama feat/inventario-bodega.
-- API25262d0, conteos17.3b c51cff5 y formato18.1 e09a114 CERRADOS con verificación propia y QAON/OFF. Siguiente18.2, prompt listo aún NO lanzado.
+- API25262d0, conteos17.3b c51cff5 y formato18.1 e09a114 e historial18.2 69a9e05 CERRADOS con verificación propia y QAON/OFF. Siguiente UsuariosR8 auth (ver TRASPASO).
 - Respaldo ../_dt/handoff-2026-11-19, NO aplicar sobre cambios presentes.
-- Auditoría inv-audit-17-3b-A cerrada sin bloqueantes, contador1 tras18.1. Árbolsinproducto pendiente, sin trabajos activos, flagsfalse, sinpush/deploy/resetreal.
+- Auditoría inv-audit-17-3b-A cerrada sin bloqueantes, contador2 tras18.1 y18.2. Árbolsinproducto pendiente, sin trabajos activos, flagsfalse, sinpush/deploy/resetreal.
 
 
 ## VIGENTE 2026-11-17 — GO modo inventario
