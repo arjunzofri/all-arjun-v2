@@ -156,6 +156,37 @@ export const syncWatermark = pgTable("sync_watermark", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// ── Compras importadas (ledger modo inventario ON) ──────────────────────
+// Espejo de db/migrations/0003_compras_importadas.sql.
+// Solo registra compras: no escribe stock ni movimientos.
+export const comprasImportadas = pgTable(
+  "compras_importadas",
+  {
+    id: serial("id").primaryKey(),
+    folio: varchar("folio", { length: 50 }).notNull(),
+    productoId: integer("producto_id")
+      .notNull()
+      .references(() => productos.id, { onDelete: "restrict", onUpdate: "restrict" }),
+    bodegaCodigo: text("bodega_codigo"),
+    cantidad: integer("cantidad").notNull(),
+    precioUnitario: numeric("precio_unitario", { precision: 10, scale: 4 }),
+    fechaNota: date("fecha_nota"),
+    fechaConfirmacion: date("fecha_confirmacion").notNull(),
+    visaciones: jsonb("visaciones").notNull().default(sql`'[]'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    // Idempotencia folio+producto+bodega; bodega nullable (GL desconocido).
+    unique("uq_compras_importadas_folio_producto_bodega")
+      .on(t.folio, t.productoId, t.bodegaCodigo)
+      .nullsNotDistinct(),
+    index("idx_compras_importadas_fecha").on(t.fechaConfirmacion),
+  ]
+);
+
+export type CompraImportada = typeof comprasImportadas.$inferSelect;
+export type NuevaCompraImportada = typeof comprasImportadas.$inferInsert;
+
 // ── NextAuth ─────────────────────────────────────────────────────────────
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
