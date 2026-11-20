@@ -26,6 +26,7 @@ let calls: [TemplateStringsArray, ...unknown[]][] = [];
 let forward = true;
 
 export const textos = () => calls.map(([s]) => s.join("?"));
+export const llamadas = () => calls;
 export const setForward = (v: boolean) => { forward = v; };
 export const filas = <T,>(q: string, p: unknown[]) =>
   realSql.query(q, p) as Promise<T[]>;

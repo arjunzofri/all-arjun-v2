@@ -20,10 +20,17 @@ const ORIGEN_KEY = "compras-anil-desde";
 const LEDGER_KEY = "compras-anil-ledger";
 const LEDGER_DESDE_KEY = "compras-anil-ledger-desde";
 
+/** Filas de VD leídas por corrida en modo ON (backfill por lotes). */
+export const LIMITE_LOTE_COMPRAS = 100;
+/** Tope de tiempo por corrida ON; al excederse se corta y queda pendiente. */
+export const LIMITE_MS_LOTE_COMPRAS = 8000;
+
 export interface SyncComprasAnilResultado {
   procesadas: number;
   watermark: string;
   conciliacion?: ResultadoConciliacion | { error: string };
+  /** ON: true si quedan filas para la próxima corrida. */
+  pendientes?: boolean;
 }
 
 // ── Upsert de producto (compartido: sync Anil + entrada manual) ──
@@ -119,6 +126,7 @@ export async function insertarMovimientoSync(
 async function syncLedger(
   sql: { (strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown> },
   corte: string,
+  ahora: () => number,
 ): Promise<SyncComprasAnilResultado> {
   await sql`
     INSERT INTO sync_watermark (key, value)
@@ -126,46 +134,71 @@ async function syncLedger(
     ON CONFLICT (key) DO NOTHING
   `;
 
-  const compras = await getComprasAnilDesde(corte, { incluirSinMetadata: true });
+  // Lote + 1: la fila extra dice si quedan filas para la próxima corrida.
+  const filas = await getComprasAnilDesde(corte, {
+    incluirSinMetadata: true,
+    limite: LIMITE_LOTE_COMPRAS + 1,
+  });
+  const extra = filas.length > LIMITE_LOTE_COMPRAS ? filas[LIMITE_LOTE_COMPRAS] : null;
+  const lote = filas.slice(0, LIMITE_LOTE_COMPRAS);
   let maxFecha = corte;
-  for (const c of compras) if (c.fechconf && c.fechconf > maxFecha) maxFecha = c.fechconf;
+  for (const c of lote) if (c.fechconf && c.fechconf > maxFecha) maxFecha = c.fechconf;
+  // Día lleno: re-leer desde esa fecha volvería a traer más de un lote → loop.
+  if (extra && extra.fechconf === maxFecha) {
+    throw new Error(
+      `Lote lleno (${LIMITE_LOTE_COMPRAS}) con la fecha de confirmación ${maxFecha}: ` +
+      `un solo día no cabe en LIMITE_LOTE_COMPRAS; aumentar la constante o particionar ese día`,
+    );
+  }
 
+  const inicio = ahora();
   let procesadas = 0;
-  for (const compra of compras) {
-    if (!compra.fechconf) continue;
-    await upsertProducto(sql, compra); // nunca escribe ubicación ni pisa campos manuales
-    const prod = (await sql`
-      SELECT id FROM productos WHERE codigo = ${compra.codigo}
-    `) as { id: number }[];
-    if (!prod[0]) continue;
-    await guardarCompraImportada(sql, {
-      ...compra,
-      productoId: prod[0].id,
-      bodegaCodigo: compra.bodegaCodigo ?? null,
-      fechaNota: compra.fechanvt,
-      fechaConfirmacion: compra.fechconf,
-    });
-    procesadas++;
+  let pendientes = extra !== null;
+  // Re-lectura inclusiva: el watermark es la fecha de la primera fila no procesada.
+  let watermark = extra?.fechconf ?? maxFecha;
+  for (let i = 0; i < lote.length; i++) {
+    const compra = lote[i];
+    if (compra.fechconf) {
+      await upsertProducto(sql, compra); // nunca escribe ubicación ni pisa campos manuales
+      const prod = (await sql`
+        SELECT id FROM productos WHERE codigo = ${compra.codigo}
+      `) as { id: number }[];
+      if (prod[0]) {
+        await guardarCompraImportada(sql, {
+          ...compra,
+          productoId: prod[0].id,
+          bodegaCodigo: compra.bodegaCodigo ?? null,
+          fechaNota: compra.fechanvt,
+          fechaConfirmacion: compra.fechconf,
+        });
+        procesadas++;
+      }
+    }
+    if (ahora() - inicio > LIMITE_MS_LOTE_COMPRAS && i + 1 < lote.length) {
+      pendientes = true;
+      watermark = lote[i + 1].fechconf ?? watermark;
+      break;
+    }
   }
 
   await sql`
     INSERT INTO sync_watermark (key, value)
-    VALUES (${LEDGER_KEY}, ${maxFecha})
+    VALUES (${LEDGER_KEY}, ${watermark})
     ON CONFLICT (key) DO UPDATE
       SET value = GREATEST(sync_watermark.value, EXCLUDED.value)
   `;
-  return { procesadas, watermark: maxFecha };
+  return { procesadas, watermark, pendientes };
 }
 
 // ── Sync principal ────────────────────────────────────────────────────
 
 export async function syncComprasAnil(
   corte: string,
-  opciones: { modo?: "on" | "off" } = {},
+  opciones: { modo?: "on" | "off"; ahora?: () => number } = {},
 ): Promise<SyncComprasAnilResultado> {
   const sql = neon(process.env.DATABASE_URL!);
 
-  if (opciones.modo === "on") return syncLedger(sql, corte);
+  if (opciones.modo === "on") return syncLedger(sql, corte, opciones.ahora ?? Date.now);
 
   // Defensa: validar que BODEGA_ID coincida con las filas reales en bodegas/modulos.
   // Si alguien recrea las tablas y los serials quedan desalineados, el sync

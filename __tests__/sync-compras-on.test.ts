@@ -14,7 +14,7 @@ vi.mock("@/lib/sync/conciliacion-compras", () => ({
   getDesdeConciliacion: vi.fn(),
 }));
 
-import { syncComprasAnil } from "@/lib/sync/compras-anil";
+import { LIMITE_LOTE_COMPRAS, syncComprasAnil } from "@/lib/sync/compras-anil";
 import {
   cod,
   compra,
@@ -32,9 +32,12 @@ describe("ON — solo ledger", () => {
   it("cero SQL a stock/movimientos, sin conciliación, fila en el ledger", async () => {
     mockGet.mockResolvedValue([compra()]);
     const res = await syncComprasAnil("1900-01-01", { modo: "on" });
-    expect(res).toEqual({ procesadas: 1, watermark: "2026-10-02" });
+    expect(res).toEqual({ procesadas: 1, watermark: "2026-10-02", pendientes: false });
     expect(mockConcil).not.toHaveBeenCalled();
-    expect(mockGet).toHaveBeenCalledWith("1900-01-01", { incluirSinMetadata: true });
+    expect(mockGet).toHaveBeenCalledWith("1900-01-01", {
+      incluirSinMetadata: true,
+      limite: LIMITE_LOTE_COMPRAS + 1,
+    });
     const t = textos().join("\n");
     for (const s of ["INSERT INTO stock", "INSERT INTO movimientos", "movimiento_visaciones"])
       expect(t).not.toContain(s);
