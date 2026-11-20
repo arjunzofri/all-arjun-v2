@@ -3,6 +3,7 @@ import { flagActivo } from "@/lib/feature-flags";
 import { redirect } from "next/navigation";
 import { getBodegas, getModulos } from "@/lib/actions/vistas";
 import InicioInventario from "@/components/inventario/InicioInventario";
+import { getEstadoCompras, type EstadoCompras } from "@/lib/sync/estado-compras";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -71,8 +72,22 @@ export default async function DashboardPage() {
   if (!session?.user) redirect("/login");
 
   const user = session.user as { username?: string } | undefined;
-  if (flagActivo("inventario_bodega"))
-    return <InicioInventario username={user?.username ?? "---"} mostrarIdentificacion={flagActivo("identificacion_foto")} />;
+  if (flagActivo("inventario_bodega")) {
+    let estadoCompras: EstadoCompras | null = null;
+    try {
+      estadoCompras = await getEstadoCompras();
+    } catch (err) {
+      // El estado de compras es informativo: nunca bloquea el inicio.
+      console.error("No se pudo leer el estado de compras:", err);
+    }
+    return (
+      <InicioInventario
+        username={user?.username ?? "---"}
+        mostrarIdentificacion={flagActivo("identificacion_foto")}
+        estadoCompras={estadoCompras}
+      />
+    );
+  }
   const [bodegas, modulos] = await Promise.all([getBodegas(), getModulos()]);
 
   return (
