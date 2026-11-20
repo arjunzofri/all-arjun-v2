@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { flagActivo } from "@/lib/feature-flags";
 import { listarInventario, getValorizacionLista, type FilaInventario, type ValorizacionLista } from "@/lib/inventario/consultas";
 import ListaInventario from "@/components/inventario/ListaInventario";
+import { hrefLista } from "@/lib/inventario/retorno-lista";
 
 export const dynamic = "force-dynamic";
 type ParametrosCrudos = { q?: string | string[]; cursor?: string | string[]; valores?: string | string[] };
@@ -24,12 +25,6 @@ export function leerParametrosLista(sp: ParametrosCrudos): ParametrosLista {
   if (!/^[1-9]\d*$/.test(cursorCrudo) || cursor > MAX_INT4) return { ok: false, error: ERROR_PAGINA };
   return { ok: true, q, cursor, valores };
 }
-
-/** Link de /inventario con q, cursor y valores=1 solo cuando corresponde. */
-const hrefLista = (q: string, cursor: number | null, valores: boolean) => {
-  const partes = [q !== "" ? `q=${encodeURIComponent(q)}` : "", cursor !== null ? `cursor=${cursor}` : "", valores ? "valores=1" : ""].filter(Boolean);
-  return partes.length === 0 ? "/inventario" : `/inventario?${partes.join("&")}`;
-};
 
 function Vista({ error, children }: { error?: string; children?: React.ReactNode }) {
   return <div><h1 className="mb-6 text-2xl font-bold text-slate-900">Inventario</h1>
@@ -57,12 +52,12 @@ export default async function InventarioPage({ searchParams }: { searchParams: P
     try { valores = await getValorizacionLista({ q: params.q }); } catch { errorValores = true; }
   }
   return <Vista>
-    {params.q !== "" && <p className="mb-4 break-words text-sm text-slate-600">Resultados para “{params.q}” · <Link href={hrefLista("", null, conValores)} className="font-medium text-violet-700 hover:underline">Ver todo</Link></p>}
-    {esAdmin && <div className="mb-4"><Link href={hrefLista(params.q, params.cursor, !conValores)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-violet-700 hover:bg-slate-50">{conValores ? "Ocultar valores" : "Mostrar valores"}</Link></div>}
-    <ListaInventario items={items} valores={errorValores ? null : valores} errorValores={errorValores} />
+    {params.q !== "" && <p className="mb-4 break-words text-sm text-slate-600">Resultados para “{params.q}” · <Link href={hrefLista({ q: "", cursor: null, valores: conValores })} className="font-medium text-violet-700 hover:underline">Ver todo</Link></p>}
+    {esAdmin && <div className="mb-4"><Link href={hrefLista({ q: params.q, cursor: params.cursor, valores: !conValores })} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-violet-700 hover:bg-slate-50">{conValores ? "Ocultar valores" : "Mostrar valores"}</Link></div>}
+    <ListaInventario items={items} valores={errorValores ? null : valores} errorValores={errorValores} retorno={{ q: params.q, cursor: params.cursor, valores: conValores }} />
     <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm">
-      {nextCursor !== null && <Link href={hrefLista(params.q, nextCursor, conValores)} className="rounded-lg border border-slate-200 px-4 py-2.5 font-medium text-violet-700 hover:bg-slate-50">Ver más</Link>}
-      {params.cursor !== null && <Link href={hrefLista(params.q, null, conValores)} className="rounded-lg border border-slate-200 px-4 py-2.5 font-medium text-slate-600 hover:bg-slate-50">Volver al inicio de la lista</Link>}
+      {nextCursor !== null && <Link href={hrefLista({ q: params.q, cursor: nextCursor, valores: conValores })} className="rounded-lg border border-slate-200 px-4 py-2.5 font-medium text-violet-700 hover:bg-slate-50">Ver más</Link>}
+      {params.cursor !== null && <Link href={hrefLista({ q: params.q, cursor: null, valores: conValores })} className="rounded-lg border border-slate-200 px-4 py-2.5 font-medium text-slate-600 hover:bg-slate-50">Volver al inicio de la lista</Link>}
     </div>
   </Vista>;
 }

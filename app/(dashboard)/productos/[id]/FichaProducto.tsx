@@ -13,13 +13,13 @@ import { etiquetaUbicacion, type UbicacionInventario } from "@/lib/inventario/ub
 import type { FilaInventario, PosicionContada } from "@/lib/inventario/consultas";
 // Cast puntual: el schema de DB restringe estas columnas a los valores del union.
 const ubicacion = (p: PosicionContada) => etiquetaUbicacion({ bodega: p.bodega, planta: p.planta, pasillo: p.pasillo, posicion: p.posicion } as UbicacionInventario);
-export function FichaProducto({ fila, usuarioId, refQ, valorizacion, esAdmin = false }: {
-  fila: FilaInventario; usuarioId: string; refQ?: string; esAdmin?: boolean;
+export function FichaProducto({ fila, usuarioId, volverHref = "/inventario", valorizacion, esAdmin = false }: {
+  fila: FilaInventario; usuarioId: string; volverHref?: string; esAdmin?: boolean;
   valorizacion?: { valorizacion: ValorizacionCodigo | null; error: boolean };
 }) {
   return (
     <div className="mx-auto w-full max-w-3xl min-w-0 space-y-6">
-      <Link href={refQ ? `/inventario?q=${encodeURIComponent(refQ)}` : "/inventario"}
+      <Link href={volverHref}
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-violet-600 transition-colors">
         <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Volver a inventario

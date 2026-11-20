@@ -5,6 +5,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { createProductoSearch } from "@/components/useProductoSearch";
 import type { FilaInventario } from "@/lib/inventario/consultas";
+import { hrefFicha, hrefLista } from "@/lib/inventario/retorno-lista";
 
 const MENSAJE_ERROR = "No se pudo buscar. Intente nuevamente.";
 /** Sugerencias por GET propio: no espera la cola de Server Actions del guardado. */
@@ -21,7 +22,7 @@ export function ListaResultados({ items, error, consultado, q, onElegir }: Props
   return (
     <div aria-live="polite"><ul role="listbox" aria-label="Resultados de búsqueda" className="divide-y divide-slate-100">
       {items.slice(0, 12).map((p) => (
-        <li key={p.id} role="presentation"><Link href={`/productos/${p.id}`} role="option" aria-selected="false" onClick={onElegir}
+        <li key={p.id} role="presentation"><Link href={hrefFicha(p.id, { q: q.trim(), cursor: null, valores: false })} role="option" aria-selected="false" onClick={onElegir}
           className="flex min-w-0 items-start gap-3 px-3 py-2 hover:bg-violet-50 focus:bg-violet-50 focus:outline-none">
           <ProductoThumbnail src={p.imagenUrl} alt={p.codigo} size="sm" /><span className="min-w-0 flex-1">
             <span className="flex flex-wrap gap-x-2 text-sm font-medium text-slate-800">
@@ -64,7 +65,7 @@ export default function BuscadorInventario({ grande = false }: { grande?: boolea
     e.preventDefault(); // navegación interna: conserva la bodega en memoria aunque storage esté bloqueado
     const termino = q.trim();
     elegir();
-    router.push(`/inventario?q=${encodeURIComponent(termino)}`);
+    router.push(hrefLista({ q: termino, cursor: null, valores: false }));
   }
   const mostrarLista = abierto && (buscando || consultado || error !== null);
   return (

@@ -53,7 +53,7 @@ describe("ListaResultados (exportada)", () => {
   });
   it("resultado: link directo, imagen, código, alias y descripción; sin importes", async () => {
     const html = await renderLista({ items: [fila({ imagenUrl: "/img/42.png" })], q: "cod" });
-    ['href="/productos/42"', "/img/42.png", "COD-42", "alias-42", "Descripción cuarenta y dos", "Sin contar"].forEach((s) => expect(html).toContain(s));
+    ['href="/productos/42?refQ=cod"', "/img/42.png", "COD-42", "alias-42", "Descripción cuarenta y dos", "Sin contar"].forEach((s) => expect(html).toContain(s));
     expect(html).not.toContain("$");
   });
   it("stockContado 0 se distingue de null y muestra '0 u.'", async () => {

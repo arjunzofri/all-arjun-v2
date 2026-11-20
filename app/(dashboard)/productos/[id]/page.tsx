@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { flagActivo } from "@/lib/feature-flags";
 import { productoIdSchema } from "@/lib/validations/producto";
 import { getFichaInventario, getValorizacionProducto } from "@/lib/inventario/consultas";
+import { hrefLista, leerRetorno } from "@/lib/inventario/retorno-lista";
 import type { ValorizacionCodigo } from "@/lib/inventario/valorizacion";
 import { EditarProductoForm } from "./form";
 import { ImagenProducto } from "./imagen";
@@ -24,9 +25,9 @@ export default async function ProductoDetallePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ refQ?: string }>;
+  searchParams: Promise<{ refQ?: string | string[]; refCursor?: string | string[]; refValores?: string | string[] }>;
 }) {
-  const [{ id }, { refQ }] = await Promise.all([params, searchParams]);
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
 
   if (flagActivo("inventario_bodega")) {
     const parsed = productoIdSchema.safeParse(Number(id));
@@ -38,11 +39,12 @@ export default async function ProductoDetallePage({
     }
     if (!ficha) notFound();
     const esAdmin = (sesion?.user as { role?: string } | undefined)?.role === "admin";
+    const volverHref = hrefLista(leerRetorno(sp, esAdmin));
     let valorizacion: ValorizacionCodigo | null = null, errorValorizacion = false;
     if (esAdmin) {
       try { valorizacion = await getValorizacionProducto(parsed.data); } catch { errorValorizacion = true; }
     }
-    return <FichaProducto fila={ficha} usuarioId={String(sesion?.user?.id ?? "")} refQ={refQ} esAdmin={esAdmin}
+    return <FichaProducto fila={ficha} usuarioId={String(sesion?.user?.id ?? "")} volverHref={volverHref} esAdmin={esAdmin}
       valorizacion={esAdmin ? { valorizacion, error: errorValorizacion } : undefined} />;
   }
 
@@ -58,7 +60,7 @@ export default async function ProductoDetallePage({
 
       {/* Breadcrumb */}
       <Link
-        href={buildVolverHref(refQ)}
+        href={buildVolverHref(typeof sp.refQ === "string" ? sp.refQ : undefined)}
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-violet-600 transition-colors"
       >
         <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>

@@ -5,13 +5,14 @@ import { formatearFecha, formatearMoneda, formatearNumero, formatearPromedio } f
 import { etiquetaUbicacion, type UbicacionInventario } from "@/lib/inventario/ubicaciones";
 import type { ValorizacionCodigo } from "@/lib/inventario/valorizacion";
 import type { FilaInventario, PosicionContada, ValorizacionLista } from "@/lib/inventario/consultas";
+import { hrefFicha, SIN_RETORNO, type RetornoLista } from "@/lib/inventario/retorno-lista";
 
 // Cast puntual: el schema de DB restringe estas columnas a los valores del union.
 const ubicacion = (p: PosicionContada) => etiquetaUbicacion({ bodega: p.bodega, planta: p.planta, pasillo: p.pasillo, posicion: p.posicion } as UbicacionInventario);
 
-const Codigo = ({ fila }: { fila: FilaInventario }) => (
+const Codigo = ({ fila, href }: { fila: FilaInventario; href: string }) => (
   <div className="min-w-0">
-    <Link href={`/productos/${fila.id}`} className="block break-all text-sm font-medium text-violet-700 hover:underline">{fila.codigo}</Link>
+    <Link href={href} className="block break-all text-sm font-medium text-violet-700 hover:underline">{fila.codigo}</Link>
     {fila.codigoPersonal && <span className="block break-all text-xs text-slate-500">Alias: {fila.codigoPersonal}</span>}
   </div>
 );
@@ -35,7 +36,7 @@ const Valor = ({ v }: { v: ValorizacionCodigo | undefined }) => (
 );
 const rangoConteos = (min: string, max: string) => min === max ? `Conteo: ${formatearFecha(min)}` : `Conteos: ${formatearFecha(min)} a ${formatearFecha(max)}`;
 
-export default function ListaInventario({ items, valores = null, errorValores = false }: { items: FilaInventario[]; valores?: ValorizacionLista | null; errorValores?: boolean }) {
+export default function ListaInventario({ items, valores = null, errorValores = false, retorno = SIN_RETORNO }: { items: FilaInventario[]; valores?: ValorizacionLista | null; errorValores?: boolean; retorno?: RetornoLista }) {
   if (items.length === 0) return <p className="py-6 text-center text-sm text-slate-500">Sin resultados.</p>;
   const porId = new Map(valores?.porProducto.map((p) => [p.productoId, p.valor]));
   const conValores = valores !== null;
@@ -49,7 +50,7 @@ export default function ListaInventario({ items, valores = null, errorValores = 
         <tbody className="divide-y divide-slate-100">{items.map((fila) => (
           <tr key={fila.id}>
             <td className="py-5 pr-3 align-top"><ProductoThumbnail src={fila.imagenUrl} alt={fila.codigo} size="sm" /></td>
-            <td className="py-5 pr-3 align-top"><Codigo fila={fila} /></td>
+            <td className="py-5 pr-3 align-top"><Codigo fila={fila} href={hrefFicha(fila.id, retorno)} /></td>
             <td className="py-5 pr-3 align-top"><Ubicaciones fila={fila} /></td>
             <td className="py-5 align-top"><Stock fila={fila} /></td>
             {conValores && <>
@@ -61,7 +62,7 @@ export default function ListaInventario({ items, valores = null, errorValores = 
       </table></div>
       <ul className="space-y-3 lg:hidden">{items.map((fila) => (
         <li key={fila.id} className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-3"><ProductoThumbnail src={fila.imagenUrl} alt={fila.codigo} size="sm" /><Codigo fila={fila} /></div>
+          <div className="flex items-center gap-3"><ProductoThumbnail src={fila.imagenUrl} alt={fila.codigo} size="sm" /><Codigo fila={fila} href={hrefFicha(fila.id, retorno)} /></div>
           <div className="mt-3"><Stock fila={fila} /></div>
           {conValores && <div className="mt-2 space-y-1 break-words text-sm text-slate-700">
             <p>Costo prom.: {formatearPromedio(porId.get(fila.id)?.costoPromedio ?? null)}</p>
