@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { FormularioConteo } from "@/components/inventario/FormularioConteo";
 import { HistorialConteos } from "@/components/inventario/HistorialConteos";
+import { EditorFichaProducto } from "@/components/inventario/EditorFichaProducto";
 import { claveHistorial } from "@/lib/inventario/historial-conteo";
 import { formatearFechaChile, formatearHoraChile } from "@/lib/utils/fecha-chile";
 import { formatearNumero } from "@/lib/utils/inversion-formato";
@@ -44,17 +45,7 @@ export function FichaProducto({ fila, usuarioId, refQ }: { fila: FilaInventario;
         )}
       </div>
       <HistorialConteos key={claveHistorial(usuarioId, fila.id, fila.posiciones)} productoId={fila.id} />
-      <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">{[
-          { label: "Codigo personal", value: fila.codigoPersonal ?? "---" },
-          { label: "Packing", value: fila.packing ? `${fila.packing} unids/caja` : "---" },
-          { label: "Observaciones", value: fila.observaciones ?? "---" },
-        ].map(({ label, value }) => (
-          <div key={label} className="flex min-w-0 flex-col gap-0.5 py-2.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-            <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
-            <span className="min-w-0 break-words text-sm text-slate-800 sm:text-right">{value}</span>
-          </div>
-        ))}
-      </div>
+      <EditorFichaProducto fila={fila} />
     </div>
   );
 }
