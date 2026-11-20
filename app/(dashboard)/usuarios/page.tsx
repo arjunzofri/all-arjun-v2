@@ -33,14 +33,18 @@ export default function UsuariosPage() {
     setOk("");
 
     try {
-      await crearUsuario({ username: username.trim(), password, role });
-      setOk(`Usuario ${username} creado`);
+      const res = await crearUsuario({ username: username.trim(), password, role });
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+      setOk(`Usuario ${res.usuario.username} creado`);
       setUsername("");
       setPassword("");
       setRole("operador");
       cargar();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+    } catch {
+      setError("No se pudo crear el usuario. Intente nuevamente.");
     }
   };
 

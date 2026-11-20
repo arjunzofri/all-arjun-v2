@@ -659,3 +659,8 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 
 ## 2026-11-20 — BACKLOG tests: identificacion-arj.test.ts falla al importar (preexistente)
 - Visto por el Director en la corrida amplia de inv-27: "Cannot read properties of undefined (reading 'query')" en db/index.ts al importar lib/actions/productos; el mock de @neondatabase/serverless no expone lo que drizzle neon-http necesita. inv-27 no toca lib/actions ni db. Archivo fuera de las suites del modo inventario; arreglar el mock antes del release (lint/test global).
+- 2026-11-20 ARREGLADO f8a9f7a: subida de imagen 4.5-10MB en Vercel (reduccion en navegador + tope servidor 4 MB).
+
+## 2026-11-20 — PREGUNTA UAT: politica minima de contrasenas
+- QA inv-28 C2: crear usuario acepta contrasena de 2 caracteres (schema min 1, preexistente). Proponer a Pablo un minimo (p.ej. 8) antes de produccion; cambio de 1 linea + test + mensaje.
+- 2026-11-20 ARREGLADO inv-28: errores esperados de Usuarios (duplicado/validacion) ahora se devuelven como valor y se muestran; QA C1 PASA.

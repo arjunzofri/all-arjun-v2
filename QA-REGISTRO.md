@@ -449,3 +449,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-20 18:50 - inv-26-on - commit 0b92904 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-26-on
 - Sin pendientes nuevos.
+
+## 2026-11-20 19:13 - inv-28 - commit f8a9f7a - FALLA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-28
+- [x] P-20261120-1913-1 (alta) FALLA: QA-C2 — Contraseña de 2 caracteres aceptada y usuario creado -> DESCARTADO como defecto del slice (pregunta UAT abierta en BUGS): preexistente, el esquema exige solo password no vacio desde antes de inv-28 y el PRD no define politica de contrasenas (R15 conserva restricciones actuales). El caso del plan suponia un minimo inexistente. Usuarios QA creados (qa28-*) borrados por el Director. Ver BUGS.

@@ -15,6 +15,17 @@ const crearUsuarioSchema = z.object({
 
 export type CrearUsuarioInput = z.infer<typeof crearUsuarioSchema>;
 
+export type UsuarioDTO = {
+  id: number;
+  username: string;
+  role: string;
+  createdAt: Date;
+};
+
+export type CrearUsuarioResult =
+  | { ok: true; usuario: UsuarioDTO }
+  | { ok: false; error: string };
+
 async function exigirAdmin(): Promise<void> {
   const session = await auth();
   const sessionId = session?.user?.id;
@@ -25,27 +36,32 @@ async function exigirAdmin(): Promise<void> {
   }
 }
 
-export async function crearUsuario(input: CrearUsuarioInput) {
+export async function crearUsuario(
+  input: CrearUsuarioInput
+): Promise<CrearUsuarioResult> {
   await exigirAdmin();
 
-  const parsed = crearUsuarioSchema.parse(input);
+  const parsed = crearUsuarioSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
+  }
 
   const [existente] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.username, parsed.username));
+    .where(eq(users.username, parsed.data.username));
 
   if (existente) {
-    throw new Error("El username ya existe");
+    return { ok: false, error: "El username ya existe" };
   }
 
-  const passwordHash = await bcrypt.hash(parsed.password, 10);
+  const passwordHash = await bcrypt.hash(parsed.data.password, 10);
 
   const [created] = await db
     .insert(users)
     .values({
-      username: parsed.username,
-      role: parsed.role,
+      username: parsed.data.username,
+      role: parsed.data.role,
       passwordHash,
     })
     .returning({
@@ -55,7 +71,7 @@ export async function crearUsuario(input: CrearUsuarioInput) {
       createdAt: users.createdAt,
     });
 
-  return created;
+  return { ok: true, usuario: created };
 }
 
 export async function listarUsuarios() {

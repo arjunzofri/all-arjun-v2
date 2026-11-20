@@ -11,7 +11,11 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 // Import real — si el módulo no existe (Fase B), MODULE_NOT_FOUND.
-import { crearUsuario, listarUsuarios } from "@/lib/actions/usuarios";
+import {
+  crearUsuario,
+  listarUsuarios,
+  type CrearUsuarioInput,
+} from "@/lib/actions/usuarios";
 import { GET as getSeedAdmin } from "@/app/api/seed-admin/route";
 
 // Prefijo único por ejecución: solo se borran los ids creados por este archivo.
@@ -28,49 +32,64 @@ afterAll(async () => {
 
 // ── Validación ─────────────────────────────────────────────────────────
 describe("crearUsuario() — validación", () => {
-  it("rechaza username vacío", async () => {
-    await expect(
-      crearUsuario({ username: "", password: "123456", role: "operador" })
-    ).rejects.toThrow(/username|usuario|requerido/i);
+  it("rechaza username vacío — como valor", async () => {
+    const res = await crearUsuario({ username: "", password: "123456", role: "operador" });
+    expect(res.ok).toBe(false);
+    if (res.ok) return;
+    expect(res.error).toMatch(/username|usuario|requerido/i);
   });
 
-  it("rechaza password de 0 caracteres", async () => {
-    await expect(
-      crearUsuario({ username: `${PREFIJO}user1`, password: "", role: "operador" })
-    ).rejects.toThrow(/password|mínimo|contraseña/i);
+  it("rechaza password de 0 caracteres — como valor", async () => {
+    const res = await crearUsuario({
+      username: `${PREFIJO}user1`,
+      password: "",
+      role: "operador",
+    });
+    expect(res.ok).toBe(false);
+  });
+
+  it("error de input no-objeto es valor, no excepción", async () => {
+    const res = await crearUsuario(null as unknown as CrearUsuarioInput);
+    expect(res.ok).toBe(false);
   });
 
   it("acepta username y password mínimos", async () => {
-    const u = await crearUsuario({
+    const res = await crearUsuario({
       username: `${PREFIJO}user2`,
       password: "a",
       role: "operador",
     });
-    idsCreados.push(u.id);
-    expect(u).toHaveProperty("id");
-    expect(u).toHaveProperty("username", `${PREFIJO}user2`);
-    // No debe tener email ni hash
-    expect(u).not.toHaveProperty("email");
-    expect(u).not.toHaveProperty("passwordHash");
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    idsCreados.push(res.usuario.id);
+    // Sin email ni hash
+    expect(Object.keys(res.usuario).sort()).toEqual([
+      "createdAt",
+      "id",
+      "role",
+      "username",
+    ]);
+    expect(res.usuario.username).toBe(`${PREFIJO}user2`);
   });
 });
 
 // ── R3: Username duplicado ─────────────────────────────────────────────
 describe("crearUsuario() — username único", () => {
-  it("rechaza username duplicado", async () => {
-    const u = await crearUsuario({
+  it("rechaza username duplicado — como valor", async () => {
+    const primero = await crearUsuario({
       username: `${PREFIJO}dup`,
       password: "123456",
       role: "operador",
     });
-    idsCreados.push(u.id);
-    await expect(
-      crearUsuario({
-        username: `${PREFIJO}dup`,
-        password: "abcdef",
-        role: "admin",
-      })
-    ).rejects.toThrow(/username|duplicado|existe/i);
+    expect(primero.ok).toBe(true);
+    if (!primero.ok) return;
+    idsCreados.push(primero.usuario.id);
+    const res = await crearUsuario({
+      username: `${PREFIJO}dup`,
+      password: "abcdef",
+      role: "admin",
+    });
+    expect(res).toEqual({ ok: false, error: "El username ya existe" });
   });
 });
 
@@ -101,12 +120,14 @@ describe("login con username", () => {
 
   it("password incorrecto rechaza login", async () => {
     const username = `${PREFIJO}login`;
-    const u = await crearUsuario({
+    const res = await crearUsuario({
       username,
       password: "correcta",
       role: "admin",
     });
-    idsCreados.push(u.id);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    idsCreados.push(res.usuario.id);
     const { neon } = await import("@neondatabase/serverless");
     const sql = neon(process.env.DATABASE_URL!);
     const rows = await sql`SELECT password_hash FROM users WHERE username = ${username}`;
