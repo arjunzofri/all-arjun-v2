@@ -5,8 +5,10 @@ import { productos, movimientos, activityLog, stock, bodegas, modulos, movimient
 import { eq, and, lt, gt, desc, or, ilike, inArray, sql } from "drizzle-orm";
 import { mergeProductStock } from "@/lib/utils/merge-product-stock";
 import { fechaChileDeTimestamp } from "@/lib/utils/fecha-chile";
-import { updateProductoSchema, type UpdateProductoInput } from "@/lib/validations/producto";
+import { productoIdSchema, updateProductoSchema, type UpdateProductoInput } from "@/lib/validations/producto";
 import { exigirModoOperativo } from "@/lib/inventario/modo";
+import { auth } from "@/lib/auth";
+import { flagActivo } from "@/lib/feature-flags";
 
 export type UpdateProductoResult =
   | { ok: true; producto: typeof productos.$inferSelect }
@@ -184,9 +186,19 @@ export async function getProducto(id: number) {
 // ── Editar producto ──────────────────────────────────────────────────────
 export async function updateProducto(
   id: number,
-  input: UpdateProductoInput,
-  usuarioId?: number
+  input: UpdateProductoInput
 ): Promise<UpdateProductoResult> {
+  // El autor sale de la sesión, nunca del cliente.
+  const session = await auth();
+  const usuarioId = Number(session?.user?.id);
+  if (!Number.isSafeInteger(usuarioId) || usuarioId <= 0) {
+    return { ok: false, error: "No autorizado" };
+  }
+
+  if (!productoIdSchema.safeParse(id).success) {
+    return { ok: false, error: "ID de producto inválido" };
+  }
+
   // Mismo schema que la ruta PATCH: la ficha no puede saltarse la validacion.
   const parsed = updateProductoSchema.safeParse(input);
   if (!parsed.success) {
@@ -194,6 +206,10 @@ export async function updateProducto(
       ok: false,
       error: parsed.error.issues[0]?.message ?? "Datos invalidos",
     };
+  }
+
+  if (flagActivo("inventario_bodega") && Object.prototype.hasOwnProperty.call(input, "ubicacion")) {
+    return { ok: false, error: "La ubicación física se registra solo por conteo" };
   }
 
   const [updated] = await db
@@ -210,7 +226,7 @@ export async function updateProducto(
   }
 
   // R3: auditoría si se modificó codigo_personal
-  if (parsed.data.codigoPersonal !== undefined && usuarioId) {
+  if (parsed.data.codigoPersonal !== undefined) {
     await db.insert(activityLog).values({
       usuarioId,
       accion: "update_codigo_personal",

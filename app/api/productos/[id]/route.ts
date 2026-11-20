@@ -53,7 +53,20 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  const parsedId = productoIdSchema.safeParse(Number(id));
+  if (!parsedId.success) {
+    return NextResponse.json({ error: "ID de producto inválido" }, { status: 400 });
+  }
+
   const body: unknown = await request.json().catch(() => ({}));
+
+  if (flagActivo("inventario_bodega") && typeof body === "object" && body !== null &&
+    Object.prototype.hasOwnProperty.call(body, "ubicacion")) {
+    return NextResponse.json(
+      { error: "La ubicación física se registra solo por conteo" },
+      { status: 400 }
+    );
+  }
 
   const parsed = updateProductoSchema.safeParse(body);
   if (!parsed.success) {
@@ -64,12 +77,11 @@ export async function PATCH(
   }
 
   // Solo se permite modificar los campos del schema — todo lo demás se ignora
-  const usuarioId = (session.user as { id?: number }).id;
-  const updated = await updateProducto(Number(id), parsed.data, usuarioId);
+  const updated = await updateProducto(parsedId.data, parsed.data);
 
-  // La ruta ya validó el body: un ok:false acá significa producto inexistente.
   if (!updated.ok) {
-    return NextResponse.json({ error: updated.error }, { status: 404 });
+    const status = updated.error === "No autorizado" ? 401 : 404;
+    return NextResponse.json({ error: updated.error }, { status });
   }
 
   return NextResponse.json(updated.producto);
