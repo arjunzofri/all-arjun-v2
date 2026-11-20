@@ -136,6 +136,28 @@ it("imagen.tsx: respuesta no-JSON o !ok muestra mensaje fijo sin lanzar", () => 
   expect(src).not.toContain("throw new Error");
 });
 
+it("ON borde 4 MB: 4 MB pasa, 4 MB + 1 da 400 con mensaje 4MB", async () => {
+  const exacto = new File([new Uint8Array(4 * 1024 * 1024)], "e.jpg", { type: "image/jpeg" });
+  expect((await post(pid, exacto)).status).toBe(200);
+  const [p] = await db.insert(productos).values({ codigo: `${tag}B` }).returning({ id: productos.id });
+  const sobre = new File([new Uint8Array(4 * 1024 * 1024 + 1)], "s.jpg", { type: "image/jpeg" });
+  const r = await post(p.id, sobre);
+  expect(r.status).toBe(400);
+  expect((await r.json()).error).toMatch(/4MB/);
+  await db.delete(productos).where(eq(productos.id, p.id));
+});
+
+it("OFF tipo o tamaño inválido: 400 JSON, no 500", async () => {
+  process.env.FEATURE_INVENTARIO_BODEGA = "false";
+  const txt = new File(["hola"], "a.txt", { type: "text/plain" });
+  const r = await post(pid, txt);
+  expect(r.status).toBe(400);
+  expect((await r.json()).error).toMatch(/Formato/);
+  const grande = new File([new Uint8Array(4 * 1024 * 1024 + 1)], "g.jpg", { type: "image/jpeg" });
+  expect((await post(pid, grande)).status).toBe(400);
+  expect(cl.subir).not.toHaveBeenCalled();
+});
+
 it("OFF: borra la vieja antes de subir y no usa CAS (sin 409)", async () => {
   process.env.FEATURE_INVENTARIO_BODEGA = "false";
   cl.eliminar.mockImplementationOnce(async () => { await anterior(ganadora); });

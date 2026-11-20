@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
+import { ErrorImagen, reducirImagenParaSubir } from "@/lib/utils/comprimir-imagen";
 
 export function ImagenProducto({
   productoId,
@@ -18,12 +19,17 @@ export function ImagenProducto({
     if (!file) return;
     setError(""); setLoading(true);
     try {
+      const reducida = await reducirImagenParaSubir(file);
       const formData = new FormData();
-      formData.append("imagen", file);
+      formData.append("imagen", reducida);
       const res = await fetch(`/api/productos/${productoId}/imagen`, {
         method: "POST",
         body: formData,
       });
+      if (res.status === 413) {
+        setError("La imagen es muy grande. Intente con otra foto.");
+        return;
+      }
       const data = await res.json().catch(() => null);
       if (!res.ok || !data) {
         setError(data?.error ?? "No se pudo subir la imagen. Intente nuevamente.");
@@ -31,7 +37,7 @@ export function ImagenProducto({
       }
       setPreview(data.imagenUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(err instanceof ErrorImagen ? err.message : "No se pudo subir la imagen. Intente nuevamente.");
     } finally {
       setLoading(false);
     }

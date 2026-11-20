@@ -54,7 +54,7 @@ export async function POST(
       return NextResponse.json({ error: "Formato no permitido. Usá JPEG, PNG o WebP" }, { status: 400 });
     }
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "Imagen demasiado grande. Máximo 10MB" }, { status: 400 });
+      return NextResponse.json({ error: "Imagen demasiado grande. Máximo 4MB" }, { status: 400 });
     }
 
     let url: string;
@@ -95,6 +95,13 @@ export async function POST(
 
   if (!file) {
     return NextResponse.json({ error: "Imagen requerida" }, { status: 400 });
+  }
+
+  if (!ALLOWED.includes(file.type)) {
+    return NextResponse.json({ error: "Formato no permitido. Usá JPEG, PNG o WebP" }, { status: 400 });
+  }
+  if (file.size > MAX_SIZE) {
+    return NextResponse.json({ error: "Imagen demasiado grande. Máximo 4MB" }, { status: 400 });
   }
 
   // Obtener producto actual

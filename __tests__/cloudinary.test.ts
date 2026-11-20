@@ -11,13 +11,13 @@ import { subirImagen, eliminarImagen, extraerPublicId } from "@/lib/cloudinary";
 
 // ── R2: Compresión ─────────────────────────────────────────────────────
 describe("subirImagen()", () => {
-  it("rechaza archivos mayores a 10MB", async () => {
+  it("rechaza archivos mayores a 4MB", async () => {
     const hugeFile = new File(
-      [new Uint8Array(11 * 1024 * 1024)],
+      [new Uint8Array(4 * 1024 * 1024 + 1)],
       "huge.jpg",
       { type: "image/jpeg" }
     );
-    await expect(subirImagen(hugeFile)).rejects.toThrow(/tamaño|size|10MB/i);
+    await expect(subirImagen(hugeFile)).rejects.toThrow(/tamaño|size|4MB/i);
   });
 
   it("rechaza formatos no permitidos", async () => {

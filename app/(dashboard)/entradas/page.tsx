@@ -8,6 +8,7 @@ import { CamaraBoton } from "@/components/CamaraBoton";
 import { createProductoSearch } from "@/components/useProductoSearch";
 import { esCodigoArj } from "@/lib/utils/codigo-alternativo";
 import { fechaHoyChile } from "@/lib/utils/fecha-chile";
+import { reducirImagenParaSubir } from "@/lib/utils/comprimir-imagen";
 
 type Sugerencia = {
   codigo: string;
@@ -165,8 +166,9 @@ export default function EntradasPage() {
       const prod = prodData.items.find(p => p.codigo.toUpperCase() === match.codigo.toUpperCase());
       if (!prod) return;
 
+      const reducida = await reducirImagenParaSubir(file);
       const formData = new FormData();
-      formData.append("imagen", file);
+      formData.append("imagen", reducida);
       const uploadRes = await fetch(`/api/productos/${prod.id}/imagen`, { method: "POST", body: formData });
       if (!uploadRes.ok) throw new Error();
       const uploadData = await uploadRes.json() as { imagenUrl: string };

@@ -656,3 +656,6 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 - ProductoThumbnail sin marcador cuando la imagen de Cloudinary da 404 (visto en TEST con XL-0300). Baja.
 - compras_importadas sin CHECK de cantidad/precio >= 0: el calculo aisla el producto con datos invalidos (inv-24-fix) y lo informa; CHECK en DB requiere migracion prod (decidir en release). Medido TEST: 0 negativos/null.
 - Valorizacion de la lista ~770 ms desde PC Pablo (3 consultas a us-east); revisar en Vercel durante UAT.
+
+## 2026-11-20 — BACKLOG tests: identificacion-arj.test.ts falla al importar (preexistente)
+- Visto por el Director en la corrida amplia de inv-27: "Cannot read properties of undefined (reading 'query')" en db/index.ts al importar lib/actions/productos; el mock de @neondatabase/serverless no expone lo que drizzle neon-http necesita. inv-27 no toca lib/actions ni db. Archivo fuera de las suites del modo inventario; arreglar el mock antes del release (lint/test global).

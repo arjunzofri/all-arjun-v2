@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 const CLOUD_NAME = "dbl8yxnjy"; // Arjun
 const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
-export const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+export const MAX_SIZE = 4 * 1024 * 1024; // 4MB (límite body Vercel 4.5MB)
 export const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
 
 export function extraerPublicId(url: string | null): string | null {
@@ -18,7 +18,7 @@ export async function subirImagen(file: File): Promise<string> {
     throw new Error("Formato no permitido. Usá JPEG, PNG o WebP");
   }
   if (file.size > MAX_SIZE) {
-    throw new Error("Imagen demasiado grande. Máximo 10MB");
+    throw new Error("Imagen demasiado grande. Máximo 4MB");
   }
 
   const key = process.env.CLOUDINARY_API_KEY;
