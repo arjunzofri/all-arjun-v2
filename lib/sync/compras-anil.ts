@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 import { getComprasAnilDesde } from "@/db/vidadigital/queries";
 import { guardarCompraImportada } from "@/lib/sync/compras-importadas";
@@ -18,6 +19,10 @@ const BODEGA_ID: Record<string, number> = {
 const SYNC_KEY = "compras-anil";
 const ORIGEN_KEY = "compras-anil-desde";
 const LEDGER_KEY = "compras-anil-ledger";
+const LEASE_KEY = "compras-anil-lease";
+
+/** TTL del lease del sync ON; debe superar la guarda de LIMITE_MS_LOTE_COMPRAS. */
+export const LEASE_MS_COMPRAS = 120000;
 
 /** Filas de VD leídas por corrida en modo ON (backfill por lotes). */
 export const LIMITE_LOTE_COMPRAS = 100;
@@ -200,6 +205,56 @@ async function syncLedger(
       SET value = GREATEST(sync_watermark.value, EXCLUDED.value)
   `;
   return { procesadas, insertadas, omitidas, watermark, pendientes };
+}
+
+// ── Lease del sync ON (inv-22c) ───────────────────────────────────────
+
+type SqlFn = { (strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown> };
+const iso = (ms: number) => new Date(ms).toISOString();
+
+/** Reclama el lease con un solo statement atómico. null = otra corrida en curso. */
+export async function adquirirLeaseCompras(
+  sql: SqlFn,
+  ahora: () => number = Date.now,
+): Promise<{ token: string; liberar: () => Promise<void> } | null> {
+  const token = randomUUID();
+  const rows = (await sql`
+    INSERT INTO sync_watermark (key, value)
+    VALUES (${LEASE_KEY}, ${`${iso(ahora() + LEASE_MS_COMPRAS)}|${token}`})
+    ON CONFLICT (key) DO UPDATE
+      SET value = EXCLUDED.value, updated_at = now()
+      WHERE split_part(sync_watermark.value, '|', 1) < ${iso(ahora())}
+    RETURNING value
+  `) as { value: string }[];
+  if (rows.length === 0) return null;
+  return { token, liberar: () => liberarLeaseCompras(sql, token) };
+}
+
+/** Libera solo si el lease sigue siendo nuestro; deja expiración pasada. */
+export async function liberarLeaseCompras(sql: SqlFn, token: string): Promise<void> {
+  await sql`
+    UPDATE sync_watermark
+    SET value = ${`${iso(0)}|${token}`}, updated_at = now()
+    WHERE key = ${LEASE_KEY} AND value LIKE ${`%|${token}`}
+  `;
+}
+
+/** Sync de compras ON: adquiere el lease ANTES de leer el corte. null = ocupado. */
+export async function syncComprasAnilInventario(
+  opciones: { ahora?: () => number } = {},
+): Promise<SyncComprasAnilResultado | null> {
+  const ahora = opciones.ahora ?? Date.now;
+  const sql = neon(process.env.DATABASE_URL!);
+  const lease = await adquirirLeaseCompras(sql, ahora);
+  if (!lease) return null;
+  try {
+    const rows = (await sql`
+      SELECT value FROM sync_watermark WHERE key = ${LEDGER_KEY}
+    `) as { value: string }[];
+    return await syncLedger(sql, rows[0]?.value ?? "1900-01-01", ahora);
+  } finally {
+    await lease.liberar();
+  }
 }
 
 // ── Sync principal ────────────────────────────────────────────────────

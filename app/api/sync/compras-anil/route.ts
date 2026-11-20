@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { neon } from "@neondatabase/serverless";
-import { syncComprasAnil } from "@/lib/sync/compras-anil";
+import { syncComprasAnil, syncComprasAnilInventario } from "@/lib/sync/compras-anil";
 import { flagActivo } from "@/lib/feature-flags";
 import { registrarConciliacion } from "@/lib/sync/conciliacion-compras";
 
@@ -17,15 +17,21 @@ export async function POST(): Promise<NextResponse> {
   const sql = neon(process.env.DATABASE_URL!);
 
   try {
-    const rows = on
-      ? await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil-ledger'`
-      : await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil'`;
-    const corte =
-      (rows as { value: string }[])[0]?.value ?? (on ? "1900-01-01" : "2026-05-01");
-
-    const result = on
-      ? await syncComprasAnil(corte, { modo: "on" })
-      : await syncComprasAnil(corte);
+    let result: Awaited<ReturnType<typeof syncComprasAnil>> | null;
+    if (on) {
+      // El lease se adquiere dentro, antes de leer el corte.
+      result = await syncComprasAnilInventario();
+      if (result === null) {
+        return NextResponse.json(
+          { error: "Sincronización en curso", enCurso: true },
+          { status: 409 },
+        );
+      }
+    } else {
+      const rows = await sql`SELECT value FROM sync_watermark WHERE key = 'compras-anil'`;
+      const corte = (rows as { value: string }[])[0]?.value ?? "2026-05-01";
+      result = await syncComprasAnil(corte);
+    }
     if (result.conciliacion !== undefined) {
       // Auditoría best-effort: si falla el log, el sync responde 200 igual.
       try {
