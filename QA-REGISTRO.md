@@ -481,3 +481,22 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-barrido-on-barrido
 - [x] P-20261120-2009-1 (alta) ROTO: Ficha 1130-3 - "Pendiente de contar": (ver FALTA-1) -> ARREGLADO inv-31: el desplegable lleva rotulo "Valorización" y sin conteos muestra "Este producto aún no tiene conteos..." (tests rojos->verdes; se re-verifica en el barrido siguiente).
 - [x] P-20261120-2009-2 (baja) FALTA: FALTA-1 — La sección "Pendiente de contar" se abre vacía, sin estado vacío -> ARREGLADO inv-31 (mismo origen que P-20261120-2009-1).
+
+## 2026-11-20 20:58 - inv-barrido-on3 - commit f6c9bfb - INCOMPLETO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-barrido-on3
+- Sin pendientes nuevos.
+
+## 2026-11-20 20:58 - inv-barrido-on3-c2 - commit f6c9bfb - INCOMPLETO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-barrido-on3-c2
+- [x] P-20261120-2058-1 (baja) HALLAZGO: EXP-1 — Petición 404 de imagen placeholder en Cloudinary -> BACKLOG baja: imagen de prueba inexistente en Cloudinary TEST; ProductoThumbnail sin marcador (BUGS inv-24).
+
+## 2026-11-20 20:58 - inv-barrido-on3-c3 - commit f6c9bfb - INCOMPLETO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-barrido-on3-c3
+- [x] P-20261120-2058-1 (baja) HALLAZGO: EXP-1 — Error 404 al cargar una imagen de Cloudinary -> BACKLOG baja: imagen de prueba inexistente en Cloudinary TEST; ProductoThumbnail sin marcador (BUGS inv-24).
+
+## 2026-11-20 20:58 - inv-barrido-on3-c4 - commit f6c9bfb - INCOMPLETO
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-barrido-on3-c4
+- [x] P-20261120-2058-1 (baja) HALLAZGO: EXP-1 — Error 404 de una imagen de Cloudinary en consola -> BACKLOG baja: imagen de prueba inexistente en Cloudinary TEST; ProductoThumbnail sin marcador (BUGS inv-24).
+
+## 2026-11-20 20:58 - barrido completo modo inventario (Director) - commit f6c9bfb
+- inv-barrido-on3 + 3 continuaciones (qa-barrido-on.md): 136 filas, 0 rotos, 0 faltantes; 68/80 elementos cubiertos y los 12 restantes son el menu de herramientas de desarrollo de Next.js o de corridas previas ya cubiertas (ultimo resto: "Preferences", "Route Dynamic", "Route Info" del overlay de Next en dev), no de la app. Valorizacion sin conteos verificada (inv-31). Veredicto Director: barrido completo de la UI de la app sin defectos. Corrida previa inv-barrido-on2 interrumpida por reinicio del PC.

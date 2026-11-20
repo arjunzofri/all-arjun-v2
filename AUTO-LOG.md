@@ -344,3 +344,11 @@
 - inv-28 e390c7a errores esperados de Usuarios como valor. QA: politica de contrasena minima inexistente -> pregunta UAT.
 - inv-29 29e61d0 lecturas legacy con gate de modo. QA OFF PASA.
 - Fixtures QA (QA24 compras, usuarios qa28-*) creados y limpiados. Flags false. Contador Senal2: 6 -> auditoria.
+
+## 2026-11-20 — auditoria 29, preparacion de UAT
+- inv-audit-29-A: H1 ComprasFicha sin key (compras del producto anterior) -> 329c7cd + key unica (QA 0 errores consola). H2 cursor fecha real.
+- inv-30 ad82134 mock de db en identificacion-arj (roto desde f19a2de). Suite global: 140 archivos / 1234 tests verdes; lint 45 errores = baseline, sin nuevos.
+- inv-31 f6c9bfb valorizacion con rotulo y estado vacio (hallazgo del barrido).
+- Barrido QA completo modo inventario: 136 filas, 0 rotos, 0 faltantes.
+- docs/UAT-INVENTARIO.md (guia y 7 decisiones para Pablo) y docs/humo-prod-on.json (humo prod para el corte).
+- Estado: backlog del PRD completo. Detenido en gate humano: UAT de Pablo, decisiones de UAT, migraciones prod, CRON_SECRET, push/deploy, Senal 3.
