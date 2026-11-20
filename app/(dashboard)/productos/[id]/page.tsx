@@ -6,7 +6,8 @@ import { formatearFechaISO } from "@/lib/utils/fecha-chile";
 import { notFound } from "next/navigation";
 import { flagActivo } from "@/lib/feature-flags";
 import { productoIdSchema } from "@/lib/validations/producto";
-import { getFichaInventario } from "@/lib/inventario/consultas";
+import { getFichaInventario, getValorizacionProducto } from "@/lib/inventario/consultas";
+import type { ValorizacionCodigo } from "@/lib/inventario/valorizacion";
 import { EditarProductoForm } from "./form";
 import { ImagenProducto } from "./imagen";
 import { FichaProducto } from "./FichaProducto";
@@ -36,7 +37,13 @@ export default async function ProductoDetallePage({
       return <div role="alert" className="mx-auto w-full max-w-3xl space-y-3"><p className="text-sm text-red-600">No se pudo cargar el producto. Intente nuevamente.</p><Link href="/inventario" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-violet-600 transition-colors">Volver a inventario</Link></div>;
     }
     if (!ficha) notFound();
-    return <FichaProducto fila={ficha} usuarioId={String(sesion?.user?.id ?? "")} refQ={refQ} />;
+    const esAdmin = (sesion?.user as { role?: string } | undefined)?.role === "admin";
+    let valorizacion: ValorizacionCodigo | null = null, errorValorizacion = false;
+    if (esAdmin) {
+      try { valorizacion = await getValorizacionProducto(parsed.data); } catch { errorValorizacion = true; }
+    }
+    return <FichaProducto fila={ficha} usuarioId={String(sesion?.user?.id ?? "")} refQ={refQ}
+      valorizacion={esAdmin ? { valorizacion, error: errorValorizacion } : undefined} />;
   }
 
   const producto = await getProducto(Number(id));

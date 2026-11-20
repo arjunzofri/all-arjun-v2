@@ -3,6 +3,8 @@ import { ImagenProducto } from "./imagen";
 import { FormularioConteo } from "@/components/inventario/FormularioConteo";
 import { HistorialConteos } from "@/components/inventario/HistorialConteos";
 import { EditorFichaProducto } from "@/components/inventario/EditorFichaProducto";
+import { ValorizacionFicha } from "@/components/inventario/ValorizacionFicha";
+import type { ValorizacionCodigo } from "@/lib/inventario/valorizacion";
 import { claveHistorial } from "@/lib/inventario/historial-conteo";
 import { formatearFechaChile, formatearHoraChile } from "@/lib/utils/fecha-chile";
 import { formatearNumero } from "@/lib/utils/inversion-formato";
@@ -10,7 +12,10 @@ import { etiquetaUbicacion, type UbicacionInventario } from "@/lib/inventario/ub
 import type { FilaInventario, PosicionContada } from "@/lib/inventario/consultas";
 // Cast puntual: el schema de DB restringe estas columnas a los valores del union.
 const ubicacion = (p: PosicionContada) => etiquetaUbicacion({ bodega: p.bodega, planta: p.planta, pasillo: p.pasillo, posicion: p.posicion } as UbicacionInventario);
-export function FichaProducto({ fila, usuarioId, refQ }: { fila: FilaInventario; usuarioId: string; refQ?: string }) {
+export function FichaProducto({ fila, usuarioId, refQ, valorizacion }: {
+  fila: FilaInventario; usuarioId: string; refQ?: string;
+  valorizacion?: { valorizacion: ValorizacionCodigo | null; error: boolean };
+}) {
   return (
     <div className="mx-auto w-full max-w-3xl min-w-0 space-y-6">
       <Link href={refQ ? `/inventario?q=${encodeURIComponent(refQ)}` : "/inventario"}
@@ -45,6 +50,7 @@ export function FichaProducto({ fila, usuarioId, refQ }: { fila: FilaInventario;
         )}
       </div>
       <HistorialConteos key={claveHistorial(usuarioId, fila.id, fila.posiciones)} productoId={fila.id} />
+      {valorizacion && <ValorizacionFicha valorizacion={valorizacion.valorizacion} error={valorizacion.error} />}
       <EditorFichaProducto key={`${usuarioId}:${fila.id}`} fila={fila} />
     </div>
   );
