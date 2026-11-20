@@ -312,3 +312,10 @@
 ## 2026-11-20 — Auditoria inv-audit-22b-A y fix
 - Auditoria (16:08 UTC) sin bloqueantes; D-1 alta (guarda de tiempo podia estancar el backfill). Decision ../_dt/prompts/inv-audit-22b-decision.md. D-2 medido read-only en VD: 0 codigos null/vacios/largos (max 20).
 - Fix D-1..D-5 + borrar key sin uso: rojo 7, 158 lineas. Director: corrida en segundo plano murio dos veces sin resumen (entorno); los 12 archivos de tests corridos uno por uno verdes; eslint 0, tsc 0, build 0. Contador 0. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — inv-22 cierre: lease, ACTUALIZAR/estado, item por linea, cron-job.org
+- 22c d8f9aa4 lease (sin migracion). 22d-1 baf6709 estado, 22d-2 7ebe18f boton, 22d-3 b499048 seccion inicio (particion de 390 lineas).
+- Backfill real en TEST via boton y ruta revelo 4 defectos, todos corregidos con rojo previo: bec410a fetch sin contexto (boton no llamaba), 46e01c1 hora +3h (timestamp sin zona), 51342c3 guarda dia lleno al partir un dia, 86ffaf7 lineas repetidas fusionadas (valor +336.85; migracion 0004 item).
+- Backfill completo final TEST: 98 corridas sin error, ledger 1483 filas / 169710 u. / 847078.81 = exacto VD; stock/movimientos/conteos sin cambio; 12.9 s prom, 37 s max por corrida desde PC Pablo.
+- 22e 84ade79 endpoint cron-job.org (CRON_SECRET, timingSafeEqual, flag OFF 409, allowlist exacta, maxDuration 60). Guia docs/OPERACION-CRON-COMPRAS.md (pasos UAT de Pablo).
+- QA inv-22d-on PASA4/4, off PASA1/1. Ledger TEST vaciado y recargado por el Director (solo datos de verificacion). Contador 6 -> auditoria. Sin push/deploy/reset/prod; migraciones 0003/0004 solo TEST.

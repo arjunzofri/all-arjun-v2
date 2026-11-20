@@ -10,7 +10,11 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — inv-22 ledger y sync ON (22a..22b-3) + auditoria 22b y fix CERRADOS, siguiente 22c lease
+## Punto exacto de reanudación — inv-22 compras COMPLETO (22a..22e + fixes), siguiente auditoria inv-audit-22e-A
+- Ver AUTO-LOG 2026-11-20 inv-22 cierre. Guia de activacion docs/OPERACION-CRON-COMPRAS.md (UAT de Pablo: migraciones 0003+0004 en prod, CRON_SECRET en Vercel, job en cron-job.org POST + header). Contador **6** -> auditoria.
+- Backlog restante: GLP/GL sugerencia (flag asignacion_bodega_compra), valorizacion/inversion por ultimos conteos usando compras_importadas, tabla unica con toggle valores admin, CA12 filtros, release (benchmark, lint global, barrido QA completo, UAT, Senal3).
+
+## (HISTORICO) inv-22 ledger y sync ON (22a..22b-3) + auditoria 22b y fix CERRADOS, siguiente 22c lease
 - Decisiones ../_dt/prompts/inv-22-decisiones-director.md (incluye RESPUESTA PABLO: N3 backfill completo, stock solo por conteo; N4 cron-job.org con CRON_SECRET, nunca Vercel Cron pago). Contador **0**.
 - Siguiente: 22c lease/concurrencia (fila de lease, TTL > guarda), 22d ACTUALIZAR + estado en inicio (pendientes = seguir llamando), 22e endpoint cron-job.org (allowlist exacta en proxy, siempre modo ON, secreto por header, maxDuration sin vercel.json). Riesgos en ../_dt/prompts/inv-audit-22b-decision.md.
 - Migracion 0003 aplicada solo en TEST. Produccion: aplicar 0003 en Senal3/UAT.
