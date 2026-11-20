@@ -19,6 +19,8 @@ vi.mock("next/navigation", async (importOriginal) => {
 });
 const real = vi.hoisted(() => ({ getProducto: null as null | ((id: number) => Promise<unknown>) }));
 const espia = vi.hoisted(() => ({ getProducto: vi.fn() }));
+const hist = vi.hoisted(() => ({ getHistorialConteos: vi.fn() }));
+vi.mock("@/lib/inventario/consultas", async (importOriginal) => ({ ...await importOriginal<typeof import("@/lib/inventario/consultas")>(), getHistorialConteos: hist.getHistorialConteos }));
 vi.mock("@/lib/actions/productos", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/actions/productos")>();
   real.getProducto = actual.getProducto;
@@ -66,6 +68,7 @@ beforeEach(() => {
   process.env.FEATURE_INVENTARIO_BODEGA = "true";
   vi.mocked(auth).mockResolvedValue({ user: { id: String(u1) } } as never);
   espia.getProducto.mockReset();
+  hist.getHistorialConteos.mockReset();
 });
 it("ON: ficha segura con alias, packing, observaciones, total y 2 bodegas con autor y fecha-hora Chile; sin legacy", async () => {
   const out = await html(dual);
@@ -78,6 +81,16 @@ it("ON: ficha segura con alias, packing, observaciones, total y 2 bodegas con au
   expect(out).toContain("Guardar conteo");
   expect(out).toContain("Cantidad total contada en esta posición; 0 es un conteo válido.");
   expect(out.indexOf("Guardar conteo")).toBeLessThan(out.indexOf("Observaciones"));
+});
+
+it("ON: historial de conteos colapsado y sin consulta en SSR; formulario intacto", async () => {
+  const out = await html(dual);
+  expect(hist.getHistorialConteos).not.toHaveBeenCalled();
+  expect(out).toContain("Historial de conteos");
+  expect(out).toMatch(/<details(?![^>]*\bopen\b)[^>]*>/);
+  expect(out).not.toMatch(/Cargando|No hay conteos registrados|Reintentar|Ver m[aá]s/);
+  expect(out).not.toMatch(/\bUSD\b|Detalle/);
+  expect(out).toContain("Guardar conteo");
 });
 
 it("ON: pendiente (null) y contado 0 se distinguen", async () => {

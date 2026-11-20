@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ProductoThumbnail } from "@/components/ProductoThumbnail";
 import { FormularioConteo } from "@/components/inventario/FormularioConteo";
+import { HistorialConteos } from "@/components/inventario/HistorialConteos";
+import { claveHistorial } from "@/lib/inventario/historial-conteo";
 import { formatearFechaChile, formatearHoraChile } from "@/lib/utils/fecha-chile";
 import { formatearNumero } from "@/lib/utils/inversion-formato";
 import { etiquetaUbicacion, type UbicacionInventario } from "@/lib/inventario/ubicaciones";
@@ -41,6 +43,7 @@ export function FichaProducto({ fila, usuarioId, refQ }: { fila: FilaInventario;
           </ul>
         )}
       </div>
+      <HistorialConteos key={claveHistorial(usuarioId, fila.id, fila.posiciones)} productoId={fila.id} />
       <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">{[
           { label: "Codigo personal", value: fila.codigoPersonal ?? "---" },
           { label: "Packing", value: fila.packing ? `${fila.packing} unids/caja` : "---" },
