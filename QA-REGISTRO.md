@@ -441,3 +441,7 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - [x] P-20261120-1819-1 (media) FALLA: QA-C1 — Falta la línea "N productos sin contar" en la vista de valores filtrada -> DESCARTADO: error del plan QA del Director; con el filtro QA-CONTEO-BASE el unico producto esta contado (0 sin contar) y la linea solo se muestra con N>0. El propio agente vio "898 productos sin contar" sin filtro. Comportamiento correcto.
 - [x] P-20261120-1819-2 (baja) HALLAZGO: EXP-1 — Imagen de producto con 404 en la paginación de valores -> BACKLOG baja: imagen de Cloudinary inexistente en TEST para XL-0300; ProductoThumbnail no muestra marcador cuando la URL da 404. Preexistente, ver BUGS.
 - [x] P-20261120-1819-3 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 () (/dxkidwxjl/image/upload/productos/XL-0300) -> BACKLOG baja: mismo origen que P-20261120-1819-2 (404 de imagen XL-0300 en TEST).
+
+## 2026-11-20 18:35 - inv-25-on - commit c1defc1 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-25-on
+- Sin pendientes nuevos.

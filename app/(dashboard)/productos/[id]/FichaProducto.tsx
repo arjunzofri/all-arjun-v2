@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ImagenProducto } from "./imagen";
 import { FormularioConteo } from "@/components/inventario/FormularioConteo";
 import { HistorialConteos } from "@/components/inventario/HistorialConteos";
+import { ComprasFicha } from "@/components/inventario/ComprasFicha";
 import { EditorFichaProducto } from "@/components/inventario/EditorFichaProducto";
 import { ValorizacionFicha } from "@/components/inventario/ValorizacionFicha";
 import type { ValorizacionCodigo } from "@/lib/inventario/valorizacion";
@@ -12,8 +13,8 @@ import { etiquetaUbicacion, type UbicacionInventario } from "@/lib/inventario/ub
 import type { FilaInventario, PosicionContada } from "@/lib/inventario/consultas";
 // Cast puntual: el schema de DB restringe estas columnas a los valores del union.
 const ubicacion = (p: PosicionContada) => etiquetaUbicacion({ bodega: p.bodega, planta: p.planta, pasillo: p.pasillo, posicion: p.posicion } as UbicacionInventario);
-export function FichaProducto({ fila, usuarioId, refQ, valorizacion }: {
-  fila: FilaInventario; usuarioId: string; refQ?: string;
+export function FichaProducto({ fila, usuarioId, refQ, valorizacion, esAdmin = false }: {
+  fila: FilaInventario; usuarioId: string; refQ?: string; esAdmin?: boolean;
   valorizacion?: { valorizacion: ValorizacionCodigo | null; error: boolean };
 }) {
   return (
@@ -50,6 +51,7 @@ export function FichaProducto({ fila, usuarioId, refQ, valorizacion }: {
         )}
       </div>
       <HistorialConteos key={claveHistorial(usuarioId, fila.id, fila.posiciones)} productoId={fila.id} />
+      <ComprasFicha productoId={fila.id} esAdmin={esAdmin} />
       {valorizacion && <ValorizacionFicha valorizacion={valorizacion.valorizacion} error={valorizacion.error} />}
       <EditorFichaProducto key={`${usuarioId}:${fila.id}`} fila={fila} />
     </div>

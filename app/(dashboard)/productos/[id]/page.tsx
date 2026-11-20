@@ -42,7 +42,7 @@ export default async function ProductoDetallePage({
     if (esAdmin) {
       try { valorizacion = await getValorizacionProducto(parsed.data); } catch { errorValorizacion = true; }
     }
-    return <FichaProducto fila={ficha} usuarioId={String(sesion?.user?.id ?? "")} refQ={refQ}
+    return <FichaProducto fila={ficha} usuarioId={String(sesion?.user?.id ?? "")} refQ={refQ} esAdmin={esAdmin}
       valorizacion={esAdmin ? { valorizacion, error: errorValorizacion } : undefined} />;
   }
 
