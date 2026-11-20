@@ -145,8 +145,8 @@ async function syncLedger(
   const lote = filas.slice(0, LIMITE_LOTE_COMPRAS);
   let maxFecha = corte;
   for (const c of lote) if (c.fechconf && c.fechconf > maxFecha) maxFecha = c.fechconf;
-  // Día lleno: re-leer desde esa fecha volvería a traer más de un lote → loop.
-  if (extra && extra.fechconf === maxFecha) {
+  // Día lleno: todo el lote es de la fecha de la extra → re-leer desde ahí vuelve al loop.
+  if (extra && lote[0].fechconf === extra.fechconf) {
     throw new Error(
       `Lote lleno (${LIMITE_LOTE_COMPRAS}) con la fecha de confirmación ${maxFecha}: ` +
       `un solo día no cabe en LIMITE_LOTE_COMPRAS; aumentar la constante o particionar ese día`,

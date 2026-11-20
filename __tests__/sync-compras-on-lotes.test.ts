@@ -94,6 +94,29 @@ describe("ON — lotes", () => {
     expect(r2).toMatchObject({ procesadas: 2, pendientes: false, watermark: "2026-03-05" });
   });
 
+  it("límite cae a mitad del último día → no lanza y la siguiente corrida completa ese día", async () => {
+    setForward(false);
+    const d1 = "2026-05-01", d2 = "2026-05-02";
+    // Las últimas 10 filas del lote y la extra comparten d2 (> d1).
+    const todas = lote(LIMITE + 1, (i) => (i < LIMITE - 10 ? d1 : d2));
+
+    mockGet.mockResolvedValueOnce(todas);
+    const r1 = await syncComprasAnil("1900-01-01", { modo: "on" });
+    expect(r1).toMatchObject({ procesadas: LIMITE, pendientes: true, watermark: d2 });
+
+    // Re-lectura inclusiva desde d2: completa el día sin duplicar ni saltar.
+    mockGet.mockResolvedValueOnce(todas.slice(LIMITE - 10));
+    const r2 = await syncComprasAnil(r1.watermark, { modo: "on" });
+    expect(r2).toMatchObject({ procesadas: 11, pendientes: false, watermark: d2 });
+
+    const folios = new Set(
+      llamadas()
+        .filter(([s]) => s.join("?").includes("INSERT INTO compras_importadas"))
+        .map(([, folio]) => folio),
+    );
+    expect(folios.size).toBe(LIMITE + 1);
+  });
+
   it("lote lleno de un solo día → error claro y sin watermark de ledger", async () => {
     setForward(false);
     mockGet.mockResolvedValue(lote(LIMITE + 1, () => "2026-02-02"));
