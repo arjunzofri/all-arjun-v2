@@ -253,3 +253,10 @@
 - QA inv-18-2-on PASA6/6 auditoria0/17imagenes consola0; inv-18-2-off PASA1/1 auditoria0/5imagenes. Sin defectos ni pendientes.
 - Director navegador verificar-historial-arjun.cjs PASA: 0 server actions al montar, Cargando visible con respuesta demorada, 1consulta, reabrir sin refetch, Enter abre, offline->mensaje fijo->Reintentar, respuesta tardia con cambio a5181 no contamina, 360 sin desborde, JS0.
 - Flagsfalse, nextenv restaurado, puerto3123 libre. Contador2 desde audit17.3b. Sin push/deploy/reset/prod.
+
+## 2026-11-19 — Cierre UsuariosR8 c6878dc
+- Programador deepseek BCD 164s, rojo B real 10 fallos. 3archivos180 add+del + QA-REGISTRO9 = 189.
+- Director: revision diff (guarda antes de SQL, sin requestUserId, DTO sin hash, limpieza solo ids propios), 29/29 dirigidos, eslint3=0, tsc0, build0.
+- Director verificar-usuarios-r8-arjun.cjs PASA: replay de next-action listar/crear como operador y anonimo sin lista ni usuario forjado, control positivo admin, sin hash en respuestas. Dos intentos iniciales fallaron por el script (cabecera sin interceptacion; selector tomaba buscador global), corregidos en script externo, no app.
+- QA inv-usuarios-r8-on PASA4/4 auditoria0; off PASA1/1. P-2256-2 alta (500 consola) DESCARTADO duplicado de P-2256-1; P-2256-1 BACKLOG media errores esperados como valor (BUGS). 403 operador esperado.
+- TEST: borrado solo qa-r8-2253 (id881) y qa-r8d-* propios. Flagsfalse, puerto libre. Contador3 desde audit17.3b. Sin push/deploy/reset/prod.

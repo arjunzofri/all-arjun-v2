@@ -4,13 +4,17 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 
 ## Ubicación, autorización y límites
 - Repo REAL: C:\Users\pablo\Documents\app-arjun-v2\app-arjun-v2 (doble carpeta), rama feat/inventario-bodega.
-- GO de Pablo para todo el rediseño. DeepSeek aprobado para Programador y QA separado. Sonnet agotado hasta Nov21 01:00 Chile según última respuesta; verificar vigencia si se intenta después.
+- GO de Pablo para todo el rediseño. **HORARIO CARO ES DE DEEPSEEK: 01:00-04:00 y 06:00-10:00 UTC lun-vie (22:00-01:00 y 03:00-07:00 Chile). NUNCA usar DeepSeek (deep.ps1 -Programador deep ni qa-ciclo-deep.ps1) en ese horario** (corrección de Pablo 2026-11-19; dos BCD y cuatro QA se corrieron por error en horario caro). En horario caro usar Sonnet (-Programador auto/sonnet, qa-ciclo.ps1). Sonnet agotado (weekly limit) hasta 2026-11-21 01:00 Chile, verificado 23:28; si Sonnet no está, esperar horario económico, no usar DeepSeek.
 - pBravoT: Director NO escribe producto ni tests; Claude Code headless los escribe. A aprobado por Director -> B rojo -> C -> D -> verificación propia -> E aislado -> commit Director. Máximo200 added+deleted incluyendo tests/untracked/movimientos, reservar QA4.
 - NO push/deploy/reset real: falta UAT Pablo y Señal3. Vida Digital READ ONLY. Nunca drizzle-kit push (drift constraint puede truncar users).
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — 18.2 CERRADO 69a9e05, siguiente UsuariosR8 auth
+## Punto exacto de reanudación — UsuariosR8 CERRADO c6878dc, siguiente AuthWRITE productos (inv-15)
+- UsuariosR8 commit **c6878dc** (189 líneas incl QA). Ver AUTO-LOG Cierre UsuariosR8 y BUGS (ARREGLADO + BACKLOG media errores esperados como valor antes UAT). Contador **3**.
+- Siguiente AuthWRITE productos: contrato INV-13.3 en ../_dt/logs/inv-13-lectura-A.md (sección Contrato INV-13.3) + prompt ../_dt/prompts/inv-15-BCD.md y plan QA ../_dt/qa/inv-15-on/off.casos.md preparados por Director 2026-11-19 23:30. Lanzar SOLO en horario permitido.
+
+## (HISTORICO) 18.2 CERRADO 69a9e05
 - Commit producto **69a9e05** historial de conteos a demanda: 5archivos196 lineas; registro QA en commit docs. Ver AUTO-LOG 2026-11-19 Cierre18.2.
 - QA inv-18-2-on PASA6/6 y inv-18-2-off PASA1/1; Director verificar-historial-arjun.cjs PASA (montaje sin accion, carga, teclado, offline/Reintentar, respuesta tardia otroSKU, 360, JS0).
 - Fixtures historial: workspace Director preparar-historial-qa.cjs (solo5179/5180/5181 TEST). QA y verificacion agregaron versiones a5179 (81/82 A1F, 7 A2P); re-correr el preparador antes de reusar.

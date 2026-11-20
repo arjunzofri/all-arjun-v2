@@ -592,3 +592,12 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 - Corregir lectura de sugerencias mediante GET autenticado independiente; repetir respuesta tardia/reintento/navegacion/borrador99 antes cerrar17.3b.
 
 - Cierre2026-11-19: GET independiente/c51cff5, prueba real de respuesta retenida+cambioSKU+99/replay PASA; QA searchON/OFF PASA y DirectorOFFPASA. Ver AUTO-LOG/TRASPASO. VerTodas también corregido c51cff5; conservar término al enviar sigue BACKLOG separado.
+
+## 2026-11-19 — BACKLOG media: errores esperados de Usuarios se lanzan como excepcion (antes UAT)
+- QA inv-usuarios-r8-on EXP-3: crear username duplicado muestra "El username ya existe" en dev, pero la server action responde 500. Preexistente: el throw de duplicado no cambio en UsuariosR8.
+- Next.js recomienda modelar errores esperados como valor de retorno; en build de produccion reemplaza el mensaje lanzado por uno generico con digest. En prod el admin probablemente veria un mensaje generico en vez de "El username ya existe" (no reproducido aun en build prod).
+- Propuesta: slice chico devolviendo {ok:false,error} para duplicado/validacion en crearUsuario y mostrarlo en page; la guarda "No autorizado" puede seguir lanzando (no es flujo de usuario legitimo). Verificar con next start antes de UAT.
+
+## 2026-11-19 — ARREGLADO c6878dc: permisos server-actions Usuarios (R8)
+- Causa raiz: crearUsuario autorizaba solo si el cliente enviaba requestUserId opcional y listarUsuarios no verificaba sesion. Fix: exigirAdmin() con auth() antes de SQL en ambas, DTO sin hash, sin actor de cliente.
+- Evidencia: rojo B 10 fallos -> 29/29 verdes; replay Director de server actions como operador/anonimo con control positivo admin (verificar-usuarios-r8-arjun.cjs) PASA; QA ON 4/4 y OFF 1/1. Limitacion declarada: rol del JWT firmado hasta renovar sesion.
