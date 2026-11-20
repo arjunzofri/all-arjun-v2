@@ -308,3 +308,7 @@
 - 22a e58c632 tabla compras_importadas (migracion 0003 solo TEST). 22b-1 3584bbf query VD con opciones. 22b-2a 8e9bbdd harness + caracterizacion. 22b-2b a624b07 sync ON solo catalogo+ledger. 22b-3 lotes+guarda tiempo. Todas <=196 por particion (Programador hizo STOP dos veces correctamente; Director rechazo ampliar presupuesto).
 - Volumen VD medido read-only: 1483 lineas, max 55/dia, 0 sin catalogo, 0 nro null. Watermark legacy TEST quedo en 2026-11-10 por una corrida roja (solo TEST).
 - Pendiente inv-22: 22c lease concurrencia, 22d ACTUALIZAR + estado en inicio, 22e endpoint cron-job.org con CRON_SECRET. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — Auditoria inv-audit-22b-A y fix
+- Auditoria (16:08 UTC) sin bloqueantes; D-1 alta (guarda de tiempo podia estancar el backfill). Decision ../_dt/prompts/inv-audit-22b-decision.md. D-2 medido read-only en VD: 0 codigos null/vacios/largos (max 20).
+- Fix D-1..D-5 + borrar key sin uso: rojo 7, 158 lineas. Director: corrida en segundo plano murio dos veces sin resumen (entorno); los 12 archivos de tests corridos uno por uno verdes; eslint 0, tsc 0, build 0. Contador 0. Sin push/deploy/reset/prod.

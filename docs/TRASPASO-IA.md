@@ -10,7 +10,12 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — inv-21 apagar legacy CERRADO, siguiente compras/sync en modo inventario (inv-22)
+## Punto exacto de reanudación — inv-22 ledger y sync ON (22a..22b-3) + auditoria 22b y fix CERRADOS, siguiente 22c lease
+- Decisiones ../_dt/prompts/inv-22-decisiones-director.md (incluye RESPUESTA PABLO: N3 backfill completo, stock solo por conteo; N4 cron-job.org con CRON_SECRET, nunca Vercel Cron pago). Contador **0**.
+- Siguiente: 22c lease/concurrencia (fila de lease, TTL > guarda), 22d ACTUALIZAR + estado en inicio (pendientes = seguir llamando), 22e endpoint cron-job.org (allowlist exacta en proxy, siempre modo ON, secreto por header, maxDuration sin vercel.json). Riesgos en ../_dt/prompts/inv-audit-22b-decision.md.
+- Migracion 0003 aplicada solo en TEST. Produccion: aplicar 0003 en Senal3/UAT.
+
+## (HISTORICO) inv-21 apagar legacy CERRADO, siguiente compras/sync en modo inventario (inv-22)
 - inv-21 commit (proxy gate). Contador **1**. Siguiente backlog: compras ledger/catalogo/fotos/packing/costos con ACTUALIZAR y automatico, sin escribir stock legacy ni conteos en ON (Fase A inv-22). Revisar si requiere decision de producto (gate humano) antes de B.
 
 ## (HISTORICO) auditoria 20.3 y fix CERRADOS, siguiente apagar legacy en ON (inv-21)
