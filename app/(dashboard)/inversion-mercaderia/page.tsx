@@ -47,6 +47,8 @@ function BloqueError({ mensaje }: { mensaje: string }) {
 }
 
 export default async function InversionMercaderiaPage() {
+  // Modo ON: ruta legacy reemplazada por /inventario con valores (OFF idéntico).
+  if (flagActivo("inventario_bodega")) redirect("/inventario?valores=1");
   const session = await auth();
   const acceso = resolverAccesoInversion(
     session as SesionInversion,

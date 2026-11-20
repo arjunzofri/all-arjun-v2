@@ -25,8 +25,8 @@ afterEach(() => {
 });
 it("params: trim, cursor válido/ausente null y rechazo de arrays, no-enteros, 0, negativo y overflow", () => {
   const p = leerParametrosLista, pag = { ok: false, error: "Parámetro de página inválido." };
-  expect(p({})).toEqual({ ok: true, q: "", cursor: null }); expect(p({ cursor: "" })).toEqual({ ok: true, q: "", cursor: null });
-  expect(p({ q: "  hola  ", cursor: "2147483647" })).toEqual({ ok: true, q: "hola", cursor: 2147483647 });
+  expect(p({})).toEqual({ ok: true, q: "", cursor: null, valores: false }); expect(p({ cursor: "" })).toEqual({ ok: true, q: "", cursor: null, valores: false });
+  expect(p({ q: "  hola  ", cursor: "2147483647" })).toEqual({ ok: true, q: "hola", cursor: 2147483647, valores: false });
   for (const cursor of ["0", "-1", "abc", "1e3", "1.5", "2147483648", ["1"]]) expect(p({ cursor } as never)).toEqual(pag);
   expect(p({ q: ["a"] } as never)).toEqual({ ok: false, error: "Parámetro de búsqueda inválido." });
   expect(p({ q: "x".repeat(101) })).toEqual({ ok: false, error: "El texto de búsqueda supera 100 caracteres." });
