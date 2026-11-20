@@ -45,7 +45,7 @@ export function FichaProducto({ fila, usuarioId, refQ }: { fila: FilaInventario;
         )}
       </div>
       <HistorialConteos key={claveHistorial(usuarioId, fila.id, fila.posiciones)} productoId={fila.id} />
-      <EditorFichaProducto fila={fila} />
+      <EditorFichaProducto key={`${usuarioId}:${fila.id}`} fila={fila} />
     </div>
   );
 }

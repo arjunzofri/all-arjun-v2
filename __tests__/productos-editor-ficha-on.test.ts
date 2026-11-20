@@ -86,6 +86,27 @@ it("ON: editor con 3 campos tras el conteo, sin ubicacion ni costos", () => {
   expect(out.indexOf("Guardar conteo")).toBeLessThan(out.indexOf("Observaciones"));
 });
 
+it("accion que rechaza: aviso fijo sin texto crudo y cerrojo liberado", async () => {
+  let llamadas = 0;
+  const accion = vi.fn(async () => {
+    if (++llamadas === 1) throw new Error("connect ECONNREFUSED postgres://u:p@host/db");
+    return { ok: true as const, producto: {} };
+  });
+  const guardar = crearGuardar(accion as never);
+  const r = await guardar(prod, campos);
+  expect(r).toEqual({ ok: false, error: "No se pudieron guardar los cambios. Intente nuevamente." });
+  expect(JSON.stringify(r)).not.toContain("postgres://");
+  expect(await guardar(prod, campos)).toEqual({ ok: true });
+  expect(accion).toHaveBeenCalledTimes(2);
+});
+
+it("el editor lleva key usuario+producto; conteo/historial conservan la suya", () => {
+  const ficha = readFileSync(resolve(__dirname, "..", "app/(dashboard)/productos/[id]/FichaProducto.tsx"), "utf8");
+  expect(ficha).toContain("<EditorFichaProducto key={`${usuarioId}:${fila.id}`} fila={fila} />");
+  expect(ficha).toContain("<FormularioConteo key={`${usuarioId}:${fila.id}`}");
+  expect(ficha).toContain("<HistorialConteos key={claveHistorial(usuarioId, fila.id, fila.posiciones)}");
+});
+
 it("conserva keys de conteo/historial y deja el editor solo en la ficha ON", () => {
   const fuente = (p: string) => readFileSync(resolve(__dirname, "..", p), "utf8");
   const ficha = fuente("app/(dashboard)/productos/[id]/FichaProducto.tsx");

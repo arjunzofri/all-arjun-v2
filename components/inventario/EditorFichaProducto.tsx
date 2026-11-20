@@ -37,6 +37,8 @@ export function crearGuardar(accion: typeof updateProducto) {
     try {
       const r = await accion(id, payload);
       return r.ok ? { ok: true } : { ok: false, error: r.error };
+    } catch {
+      return { ok: false, error: "No se pudieron guardar los cambios. Intente nuevamente." };
     } finally {
       ocupado = false;
     }
@@ -55,10 +57,13 @@ export function EditorFichaProducto({ fila }: { fila: Pick<FilaInventario, "id" 
   const [aviso, setAviso] = useState<Resultado | null>(null);
   const onClick = async () => {
     setGuardando(true);
-    const r = await guardar(fila.id, campos);
-    setGuardando(false);
-    setAviso(r);
-    if (r?.ok) router.refresh();
+    try {
+      const r = await guardar(fila.id, campos);
+      setAviso(r);
+      if (r?.ok) router.refresh();
+    } finally {
+      setGuardando(false);
+    }
   };
   return (
     <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
