@@ -24,18 +24,27 @@ export async function POST(
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
   }
 
-  const formData = await request.formData();
-  const file = formData.get("imagen") as File | null;
-
-  if (!file) {
-    return NextResponse.json({ error: "Imagen requerida" }, { status: 400 });
-  }
-
   if (on) {
-    const [producto] = await db
-      .select({ imagenUrl: productos.imagenUrl })
-      .from(productos)
-      .where(eq(productos.id, Number(id)));
+    let file: File | null;
+    try {
+      const formData = await request.formData();
+      file = formData.get("imagen") as File | null;
+    } catch {
+      return NextResponse.json({ error: "Imagen requerida" }, { status: 400 });
+    }
+    if (!file) {
+      return NextResponse.json({ error: "Imagen requerida" }, { status: 400 });
+    }
+
+    let producto: { imagenUrl: string | null } | undefined;
+    try {
+      [producto] = await db
+        .select({ imagenUrl: productos.imagenUrl })
+        .from(productos)
+        .where(eq(productos.id, Number(id)));
+    } catch {
+      return NextResponse.json({ error: "No se pudo actualizar la imagen. Intente nuevamente." }, { status: 500 });
+    }
 
     if (!producto) {
       return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
@@ -79,6 +88,13 @@ export async function POST(
     }
 
     return NextResponse.json({ imagenUrl: url });
+  }
+
+  const formData = await request.formData();
+  const file = formData.get("imagen") as File | null;
+
+  if (!file) {
+    return NextResponse.json({ error: "Imagen requerida" }, { status: 400 });
   }
 
   // Obtener producto actual

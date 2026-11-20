@@ -46,6 +46,12 @@ describe("UI y page — navegacion ON/OFF", () => {
     expect(src).toContain("/entradas?codigo=${encodeURIComponent(elegido)}");
   });
 
+  it("error de Abrir ficha: un solo alert fuera del map de opciones", () => {
+    const src = readFileSync(join(process.cwd(), "components/identificacion/IdentificarProducto.tsx"), "utf8");
+    expect(src.match(/\{errorAbrir && /g)).toHaveLength(1);
+    expect(src).toContain("})}\n          {errorAbrir && ");
+  });
+
   it("page pasa modoInventario segun el flag", async () => {
     let el = (await IdentificarPage()) as ReactElement;
     expect((el.props as { modoInventario: boolean }).modoInventario).toBe(true);

@@ -152,11 +152,11 @@ export default function IdentificarProducto({ modoInventario = false }: { modoIn
                       : router.push(`/entradas?codigo=${encodeURIComponent(elegido)}`)}>
                     {modoInventario ? "Abrir ficha" : "Usar este código"}
                   </button>
-                  {errorAbrir && <p role="alert" className="mt-1 text-xs text-red-600">{errorAbrir}</p>}
                 </div>
               </div>
             );
           })}
+          {errorAbrir && <p role="alert" className="mt-1 text-xs text-red-600">{errorAbrir}</p>}
         </div>
       )}
 

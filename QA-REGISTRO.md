@@ -385,3 +385,11 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-20 09:30 - inv-20-3-off - commit f19a2de - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-20-3-off
 - [x] P-20261120-0930-1 (baja) HALLAZGO: EXP-1 — "Sacar otra foto" sin foto previa no produce ningún cambio visible -> BACKLOG baja: preexistente (reiniciar sin foto no cambia nada; 20.3 no toco reiniciar). Opcion: ocultar "Sacar otra foto" hasta que haya foto. Ver BUGS.
+
+## 2026-11-20 09:45 - inv-20-fix-on - commit cad6357 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-20-fix-on
+- Sin pendientes nuevos.
+
+## 2026-11-20 09:47 - inv-20-fix-off - commit cad6357 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-20-fix-off
+- Sin pendientes nuevos.

@@ -258,18 +258,22 @@ export async function crearProductoManual(
   const parsed = crearProductoSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos invalidos" };
   const { codigo, detalle, packing, imagenUrl } = parsed.data;
-  // 1) Ya existe localmente (sin distinguir mayusculas): no se escribe nada.
-  const existente = await primerIdLocal([codigo]);
-  if (existente !== null) return { ok: true, id: existente, existente: true };
-  // 2) Mismo upsert que sync y entradas; nunca stock, conteos ni movimientos.
-  await upsertProducto(neon(process.env.DATABASE_URL!), {
-    codigo,
-    detalle: detalle ?? null,
-    cantcaja: packing ?? null,
-    imagenUrl: imagenUrl ?? null,
-  });
-  // 3) Relectura: doble clic o carrera con el sync devuelven la misma fila.
-  const [creado] = await db.select({ id: productos.id }).from(productos).where(eq(productos.codigo, codigo));
-  if (!creado) return { ok: false, error: "No se pudo crear el producto" };
-  return { ok: true, id: creado.id, existente: false };
+  try {
+    // 1) Ya existe localmente (sin distinguir mayusculas): no se escribe nada.
+    const existente = await primerIdLocal([codigo]);
+    if (existente !== null) return { ok: true, id: existente, existente: true };
+    // 2) Mismo upsert que sync y entradas; nunca stock, conteos ni movimientos.
+    await upsertProducto(neon(process.env.DATABASE_URL!), {
+      codigo,
+      detalle: detalle ?? null,
+      cantcaja: packing ?? null,
+      imagenUrl: imagenUrl ?? null,
+    });
+    // 3) Relectura: doble clic o carrera con el sync devuelven la misma fila.
+    const [creado] = await db.select({ id: productos.id }).from(productos).where(eq(productos.codigo, codigo));
+    if (!creado) return { ok: false, error: "No se pudo crear el producto" };
+    return { ok: true, id: creado.id, existente: false };
+  } catch {
+    return { ok: false, error: "No se pudo crear el producto. Intente nuevamente." };
+  }
 }

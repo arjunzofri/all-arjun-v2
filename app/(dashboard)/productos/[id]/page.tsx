@@ -74,7 +74,7 @@ export default async function ProductoDetallePage({
 
         {/* Imagen */}
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <ImagenProducto productoId={producto.id} imagenUrl={producto.imagenUrl} />
+          <ImagenProducto key={producto.id} productoId={producto.id} imagenUrl={producto.imagenUrl} />
         </div>
 
         {/* Info */}

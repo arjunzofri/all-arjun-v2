@@ -24,11 +24,11 @@ export function ImagenProducto({
         method: "POST",
         body: formData,
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Error al subir");
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        setError(data?.error ?? "No se pudo subir la imagen. Intente nuevamente.");
+        return;
       }
-      const data = await res.json();
       setPreview(data.imagenUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");

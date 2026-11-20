@@ -2,9 +2,14 @@
 import { describe, it, expect, afterAll, beforeEach, vi } from "vitest";
 import { neon } from "@neondatabase/serverless";
 
-const m = vi.hoisted(() => ({ auth: vi.fn(), externo: vi.fn() }));
+const m = vi.hoisted(() => ({ auth: vi.fn(), externo: vi.fn(), upsert: vi.fn(), upsertReal: null as null | ((...a: never[]) => Promise<unknown>) }));
 vi.mock("@/lib/auth", () => ({ auth: m.auth }));
 vi.mock("@/db/vidadigital/queries", () => ({ getProductoExternoPorCodigo: m.externo }));
+vi.mock("@/lib/sync/compras-anil", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/sync/compras-anil")>();
+  m.upsertReal = actual.upsertProducto as never;
+  return { ...actual, upsertProducto: m.upsert };
+});
 import { abrirProductoIdentificado } from "@/lib/actions/identificacion";
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -31,6 +36,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   m.auth.mockResolvedValue({ user: { id: 1, email: "qa@arjun.local", role: "operador" } });
   m.externo.mockResolvedValue(null);
+  m.upsert.mockReset().mockImplementation((...a: never[]) => m.upsertReal!(...a));
   process.env.FEATURE_IDENTIFICACION_FOTO = "true";
   process.env.FEATURE_INVENTARIO_BODEGA = "true";
 });
@@ -60,11 +66,11 @@ describe("abrirProductoIdentificado() — guardas y validacion", () => {
     expect(await veces(c)).toBe(0);
   });
 
-  it("vacio, 11 codigos, 31 chars y codigo fuera de codigos: sin escribir", async () => {
+  it("vacio, 51 codigos, 31 chars y codigo fuera de codigos: sin escribir", async () => {
     const c = cod("MAL");
     const casos = [
       { codigos: [""], codigo: "" },
-      { codigos: Array.from({ length: 11 }, (_, i) => `${c}-${i}`), codigo: `${c}-0` },
+      { codigos: Array.from({ length: 51 }, (_, i) => `${c}-${i}`), codigo: `${c}-0` },
       { codigos: ["X".repeat(31)], codigo: "X".repeat(31) },
       { codigos: [c], codigo: cod("FUERA") },
     ];
@@ -72,6 +78,24 @@ describe("abrirProductoIdentificado() — guardas y validacion", () => {
     expect(m.externo).not.toHaveBeenCalled();
     expect(await veces(c)).toBe(0);
     expect(await veces(cod("FUERA"))).toBe(0);
+  });
+
+  it("50 codigos: acepta el grupo y crea una sola fila", async () => {
+    const c = cod("C50");
+    const codigos = Array.from({ length: 50 }, (_, i) => `${c}-${i}`);
+    const r = await llamar(codigos, codigos[0]);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.incorporado).toBe(true);
+    expect(await veces(codigos[0])).toBe(1);
+  });
+
+  it("creacion local que lanza: error como valor fijo, sin promesa rechazada", async () => {
+    const c = cod("CREAFALLA");
+    m.upsert.mockRejectedValueOnce(new Error("connect ECONNREFUSED postgres://u:p@host/db"));
+    const r = await llamar([c], c);
+    expect(r).toEqual({ ok: false, error: "No se pudo crear el producto. Intente nuevamente." });
+    expect(JSON.stringify(r)).not.toContain("postgres");
+    expect(await veces(c)).toBe(0);
   });
 });
 

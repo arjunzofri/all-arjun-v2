@@ -107,6 +107,14 @@ it("el editor lleva key usuario+producto; conteo/historial conservan la suya", (
   expect(ficha).toContain("<HistorialConteos key={claveHistorial(usuarioId, fila.id, fila.posiciones)}");
 });
 
+it("la imagen lleva key usuario+producto en la ficha ON y key producto en el legado", () => {
+  const fuente = (p: string) => readFileSync(resolve(__dirname, "..", p), "utf8");
+  expect(fuente("app/(dashboard)/productos/[id]/FichaProducto.tsx"))
+    .toContain("<ImagenProducto key={`${usuarioId}:${fila.id}`} productoId={fila.id}");
+  expect(fuente("app/(dashboard)/productos/[id]/page.tsx"))
+    .toContain("<ImagenProducto key={producto.id} productoId={producto.id}");
+});
+
 it("conserva keys de conteo/historial y deja el editor solo en la ficha ON", () => {
   const fuente = (p: string) => readFileSync(resolve(__dirname, "..", p), "utf8");
   const ficha = fuente("app/(dashboard)/productos/[id]/FichaProducto.tsx");

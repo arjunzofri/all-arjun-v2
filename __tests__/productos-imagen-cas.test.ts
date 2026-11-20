@@ -1,4 +1,6 @@
 /** Fase B — INV-19.2: cambio de foto ON (upload -> CAS -> cleanup). DB TEST real; Cloudinary mockeado. */
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterAll, beforeAll, beforeEach, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { eq, inArray } from "drizzle-orm";
@@ -113,6 +115,25 @@ it("ON cleanup de la vieja que lanza no rompe el 200", async () => {
   cl.eliminar.mockRejectedValueOnce(new Error("boom"));
   expect((await post(pid, jpg())).status).toBe(200);
   expect(await urlEnDb()).toBe(nueva);
+});
+
+it("ON SELECT que lanza: 500 JSON fijo, no sube y no escribe", async () => {
+  const spy = vi.spyOn(db, "select").mockImplementationOnce(() => { throw new Error("postgres://u:p@host/db"); });
+  try {
+    const r = await post(pid, jpg());
+    expect(r.status).toBe(500);
+    const j = await r.json();
+    expect(j).toEqual({ error: "No se pudo actualizar la imagen. Intente nuevamente." });
+    expect(JSON.stringify(j)).not.toContain("postgres");
+    expect(cl.subir).not.toHaveBeenCalled();
+    expect(await urlEnDb()).toBe(vieja);
+  } finally { spy.mockRestore(); }
+});
+
+it("imagen.tsx: respuesta no-JSON o !ok muestra mensaje fijo sin lanzar", () => {
+  const src = readFileSync(resolve(__dirname, "..", "app/(dashboard)/productos/[id]/imagen.tsx"), "utf8");
+  expect(src).toContain("No se pudo subir la imagen. Intente nuevamente.");
+  expect(src).not.toContain("throw new Error");
 });
 
 it("OFF: borra la vieja antes de subir y no usa CAS (sin 409)", async () => {

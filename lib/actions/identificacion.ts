@@ -61,7 +61,7 @@ const abrirProductoSchema = z
         z.string().trim().min(1, "Código requerido").max(30, "El código no puede superar 30 caracteres")
       )
       .min(1, "Código requerido")
-      .max(10, "Demasiados códigos"),
+      .max(50, "Demasiados códigos"),
     codigo: z.string().trim().min(1, "Código requerido").max(30, "El código no puede superar 30 caracteres"),
   })
   .refine((d) => d.codigos.includes(d.codigo), {

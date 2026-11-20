@@ -1,6 +1,7 @@
 // inv-20.1 — Creacion manual de producto (backend). DB TEST real, cleanup por tag.
 import { describe, it, expect, afterAll, beforeEach, vi } from "vitest";
 import { neon } from "@neondatabase/serverless";
+import { db } from "@/db";
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 import { auth } from "@/lib/auth";
@@ -70,6 +71,19 @@ describe("crearProductoManual() — guardas y validacion", () => {
       expect((await crearProductoManual(input)).ok).toBe(false);
       expect(await fila(input.codigo)).toBeNull();
     }
+  });
+});
+
+describe("crearProductoManual() — fallo de DB como valor", () => {
+  it("consulta que lanza: error fijo sin promesa rechazada ni texto crudo", async () => {
+    const cod = codigo("FALLA");
+    const spy = vi.spyOn(db, "select").mockImplementationOnce(() => { throw new Error("connect ECONNREFUSED postgres://u:p@host/db"); });
+    try {
+      const r = await crearProductoManual({ codigo: cod });
+      expect(r).toEqual({ ok: false, error: "No se pudo crear el producto. Intente nuevamente." });
+      expect(JSON.stringify(r)).not.toContain("postgres");
+    } finally { spy.mockRestore(); }
+    expect(await fila(cod)).toBeNull();
   });
 });
 
