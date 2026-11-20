@@ -19,6 +19,8 @@ export interface CompraAnil {
   cantcaja: number | null;
   imagenUrl: string | null;
   bodega: string;
+  /** Código GL crudo del ingreso (GLP/GL1/GL2 o desconocido); null si no viene. */
+  bodegaCodigo?: string | null;
   visaciones: Visacion[];
   precioUnitario: number | null;
 }
@@ -71,8 +73,12 @@ export interface ProductoCatalogoVD {
  *   2. Dedup por (knumfoli, codunico, kdocitem normalizado) con DISTINCT ON,
  *      por esquema: la misma línea importada dos veces (' 13' y '13').
  */
-export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> {
+export async function getComprasAnilDesde(
+  fecha: string,
+  opciones: { incluirSinMetadata?: boolean; limite?: number } = {},
+): Promise<CompraAnil[]> {
   const db = getVidaDigitalClient();
+  const sinMeta = opciones.incluirSinMetadata === true;
 
   const result = await db.execute(
     sql`
@@ -80,7 +86,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         i.knumfoli AS folio,
         i.fechanvt,
         i.fechconf,
-        p.codigo,
+        COALESCE(p.codigo, i.codunico) AS codigo,
         p.detalle,
         i.cantsali  AS cantidad,
         p.cantcaja,
@@ -104,7 +110,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
           i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int,
           m.fechanvt, i.precdocd, i.cantsali
       ) i
-      JOIN (
+      ${sinMeta ? sql`LEFT JOIN` : sql`JOIN`} (
         SELECT codigo, MAX(detalle) AS detalle, MAX(imagen_url) AS imagen_url, MAX(cantcaja) AS cantcaja
         FROM public.productos
         GROUP BY codigo
@@ -116,7 +122,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         i.knumfoli AS folio,
         i.fechanvt,
         i.fechconf,
-        p.codigo,
+        COALESCE(p.codigo, i.codunico) AS codigo,
         p.detalle,
         i.cantsali  AS cantidad,
         p.cantcaja,
@@ -140,13 +146,15 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
           i.knumfoli, i.codunico, NULLIF(TRIM(i.kdocitem), '')::int,
           m.fechanvt, i.precdocd, i.cantsali
       ) i
-      JOIN (
+      ${sinMeta ? sql`LEFT JOIN` : sql`JOIN`} (
         SELECT codigo, MAX(detalle) AS detalle, MAX(imagen_url) AS imagen_url, MAX(cantcaja) AS cantcaja
         FROM public.productos
         GROUP BY codigo
       ) p ON i.codunico = p.codigo
 
-      ORDER BY fechanvt DESC, folio DESC
+      ${opciones.limite
+        ? sql`ORDER BY fechconf ASC, folio ASC, codigo ASC LIMIT ${opciones.limite}`
+        : sql`ORDER BY fechanvt DESC, folio DESC`}
     `
   );
 
@@ -206,6 +214,7 @@ export async function getComprasAnilDesde(fecha: string): Promise<CompraAnil[]> 
         cantcaja: r.cantcaja,
         imagenUrl: r.imagen_url,
         bodega,
+        bodegaCodigo: codigoBodega,
         visaciones: [],
         precioUnitario: r.precdocd !== null ? Number(r.precdocd) : null,
         _visMap: new Map(),
