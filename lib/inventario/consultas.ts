@@ -138,7 +138,7 @@ export async function getHistorialConteos(input: unknown): Promise<{ items: Posi
 export interface TotalesValorizacion {
   valorTotal: number; unidadesSinCosto: number; incompleto: boolean;
   fechaMin: string | null; fechaMax: string | null; fechasDistintas: boolean;
-  productosConConteo: number; productosSinContar: number;
+  productosConConteo: number; productosSinContar: number; productosConError: number;
 }
 export interface ValorizacionLista { porProducto: { productoId: number; valor: ValorizacionCodigo }[]; totales: TotalesValorizacion; }
 const valorizacionParamsSchema = z.strictObject({ q: z.string().trim().max(100).default("") });
@@ -151,7 +151,7 @@ async function valorizarProductos(q: string, productoId?: number) {
   const filtroId = productoId === undefined ? sql`` : sql`AND p.id = ${productoId}`;
   const ids = filasDe<{ id: number | string }>(await db.execute(sql`SELECT p.id FROM productos p WHERE ${filtroProductos(q)} ${filtroId} ORDER BY p.id`)).map((f) => Number(f.id));
   const porProducto = new Map<number, ValorizacionCodigo>();
-  if (ids.length === 0) return { ids, porProducto };
+  if (ids.length === 0) return { ids, porProducto, productosConError: 0 };
   const lista = sql.join(ids.map((id) => sql`${id}`), sql`, `);
   const posiciones = filasDe<FilaPosVal>(await db.execute(sql`SELECT c.producto_id, c.id AS conteo_id, c.bodega, c.cantidad, c.creado_en
     FROM conteos_vigentes c WHERE c.producto_id IN (${lista}) AND c.bodega IN (1, 2) ORDER BY c.producto_id, c.creado_en, c.id`));
@@ -173,16 +173,23 @@ async function valorizarProductos(q: string, productoId?: number) {
       cantidad: f.cantidad, precioUnitario: f.precio_unitario === null ? null : Number(f.precio_unitario) };
     lotesPor.set(pid, [...(lotesPor.get(pid) ?? []), lote]);
   }
-  for (const [pid, pos] of posPor) porProducto.set(pid, calcularValorizacionConteos(lotesPor.get(pid) ?? [], pos));
-  return { ids, porProducto };
+  let productosConError = 0;
+  for (const [pid, pos] of posPor) {
+    try { porProducto.set(pid, calcularValorizacionConteos(lotesPor.get(pid) ?? [], pos)); }
+    catch (error) { if (!(error instanceof RangeError)) throw error; productosConError++; } // ponytail: sigue fallando lo que no sea dato inválido
+  }
+  return { ids, porProducto, productosConError };
 }
 /** Valorización admin de un producto; null si no tiene conteos vigentes. */
 export async function getValorizacionProducto(productoId: unknown): Promise<ValorizacionCodigo | null> {
   await guardAdmin();
   const parsed = idInt4.safeParse(productoId);
   if (!parsed.success) throw new Error("Parámetros de búsqueda inválidos.");
-  try { return (await valorizarProductos("", parsed.data)).porProducto.get(parsed.data) ?? null; }
-  catch { throw new Error("No se pudo cargar la valorización. Intente nuevamente."); }
+  try {
+    const { porProducto, productosConError } = await valorizarProductos("", parsed.data);
+    if (productosConError > 0) throw new Error("dato inválido");
+    return porProducto.get(parsed.data) ?? null;
+  } catch { throw new Error("No se pudo cargar la valorización. Intente nuevamente."); }
 }
 /** Valorización admin de todos los productos que matchean q (todas las páginas). */
 export async function getValorizacionLista(input: unknown = {}): Promise<ValorizacionLista> {
@@ -190,7 +197,7 @@ export async function getValorizacionLista(input: unknown = {}): Promise<Valoriz
   const parsed = valorizacionParamsSchema.safeParse(input);
   if (!parsed.success) throw new Error("Parámetros de búsqueda inválidos.");
   try {
-    const { ids, porProducto } = await valorizarProductos(parsed.data.q);
+    const { ids, porProducto, productosConError } = await valorizarProductos(parsed.data.q);
     const porProductoArr = [...porProducto.entries()].sort((a, b) => a[0] - b[0]).map(([productoId, valor]) => ({ productoId, valor }));
     const min = porProductoArr.map((p) => p.valor.fechaConteoMin).filter((f): f is string => f !== null);
     const max = porProductoArr.map((p) => p.valor.fechaConteoMax).filter((f): f is string => f !== null);
@@ -201,7 +208,7 @@ export async function getValorizacionLista(input: unknown = {}): Promise<Valoriz
       valorTotal: r2(porProductoArr.reduce((s, p) => s + p.valor.valorTotal, 0)),
       unidadesSinCosto, incompleto: unidadesSinCosto > 0, fechaMin, fechaMax,
       fechasDistintas: fechaMin !== null && fechaMin !== fechaMax,
-      productosConConteo: porProductoArr.length, productosSinContar: ids.length - porProductoArr.length,
+      productosConConteo: porProductoArr.length, productosSinContar: ids.length - porProductoArr.length - productosConError, productosConError,
     } };
   } catch { throw new Error("No se pudo cargar la valorización. Intente nuevamente."); }
 }

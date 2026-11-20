@@ -9,7 +9,7 @@ import type { ValorizacionLista } from "@/lib/inventario/consultas";
 
 const fila = (o: Partial<FilaInventario> = {}): FilaInventario => ({ id: 42, codigo: "COD-42", detalle: null, codigoPersonal: null, packing: null, observaciones: null, imagenUrl: "/img/42.png", posiciones: [], stockContado: null, ...o });
 const val = (o: Partial<ValorizacionCodigo> = {}): ValorizacionCodigo => ({ stock: 5, valorTotal: 20, cantidadValorizada: 5, cantidadSinCosto: 0, incompleto: false, costoPromedio: 4, fechaConteoMin: "2026-11-16", fechaConteoMax: "2026-11-16", fechasDistintas: false, partidas: [], ...o });
-const lista = (o: Partial<ValorizacionLista> = {}): ValorizacionLista => ({ porProducto: [{ productoId: 42, valor: val() }], totales: { valorTotal: 20, unidadesSinCosto: 0, incompleto: false, fechaMin: "2026-11-16", fechaMax: "2026-11-16", fechasDistintas: false, productosConConteo: 1, productosSinContar: 0 }, ...o });
+const lista = (o: Partial<ValorizacionLista> = {}): ValorizacionLista => ({ porProducto: [{ productoId: 42, valor: val() }], totales: { valorTotal: 20, unidadesSinCosto: 0, incompleto: false, fechaMin: "2026-11-16", fechaMax: "2026-11-16", fechasDistintas: false, productosConConteo: 1, productosSinContar: 0, productosConError: 0 }, ...o });
 const html = (props: Record<string, unknown>) => renderToStaticMarkup(createElement(ListaInventario, { items: [fila()], ...props } as never));
 
 it("1: sin props de valores el render no muestra costos", () => {
@@ -33,7 +33,7 @@ it("3: producto sin contar → — en ambas columnas; N u. sin costo junto al Va
 });
 
 it("4: bloque total con rótulo exacto, rango, aviso de fechas distintas e incompleto; error no oculta la lista", () => {
-  const h = html({ valores: lista({ totales: { valorTotal: 20, unidadesSinCosto: 7, incompleto: true, fechaMin: "2026-11-05", fechaMax: "2026-11-16", fechasDistintas: true, productosConConteo: 1, productosSinContar: 0 } }) });
+  const h = html({ valores: lista({ totales: { valorTotal: 20, unidadesSinCosto: 7, incompleto: true, fechaMin: "2026-11-05", fechaMax: "2026-11-16", fechasDistintas: true, productosConConteo: 1, productosSinContar: 0, productosConError: 0 } }) });
   expect(h).toContain("Inversión según últimos conteos");
   expect(h).toContain("05-11-2026"); expect(h).toContain("16-11-2026");
   expect(h).toContain("Los conteos tienen fechas distintas.");
@@ -53,4 +53,13 @@ it("5: tarjeta móvil etiqueta Costo prom. y Valor, sin overflow-x ni anchos fij
 it("6: nunca Remanente ni los indicadores de totales", () => {
   const h = html({ valores: lista() });
   ["Remanente", "Unidades en stock", "Códigos con stock", "Unidades sin costo"].forEach((s) => expect(h).not.toContain(s));
+});
+
+it("7: avisos de productos sin contar y con datos de compra inválidos junto al total", () => {
+  const h = html({ valores: lista({ totales: { ...lista().totales, productosSinContar: 2, productosConError: 3 } }) });
+  expect(h).toContain("2 productos sin contar");
+  expect(h).toContain("3 productos con datos de compra inválidos");
+  const limpio = html({ valores: lista() });
+  expect(limpio).not.toContain("productos sin contar");
+  expect(limpio).not.toContain("datos de compra inválidos");
 });

@@ -21,7 +21,7 @@ import type { FilaInventario, ValorizacionLista } from "@/lib/inventario/consult
 const fila: FilaInventario = { id: 42, codigo: "COD-42", detalle: null, codigoPersonal: null, packing: null, observaciones: null, imagenUrl: null, posiciones: [], stockContado: 0 };
 const valor: ValorizacionLista = {
   porProducto: [{ productoId: 42, valor: { stock: 0, valorTotal: 123.45, cantidadValorizada: 0, cantidadSinCosto: 0, incompleto: false, costoPromedio: 1.5, fechaConteoMin: "2026-11-17", fechaConteoMax: "2026-11-17", fechasDistintas: false, partidas: [] } }],
-  totales: { valorTotal: 123.45, unidadesSinCosto: 0, incompleto: false, fechaMin: "2026-11-17", fechaMax: "2026-11-17", fechasDistintas: false, productosConConteo: 1, productosSinContar: 0 },
+  totales: { valorTotal: 123.45, unidadesSinCosto: 0, incompleto: false, fechaMin: "2026-11-17", fechaMax: "2026-11-17", fechasDistintas: false, productosConConteo: 1, productosSinContar: 0, productosConError: 0 },
 };
 const html = async (sp: Record<string, string | string[]> = {}) => renderToStaticMarkup(await Pagina({ searchParams: Promise.resolve(sp) }) as ReactElement);
 

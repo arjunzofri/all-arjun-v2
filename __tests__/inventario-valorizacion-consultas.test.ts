@@ -109,3 +109,13 @@ it("9. producto sin conteos ausente de porProducto", async () => {
   const p = await producto(`${tag}PEND`), l = await getValorizacionLista({ q: `${tag}PEND` });
   expect(l.porProducto.map((x) => x.productoId)).not.toContain(p);
 });
+it("10. compra con cantidad negativa aísla solo ese producto y cuenta productosConError", async () => {
+  const malo = await producto(`${tag}ZMAL`), bueno = await producto(`${tag}ZBUE`);
+  await compra(malo, `${tag}ZMAL1`, "2026-06-01", -5, 2); await conteo(malo, 10, "2026-06-10T15:00:00Z");
+  await compra(bueno, `${tag}ZBUE1`, "2026-06-01", 10, 3); await conteo(bueno, 10, "2026-06-10T15:00:00Z");
+  const l = await getValorizacionLista({ q: `${tag}Z` });
+  expect(l.porProducto.map((x) => x.productoId)).toEqual([bueno]);
+  expect([l.totales.productosConError, l.totales.productosSinContar, l.totales.valorTotal]).toEqual([1, 0, 30]);
+  await expect(getValorizacionProducto(malo)).rejects.toThrow("No se pudo cargar la valorización. Intente nuevamente.");
+  expect((await getValorizacionProducto(bueno))!.valorTotal).toBe(30);
+});

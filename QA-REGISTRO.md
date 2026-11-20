@@ -421,8 +421,8 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 
 ## 2026-11-20 15:43 - inv-23-on - commit db49278 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-23-on
-- [ ] P-20261120-1543-1 (media) HALLAZGO: EXP-1 - al cambiar la bodega dentro del formulario de conteo, el selector del encabezado se actualizó al mismo valor (Bodega 1) y el texto de sugerencia desapareció, pasando a "Estoy contando en Bodega 1".
-- [ ] P-20261120-1543-2 (media) HALLAZGO: EXP-2 - tras recargar la página, el encabezado conservó Bodega 1 como bodega de trabajo y el formulario mostró "Estoy contando en Bodega 1". El estado se mantuvo coherente; no hubo errores en consola (0 errores). Al terminar devolví el encabezado a "Elegir bodega" para no dejar estado alterado. No se pulsó "Guardar conteo" en ningún momento.
+- [x] P-20261120-1543-1 (media) HALLAZGO: EXP-1 - al cambiar la bodega dentro del formulario de conteo, el selector del encabezado se actualizó al mismo valor (Bodega 1) y el texto de sugerencia desapareció, pasando a "Estoy contando en Bodega 1". -> DESCARTADO: comportamiento definido; elegir bodega en el formulario es eleccion explicita del usuario y fija la bodega de trabajo de sesion (elegirBodega). La sugerencia solo aplica sin eleccion.
+- [x] P-20261120-1543-2 (media) HALLAZGO: EXP-2 - tras recargar la página, el encabezado conservó Bodega 1 como bodega de trabajo y el formulario mostró "Estoy contando en Bodega 1". El estado se mantuvo coherente; no hubo errores en consola (0 errores). Al terminar devolví el encabezado a "Elegir bodega" para no dejar estado alterado. No se pulsó "Guardar conteo" en ningún momento. -> DESCARTADO: sin defecto; estado coherente tras recargar (persistencia de sesion esperada).
 
 ## 2026-11-20 15:44 - inv-23-off - commit db49278 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-23-off
@@ -435,3 +435,9 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-20 18:02 - inv-24e-on - commit 28d01f3 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-24e-on
 - Sin pendientes nuevos.
+
+## 2026-11-20 18:19 - inv-24-fix-on - commit 50cc66c - FALLA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-24-fix-on
+- [x] P-20261120-1819-1 (media) FALLA: QA-C1 — Falta la línea "N productos sin contar" en la vista de valores filtrada -> DESCARTADO: error del plan QA del Director; con el filtro QA-CONTEO-BASE el unico producto esta contado (0 sin contar) y la linea solo se muestra con N>0. El propio agente vio "898 productos sin contar" sin filtro. Comportamiento correcto.
+- [x] P-20261120-1819-2 (baja) HALLAZGO: EXP-1 — Imagen de producto con 404 en la paginación de valores -> BACKLOG baja: imagen de Cloudinary inexistente en TEST para XL-0300; ProductoThumbnail no muestra marcador cuando la URL da 404. Preexistente, ver BUGS.
+- [x] P-20261120-1819-3 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 () (/dxkidwxjl/image/upload/productos/XL-0300) -> BACKLOG baja: mismo origen que P-20261120-1819-2 (404 de imagen XL-0300 en TEST).

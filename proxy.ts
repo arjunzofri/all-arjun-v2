@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const SEGMENTO_LEGACY = ["salidas", "retornos", "transferencias", "movimientos", "bodegas", "modulos"];
-const API_LEGACY = ["/api/productos", "/api/productos/por-bodega"];
+const API_LEGACY = ["/api/productos", "/api/productos/por-bodega", "/api/inversion/resumen", "/api/inversion/por-codigo"];
 
 function normalizar(pathname: string) {
   return pathname.replace(/\/+$/, "") || "/";

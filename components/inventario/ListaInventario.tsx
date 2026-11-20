@@ -76,6 +76,8 @@ export default function ListaInventario({ items, valores = null, errorValores = 
           {valores.totales.fechaMin !== null && <p className="text-xs text-slate-500">{rangoConteos(valores.totales.fechaMin, valores.totales.fechaMax ?? valores.totales.fechaMin)}</p>}
           {valores.totales.fechasDistintas && <p className="text-xs text-amber-600">Los conteos tienen fechas distintas.</p>}
           {valores.totales.incompleto && <p className="text-xs text-amber-600">Valorización incompleta: {formatearNumero(valores.totales.unidadesSinCosto)} unidades sin costo</p>}
+          {valores.totales.productosSinContar > 0 && <p className="text-xs text-slate-500">{formatearNumero(valores.totales.productosSinContar)} productos sin contar</p>}
+          {valores.totales.productosConError > 0 && <p className="text-xs text-amber-600">{formatearNumero(valores.totales.productosConError)} productos con datos de compra inválidos</p>}
         </div>}
     </>
   );

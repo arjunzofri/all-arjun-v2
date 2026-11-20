@@ -651,3 +651,8 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 - ACTUALIZAR disponible para cualquier sesion (no solo admin): revisar en UAT.
 - syncComprasAnil(corte,{modo:"on"}) es entrada solo-tests y omite el lease; sin caller productivo.
 - Harness de tests borra la key global compras-anil-ledger en TEST (ya anotado); el Director la restaura tras correr la suite.
+
+## 2026-11-20 — Backlog inv-24 (no bloqueante)
+- ProductoThumbnail sin marcador cuando la imagen de Cloudinary da 404 (visto en TEST con XL-0300). Baja.
+- compras_importadas sin CHECK de cantidad/precio >= 0: el calculo aisla el producto con datos invalidos (inv-24-fix) y lo informa; CHECK en DB requiere migracion prod (decidir en release). Medido TEST: 0 negativos/null.
+- Valorizacion de la lista ~770 ms desde PC Pablo (3 consultas a us-east); revisar en Vercel durante UAT.

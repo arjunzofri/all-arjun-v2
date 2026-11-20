@@ -109,6 +109,15 @@ describe("inv-21 ON — APIs legacy", () => {
     }
   });
 
+  it("R14: /api/inversion/resumen y /api/inversion/por-codigo → 404 JSON", async () => {
+    for (const ruta of ["/api/inversion/resumen", "/api/inversion/por-codigo?codigo=X"]) {
+      const res = await correr(ruta);
+      expect(res.status, ruta).toBe(404);
+      expect(res.headers.get("location"), ruta).toBeNull();
+      expect(await res.json()).toEqual({ error: "No disponible" });
+    }
+  });
+
   it("R5: excepciones de API no se bloquean", async () => {
     expect((await correr("/api/productos/42")).status).toBe(200);
     expect((await correr("/api/productos/buscar-historico?q=VD")).status).toBe(200);
@@ -154,7 +163,7 @@ describe("inv-21 OFF — todo pasa como hoy", () => {
   });
 
   it("R8: rutas legacy, API legacy e /inventario pasan sin 307/404 del gate", async () => {
-    for (const ruta of [...LEGACY, "/api/productos", "/api/productos/por-bodega", "/inventario"]) {
+    for (const ruta of [...LEGACY, "/api/productos", "/api/productos/por-bodega", "/api/inversion/resumen", "/api/inversion/por-codigo", "/inventario"]) {
       expect((await correr(ruta)).status, ruta).toBe(200);
     }
     expect((await correr("/entradas", { method: "POST" })).status).toBe(200);
