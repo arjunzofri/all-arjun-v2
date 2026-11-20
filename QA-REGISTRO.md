@@ -458,3 +458,17 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-29-off
 - [x] P-20261120-1923-1 (baja) HALLAZGO: EXP-1 — 404 de imagen Cloudinary distinta a la conocida, en /productos -> BACKLOG baja: datos de imagen inexistente en TEST (URL de prueba arjun/nueva.jpg); misma causa que el marcador faltante de ProductoThumbnail (BUGS inv-24).
 - [x] P-20261120-1923-2 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 () (/dbl8yxnjy/image/upload/v2/arjun/nueva.jpg) -> BACKLOG: mismo origen que P-20261120-1923-1 (imagen de prueba inexistente en TEST).
+
+## 2026-11-20 19:34 - inv-29-fix-on - commit 1f4587f - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-29-fix-on
+- [x] P-20261120-1934-1 (baja) HALLAZGO: EXP-1 — React registra "Encountered two children with the same key" al cargar fichas de producto -> ARREGLADO en inv-29-fix: ComprasFicha y EditorFichaProducto compartian key; ComprasFicha usa compras:usuario:producto. Re-QA inv-29-fix-on2 PASA con 0 errores de consola.
+- [x] P-20261120-1934-2 (media) CONSOLA: Encountered two children with the same key, ``. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. -> ARREGLADO en inv-29-fix (mismo origen que P-20261120-1934-1).
+
+## 2026-11-20 19:38 - inv-29-fix-on2 - commit 1f4587f - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-29-fix-on2
+- Sin pendientes nuevos.
+
+## 2026-11-20 22:40 - inv-27-on (Director) - commit f8a9f7a - PASA
+- Fase E hecha por el Director con navegador y POST de imagen interceptado (sin Cloudinary): verificar-imagen-reducida-arjun.cjs. Foto 12,4 MB -> enviada JPEG 1,25 MB; error JSON y 413 muestran mensaje fijo. Sin pendientes.
+## 2026-11-20 22:40 - inv-29-on (Director) - commit 29e61d0 - PASA (tests)
+- Ninguna pantalla ON usa las 8 lecturas legacy; el gate en ON se verifica con spies de DB (lecturas-legacy-gate.test.ts: rechazo antes de SQL). Sin pendientes.

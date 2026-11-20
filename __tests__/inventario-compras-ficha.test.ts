@@ -26,7 +26,7 @@ const S = vi.hoisted(() => ({ compras: vi.fn() }));
 vi.mock("@/lib/inventario/consultas", () => ({ getComprasProducto: (i: unknown) => S.compras(i) }));
 import { ComprasFicha } from "@/components/inventario/ComprasFicha";
 import { FichaProducto } from "@/app/(dashboard)/productos/[id]/FichaProducto";
-type Nodo = { type: unknown; props: Record<string, unknown> };
+type Nodo = { type: unknown; props: Record<string, unknown>; key?: unknown };
 const nodo = (x: unknown): x is Nodo => !!x && typeof x === "object" && "props" in (x as object);
 const hijos = (c: unknown): unknown[] => (Array.isArray(c) ? c : c == null || typeof c === "boolean" ? [] : [c]);
 const ver = (n: unknown, f: (x: Nodo) => void): void => { if (!nodo(n)) return; f(n); for (const h of hijos(n.props.children)) ver(h, f); };
@@ -94,6 +94,21 @@ it("15. solo admin ve «Costo unit.»; operador no; null → «Sin costo», 0 �
   expect(ad).toContain("Costo unit.");
   expect(ad).toContain("Sin costo");
   expect(ad).toContain("USD 0,00");
+});
+it("16. H1: ComprasFicha lleva key propia compras:usuario:producto; cambiar de producto la cambia y las keys de hermanos directos son únicas", () => {
+  const fila = (id: number) => ({ id, codigo: `P${id}`, detalle: null, codigoPersonal: null, packing: null,
+    observaciones: null, imagenUrl: null, posiciones: [], stockContado: null });
+  const raiz = (id: number) => FichaProducto({ fila: fila(id) as never, usuarioId: "1" });
+  const claveDe = (id: number) => {
+    const cf = todos(raiz(id)).find((x) => x.type === ComprasFicha);
+    return (cf as unknown as { key?: unknown } | undefined)?.key;
+  };
+  expect(claveDe(7)).toBe("compras:1:7");
+  expect(claveDe(8)).toBe("compras:1:8");
+  const keys = hijos((raiz(7) as Nodo).props.children)
+    .filter((x): x is Nodo => nodo(x) && x.key != null).map((x) => String(x.key));
+  expect(keys).toContain("compras:1:7");
+  expect(new Set(keys).size).toBe(keys.length);
 });
 it("14. modo OFF no monta ComprasFicha: solo FichaProducto (rama ON) lo referencia", () => {
   const fuente = (p: string) => readFileSync(resolve(__dirname, "..", p), "utf8");

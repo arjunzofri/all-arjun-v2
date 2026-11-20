@@ -51,7 +51,7 @@ export function FichaProducto({ fila, usuarioId, volverHref = "/inventario", val
         )}
       </div>
       <HistorialConteos key={claveHistorial(usuarioId, fila.id, fila.posiciones)} productoId={fila.id} />
-      <ComprasFicha productoId={fila.id} esAdmin={esAdmin} />
+      <ComprasFicha key={`compras:${usuarioId}:${fila.id}`} productoId={fila.id} esAdmin={esAdmin} />
       {valorizacion && <ValorizacionFicha valorizacion={valorizacion.valorizacion} error={valorizacion.error} />}
       <EditorFichaProducto key={`${usuarioId}:${fila.id}`} fila={fila} />
     </div>

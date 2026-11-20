@@ -137,7 +137,7 @@ export async function getHistorialConteos(input: unknown): Promise<{ items: Posi
 }
 const comprasParamsSchema = z.strictObject({
   productoId: idInt4, limit: z.number().int().min(1).max(100).default(20),
-  cursor: z.strictObject({ fechaConfirmacion: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  cursor: z.strictObject({ fechaConfirmacion: z.iso.date(),
     id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER) }).optional(),
 });
 export interface CompraFicha {

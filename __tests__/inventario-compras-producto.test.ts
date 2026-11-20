@@ -90,6 +90,7 @@ it("rol del input se rechaza; cursor inválido da mensaje fijo y sin SQL; sin se
     const msg = "Parámetros de búsqueda inválidos.";
     for (const bad of [{ productoId: prodMap, role: "admin" }, { productoId: prodMap, esAdmin: true },
       { productoId: prodMap, cursor: { fechaConfirmacion: "01-07-2026", id: 1 } },
+      { productoId: prodMap, cursor: { fechaConfirmacion: "2026-02-31", id: 1 } },
       { productoId: prodMap, cursor: { fechaConfirmacion: "2026-07-01", id: -1 } }, { productoId: 0 }])
       await expect(getComprasProducto(bad)).rejects.toThrow(msg);
     vi.mocked(auth).mockResolvedValueOnce(null as never);
