@@ -608,3 +608,14 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 ## 2026-11-20 — PREGUNTA UAT: vaciar alias/packing/observaciones desde el editor
 - inv-19.1: en el editor nuevo (y el legado) un campo vacio significa "no cambiar"; no se puede borrar un alias u observacion. Decision Director (opcion a): mantener por R15 "restricciones actuales" y no tocar el schema compartido con PATCH OFF. Consultar a Pablo en UAT si quiere permitir borrar (schema aceptando null, ~10 lineas + tests).
 - Correccion documental: la entrada antigua que dice que packing acepta 0 (nonnegative) esta desactualizada; el codigo real exige packing entero > 0 (lib/validations/producto.ts, productos-update-validacion.test.ts).
+
+## 2026-11-20 — ARREGLADO 12c337b: editor de ficha bloqueado ante rechazo y sin key
+- Auditoria inv-audit-19-1-A B1/B2. Causa raiz: crearGuardar sin catch y onClick sin finally (boton "Guardando..." permanente si la server action rechaza); EditorFichaProducto sin key (riesgo de datos cruzados al navegar ficha a ficha). Fix: mensaje fijo + finally; key usuario+producto. Rojo 2 -> 22/22, QA 2/2.
+
+## 2026-11-20 — BACKLOG release: subida de imagen 4.5-10MB falla en Vercel
+- Auditoria inv-audit-19-1-A A2: MAX_SIZE 10MB (lib/cloudinary.ts) supera el limite de body de 4.5MB de Vercel Functions (docs Vercel: no configurable, 413 FUNCTION_PAYLOAD_TOO_LARGE). imagen.tsx hace res.json() sin guardia -> error "Unexpected end of JSON input" (misma clase que 2026-08-05). Antes de UAT: bajar limite por debajo de 4.5MB con mensaje claro y/o comprimir en cliente o subir directo a Cloudinary; guardar res.ok antes de json.
+
+## 2026-11-20 — BACKLOG baja (auditoria 19.1): higiene y auditoria
+- B3: __tests__/productos-update-validacion.test.ts usa codigo fijo TEST-UPD-001 sin afterAll (solo TEST). Migrar a tag unico + cleanup por id.
+- B4: auditoria update_codigo_personal guarda valor_anterior null (lib/actions/productos.ts). Opcion: leer valor previo si la auditoria debe reconstruir cambios.
+- Ponytail opcional: formateador de posicion duplicado FichaProducto/HistorialConteos; harness de hooks React duplicado en tests; filtro conteo_id redundante en consultas.ts.

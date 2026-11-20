@@ -272,3 +272,8 @@
 - 19.1 BCD 302s, 196 lineas (rojo B por modulo inexistente). Corte de conexion al PC 04:30-11:10 UTC; verificacion retomada 11:11 UTC (economico).
 - Director 34/34, eslint3=0, tsc0, build0. verificar-editor-ficha-arjun.cjs PASA (primer intento fallo por seleccion de texto del script, que escribio obs mezclada en 5179 TEST: restaurado y corregido con Ctrl+A).
 - QA inv-19-1-on PASA5/5, off PASA1/1, consola0; P-0818-1 DESCARTADO (recorte esperado). 5179 restaurado. Contador5 -> auditoria Senal2 antes de 19.2.
+
+## 2026-11-20 — Auditoria Senal2 inv-audit-19-1-A y fix 19.1b 12c337b
+- Auditoria (11:21 UTC) sin bloqueantes para 19.2; decision ../_dt/prompts/inv-audit-19-1-decision.md. B1/B2 defectos de 19.1 -> fix inmediato; riesgo release 4.5MB Vercel confirmado en docs -> BUGS; B3/B4/opciones -> backlog. Custodias agregadas al prompt 19.2.
+- Fix 19.1b DEBUG deepseek: rojo 2, 30 lineas codigo+tests + QA4. Director 22/22, eslint0, tsc0, build0. QA inv-19-1b-on PASA2/2. 5179 restaurado.
+- Contador reiniciado a 0 tras auditoria + fix. Sin push/deploy/reset/prod.
