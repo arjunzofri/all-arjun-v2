@@ -324,3 +324,7 @@
 - Auditoria Senal2 (DeepSeek, horario economico): sin bloqueantes; decision _dt/prompts/inv-audit-22e-decision.md. D1 medido en TEST: 0 filas item NULL (precondicion solo de prod, agregada a la guia).
 - inv-22e-fix (123 lineas): D2 estado error/Compras al, D4 watermark 1900, D7 key harness, D8 incompleto, D9 finally, cron ocupado 200 enCurso. Rojo 7 -> verde; Director: 9 archivos/54 tests verdes, tsc 0, build 0; QA on PASA 4/4, off PASA 1/1, 0 errores de consola.
 - Contador Senal2: 0.
+
+## 2026-11-20 — inv-23 sugerencia de bodega (d02d565)
+- Contrato DeepSeek aprobado (ultima compra por fecha_confirmacion DESC, id DESC, sin retroceder; id desde bodegas; GLX/NULL sin sugerencia). 192 lineas. Rojo 8 -> verde.
+- Director: 27 archivos inventario/263 tests verdes, tsc 0, build 0. QA on (ambos flags) PASA 4/4, off (solo inventario) PASA 1/1, 0 errores consola. Fixtures QA23 en compras_importadas TEST creados y limpiados. Flags false. Contador 1.
