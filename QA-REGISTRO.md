@@ -393,3 +393,12 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-20 09:47 - inv-20-fix-off - commit cad6357 - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-20-fix-off
 - Sin pendientes nuevos.
+
+## 2026-11-20 10:00 - inv-21-on - commit b7b39d4 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-21-on
+- [x] P-20261120-1000-1 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 (Not Found) (/api/productos) -> DESCARTADO: 404 esperado, es el bloqueo de API legacy en ON que verifica el caso QA-L3.
+- [x] P-20261120-1000-2 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 (Not Found) (/api/productos/por-bodega) -> DESCARTADO: 404 esperado, es el bloqueo de API legacy en ON que verifica el caso QA-L3.
+
+## 2026-11-20 10:02 - inv-21-off - commit b7b39d4 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-21-off
+- Sin pendientes nuevos.

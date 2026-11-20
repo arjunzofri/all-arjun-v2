@@ -10,7 +10,10 @@ Leer este archivo, PRD.md (cabecera vigente), docs/plan-inventario-aprobado.md, 
 - Flags inventario_bodega:false, asignacion_bodega_compra:false. Activación solo temporal QA y restaurar.
 - No pedir nuevas aprobaciones por fases rutinarias. Seguir backlog aprobado hasta UAT; solo gates humanos reales.
 
-## Punto exacto de reanudación — auditoria 20.3 y fix CERRADOS, siguiente apagar legacy en ON (inv-21)
+## Punto exacto de reanudación — inv-21 apagar legacy CERRADO, siguiente compras/sync en modo inventario (inv-22)
+- inv-21 commit (proxy gate). Contador **1**. Siguiente backlog: compras ledger/catalogo/fotos/packing/costos con ACTUALIZAR y automatico, sin escribir stock legacy ni conteos en ON (Fase A inv-22). Revisar si requiere decision de producto (gate humano) antes de B.
+
+## (HISTORICO) auditoria 20.3 y fix CERRADOS, siguiente apagar legacy en ON (inv-21)
 - Contador **0**. Siguiente: Fase A inv-21 apagar rutas/acciones legacy en ON reversiblemente (excepcion /entradas/identificar), con impacto lateral de ../_dt/logs/inv-audit-20-3-A.md. Sync de compras en ON va en el slice de compras (no apagar a ciegas).
 
 ## (HISTORICO) 20.3 identificador CERRADO 20afd3e, siguiente auditoria Senal2 inv-audit-20-3-A

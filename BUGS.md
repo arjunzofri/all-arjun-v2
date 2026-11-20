@@ -628,3 +628,6 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 
 ## 2026-11-20 — BACKLOG (decision schema): codigos que difieren solo en mayusculas
 - Auditoria inv-audit-20-3-A #5/#7: primerIdLocal resuelve sin mayusculas, pero UNIQUE(codigo) y upsertProducto son exactos. En carrera con el sync (ABC vs abc) pueden quedar dos productos y abrirProductoIdentificado puede informar incorporado:true con metadata nula. No es regresion (crearEntrada ya usaba el mismo upsert). Fix real: indice unico upper(btrim(codigo)) en migracion aparte, previa verificacion de duplicados existentes en TEST y produccion (produccion: solo lectura hasta Senal3). Nunca drizzle-kit push.
+
+## 2026-11-20 — BACKLOG defensa en profundidad: acciones de lectura legacy sin gate de modo
+- inv-21 decision Q5: getMovimientos/getProductos/getBodegas/vistas siguen invocables via next-action forjado aunque sus paginas esten apagadas en ON (las server actions se pueden invocar replicando el id, demostrado en R8). Mutaciones legacy ya cortadas por exigirModoOperativo; las lecturas exponen lo mismo que hoy a usuarios con sesion. Evaluar gate de modo en lecturas antes de release si se quiere ocultar datos legacy.

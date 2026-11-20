@@ -297,3 +297,8 @@
 ## 2026-11-20 — Auditoria Senal2 inv-audit-20-3-A y fix
 - Auditoria (12:31 UTC) sin bloqueantes; decision ../_dt/prompts/inv-audit-20-3-decision.md. Fix #1/#2/#3/#4/#6 en un slice (rojo 7, 165 lineas + QA); #5/#7 backlog de schema en BUGS.
 - Director 88/88, eslint/tsc/build 0. QA regresion imagen ON 2/2 y OFF 1/1. Contador 0. Sin push/deploy/reset/prod.
+
+## 2026-11-20 — Cierre inv-21 apagar legacy en ON
+- Fase A inv-21-A (12:48 UTC) aprobada; decisiones ../_dt/prompts/inv-21-decisiones-director.md (un solo slice; sync de compras fuera).
+- BCD: rojo 8, proxy.ts +28 y test 162 = 190. Director 74/74, eslint/tsc/build 0. verificar-legacy-rutas-arjun.cjs PASA ON y OFF (primer intento ON: script esperaba 1 salto y Next normaliza barra final con 308 previo; script ajustado, no defecto).
+- QA inv-21-on PASA5/5 y off PASA1/1. Pendientes 1000-1/-2 DESCARTADOS (404 esperado). Backlog defensa en profundidad en BUGS. Contador1. Sin push/deploy/reset/prod.
