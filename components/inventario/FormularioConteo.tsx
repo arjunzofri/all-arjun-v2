@@ -10,7 +10,7 @@ export function FormularioConteo({ fila, usuarioId }: { fila: FilaInventario; us
   const e = envio.edicion;
   return (
     <FormularioConteoVista
-      bodega={{ trabajo: e.bodegaTrabajo, onElegir: e.elegirBodega }}
+      bodega={{ trabajo: e.bodegaTrabajo, sugerencia: e.bodegaTrabajo === null ? fila.sugerenciaBodega ?? null : null, onElegir: e.elegirBodega }}
       ubicacion={{ seleccion: e.seleccion, vigente: e.vigente, onCambiar: e.cambiarCampo }}
       cantidad={{ texto: e.texto, valor: e.cantidad, diferencia: e.diferencia, invalido: e.invalido, onCambiar: e.cambiarTexto }}
       borrador={{ actual: e.draft !== null, restaurable: e.restaurable, onRestaurar: e.restaurar, onDescartar: envio.descartar }}

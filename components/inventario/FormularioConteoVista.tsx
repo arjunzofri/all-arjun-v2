@@ -4,6 +4,7 @@ import { esUbicacionValida, etiquetaUbicacion, opcionesUbicacion } from "@/lib/i
 import { MAX_TEXTO_CANTIDAD, type BorradorConteo } from "@/lib/inventario/borradores-conteo";
 import type { PosicionContada } from "@/lib/inventario/consultas";
 import type { SeleccionParcial } from "@/lib/inventario/formulario-conteo";
+import type { SugerenciaBodega } from "@/lib/inventario/sugerencia-bodega";
 import { formatearFechaChile, formatearHoraChile } from "@/lib/utils/fecha-chile";
 
 export type MensajeVista = { tono: "exito" | "error" | "info"; texto: string };
@@ -12,7 +13,7 @@ export type ConflictoVista = {
   propuesta: number;
 };
 export type PropsFormularioVista = {
-  bodega: { trabajo: 1 | 2 | null; onElegir: (b: 1 | 2 | null) => void };
+  bodega: { trabajo: 1 | 2 | null; sugerencia?: SugerenciaBodega | null; onElegir: (b: 1 | 2 | null) => void };
   ubicacion: { seleccion: SeleccionParcial | null; vigente: PosicionContada | null; onCambiar: (campo: "planta" | "pasillo" | "posicion", valor: string) => void };
   cantidad: { texto: string; valor: number | null; diferencia: number | null; invalido: boolean; onCambiar: (texto: string) => void };
   borrador: { actual: boolean; restaurable: BorradorConteo | null; onRestaurar: () => void; onDescartar: () => void };
@@ -40,7 +41,7 @@ const Boton = (p: { children: ReactNode; onClick?: () => void; disabled?: boolea
 
 export function FormularioConteoVista(p: PropsFormularioVista): ReactElement {
   const uid = useId();
-  const bodegaActiva = p.ubicacion.seleccion?.bodega ?? p.bodega.trabajo;
+  const bodegaActiva = p.ubicacion.seleccion?.bodega ?? p.bodega.trabajo ?? p.bodega.sugerencia?.bodega ?? null;
   const opciones = bodegaActiva ? opcionesUbicacion(bodegaActiva) : null;
   const ocupado = p.envio.estado === "guardando";
   const completa = !!p.ubicacion.seleccion && esUbicacionValida(p.ubicacion.seleccion);
@@ -52,9 +53,16 @@ export function FormularioConteoVista(p: PropsFormularioVista): ReactElement {
   return (
     <form className="min-w-0 space-y-4" aria-busy={ocupado} noValidate onSubmit={(e) => { e.preventDefault(); if (puedeGuardar) p.envio.onGuardar(); }}>
       {p.bodega.trabajo === null ? (
-        <Selector id={`${uid}-bodega`} etiqueta="Bodega de trabajo" valor="" vacio="Elegir bodega" disabled={ocupado}
-          opciones={[{ codigo: "1", etiqueta: "Bodega 1" }, { codigo: "2", etiqueta: "Bodega 2" }]}
-          onCambiar={(v) => p.bodega.onElegir(v === "" ? null : (Number(v) as 1 | 2))} />
+        <>
+          <Selector id={`${uid}-bodega`} etiqueta="Bodega de trabajo" valor={p.bodega.sugerencia ? String(p.bodega.sugerencia.bodega) : ""} vacio="Elegir bodega" disabled={ocupado}
+            opciones={[{ codigo: "1", etiqueta: "Bodega 1" }, { codigo: "2", etiqueta: "Bodega 2" }]}
+            onCambiar={(v) => p.bodega.onElegir(v === "" ? null : (Number(v) as 1 | 2))} />
+          {p.bodega.sugerencia && (
+            <p className="text-xs text-slate-500">Sugerida por la última compra.
+              {p.bodega.sugerencia.administrativa ? " Código administrativo GL2: se consolida en Bodega 1." : ""}
+              {" "}Puedes elegir otra.</p>
+          )}
+        </>
       ) : (
         <p className="text-sm font-semibold text-slate-700">Estoy contando en Bodega {p.bodega.trabajo}</p>
       )}

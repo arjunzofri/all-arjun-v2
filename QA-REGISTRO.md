@@ -418,3 +418,12 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-20 15:28 - inv-22e-fix-off - commit 0a38d6c - PASA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-22e-fix-off
 - Sin pendientes nuevos.
+
+## 2026-11-20 15:43 - inv-23-on - commit db49278 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-23-on
+- [ ] P-20261120-1543-1 (media) HALLAZGO: EXP-1 - al cambiar la bodega dentro del formulario de conteo, el selector del encabezado se actualizó al mismo valor (Bodega 1) y el texto de sugerencia desapareció, pasando a "Estoy contando en Bodega 1".
+- [ ] P-20261120-1543-2 (media) HALLAZGO: EXP-2 - tras recargar la página, el encabezado conservó Bodega 1 como bodega de trabajo y el formulario mostró "Estoy contando en Bodega 1". El estado se mantuvo coherente; no hubo errores en consola (0 errores). Al terminar devolví el encabezado a "Elegir bodega" para no dejar estado alterado. No se pulsó "Guardar conteo" en ningún momento.
+
+## 2026-11-20 15:44 - inv-23-off - commit db49278 - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-23-off
+- Sin pendientes nuevos.

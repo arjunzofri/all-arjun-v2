@@ -55,6 +55,29 @@ it("pendiente: texto, aria-busy y controles/submit apagados; error alert+Reinten
   const err = html({ envio: { ...base.envio, mensaje: { tono: "error", texto: "No se pudo guardar el conteo." } } }); expect(err).toContain('role="alert"'); expect(err).toContain("No se pudo guardar el conteo."); expect(err).toMatch(/<button[^>]*type="button"[^>]*>Reintentar/);
   const ok = html({ envio: { ...base.envio, mensaje: { tono: "exito", texto: "Conteo guardado: 7 u." } } }); expect(ok).toContain('role="status"'); expect(ok).toContain("Conteo guardado: 7 u.");
 });
+const SUG1 = { bodega: 1 as const, bodegaId: 7, codigoIngreso: "GLP", administrativa: false };
+const SUG2 = { bodega: 1 as const, bodegaId: 7, codigoIngreso: "GL2", administrativa: true };
+const seleccionados = (h: string) => h.match(/<option[^>]*selected[^>]*>/g) ?? [];
+it("sugerencia B1 sin sesión: hint visible, select preseleccionado y pasillos B1 habilitados", () => {
+  const h = html({ bodega: { trabajo: null, sugerencia: SUG1, onElegir: vi.fn() } });
+  expect(h).toContain("Sugerida por la última compra.");
+  const bodegaSel = h.match(/<select id="[^"]*-bodega"[\s\S]*?<\/select>/)![0];
+  expect(seleccionados(bodegaSel).map((t) => /value="([^"]*)"/.exec(t)![1])).toEqual(["1"]);
+  ["A1", "A2", "A3", "A4"].forEach((s) => expect(h).toContain(s));
+  expect(h).not.toContain("Planta");
+  expect((h.match(/<select[^>]*disabled/g) ?? []).length).toBe(0);
+});
+it("sugerencia GL2: aviso de código administrativo que se consolida en Bodega 1", () => {
+  const h = html({ bodega: { trabajo: null, sugerencia: SUG2, onElegir: vi.fn() } });
+  expect(h).toContain("Código administrativo GL2: se consolida en Bodega 1.");
+});
+it("sesión B2 ignora la sugerencia B1: sin hint y opciones B2", () => {
+  const h = html({ bodega: { trabajo: 2, sugerencia: SUG1, onElegir: vi.fn() } });
+  expect(h).not.toContain("Sugerida por la última compra.");
+  expect(h).toContain("Estoy contando en Bodega 2");
+  ["Arriba", "Izquierda", "Derecha"].forEach((s) => expect(h).toContain(s));
+  expect(h).not.toContain("A1");
+});
 it("conflicto: vigente vs propuesta, fecha sin autor inventado, ubicación/cantidad bloqueadas y un solo descartar", () => {
   const base = props(); const conflicto: PropsFormularioVista["envio"]["conflicto"] = { vigente: { id: 9, cantidad: 9, creadoEn: "2026-11-17T02:30:00Z" }, propuesta: 7 };
   const borradorActivo: PropsFormularioVista["borrador"] = { actual: true, restaurable: null, onRestaurar: vi.fn(), onDescartar: vi.fn() };

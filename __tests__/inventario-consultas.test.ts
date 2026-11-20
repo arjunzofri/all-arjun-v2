@@ -12,7 +12,7 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 const host = (u?: string) => new URL(u!).host;
 const tag = `INVQ${Date.now().toString(36)}`; // codigo varchar(30): tag corto
 const flagPrevio = process.env.FEATURE_INVENTARIO_BODEGA;
-let u1 = 0, u2 = 0, prodA = 0, prodCero = 0, prodPend = 0;
+let u1 = 0, u2 = 0, prodA = 0, prodCero = 0, prodPend = 0, b1 = 0;
 const ids: number[] = [];
 const insertar = (p: number, b: number, planta: string, pasillo: string, pos: string, cant: number, u: number, fecha: string) =>
   db.execute(sql`INSERT INTO conteos_inventario (producto_id, bodega, planta, pasillo, posicion, cantidad, usuario_id, idempotency_key, creado_en)
@@ -27,6 +27,9 @@ beforeAll(async () => {
   if (host(process.env.DATABASE_URL) === process.env.PROD_DATABASE_URL_HOST) throw new Error("DATABASE_URL apunta a producción: se aborta antes de SQL");
   const ddl = readFileSync(resolve(__dirname, "../db/migrations/0001_inventario_conteos.sql"), "utf8");
   for (const st of ddl.split(/;\s*(?:\r?\n|$)/).map((s) => s.trim()).filter(Boolean)) await db.execute(sql.raw(st));
+  await db.execute(sql`INSERT INTO bodegas (nombre) VALUES ('Bodega 1 Vida Digital'), ('Bodega 2 Vida Digital') ON CONFLICT (nombre) DO NOTHING`);
+  const bs = (await db.execute(sql`SELECT nombre, id FROM bodegas WHERE nombre IN ('Bodega 1 Vida Digital', 'Bodega 2 Vida Digital')`)) as unknown as { rows: { id: number | string; nombre: string }[] };
+  b1 = Number(bs.rows.find((b) => b.nombre === "Bodega 1 Vida Digital")!.id);
   const us = await db.insert(users).values([{ username: `${tag}u1` }, { username: `${tag}u2` }]).returning({ id: users.id });
   u1 = us[0].id; u2 = us[1].id;
   prodA = await producto(`${tag}GRP`);
@@ -39,6 +42,7 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   try {
+    await db.execute(sql`DELETE FROM compras_importadas WHERE folio LIKE ${`${tag}%`}`);
     if (ids.length) await db.delete(conteosInventario).where(inArray(conteosInventario.productoId, ids));
     if (ids.length) await db.delete(productos).where(inArray(productos.id, ids));
     if (u1) await db.delete(users).where(inArray(users.id, [u1, u2]));
@@ -166,6 +170,45 @@ it("getHistorialConteos conserva las 9 versiones con autor/fecha y pagina 3+3+3 
   expect([vistos.length, cursor]).toEqual([9, null]);
   expect(new Set(vistos).size).toBe(9);
   expect(vistos).toEqual(todo.items.map((i) => i.id));
+});
+const compra = (p: number, codigo: string | null, fecha: string, folio: string) =>
+  db.execute(sql`INSERT INTO compras_importadas (folio, producto_id, bodega_codigo, cantidad, fecha_confirmacion) VALUES (${folio}, ${p}, ${codigo}, 1, ${fecha}::date)`);
+const conFlag = async <T>(fn: () => Promise<T>): Promise<T> => {
+  process.env.FEATURE_ASIGNACION_BODEGA_COMPRA = "true";
+  try { return await fn(); } finally { delete process.env.FEATURE_ASIGNACION_BODEGA_COMPRA; }
+};
+it("asignacion OFF: ficha sin sugerenciaBodega y sin SQL extra", async () => {
+  process.env.FEATURE_ASIGNACION_BODEGA_COMPRA = "false";
+  const spy = vi.spyOn(db, "execute");
+  try {
+    const ficha = await getFichaInventario(prodA);
+    expect(ficha).not.toHaveProperty("sugerenciaBodega");
+    expect(Object.keys(ficha!).sort()).toEqual(["codigo", "codigoPersonal", "detalle", "id", "imagenUrl", "observaciones", "packing", "posiciones", "stockContado"]);
+    expect(spy).toHaveBeenCalledTimes(1);
+  } finally { spy.mockRestore(); delete process.env.FEATURE_ASIGNACION_BODEGA_COMPRA; }
+});
+it("asignacion ON: gana la compra más reciente (GL1 vieja, GLP nueva → bodega 1)", async () => {
+  const p = await producto(`${tag}SUG1`);
+  await compra(p, "GL1", "2026-11-01", `${tag}S1`); await compra(p, "GLP", "2026-11-15", `${tag}S2`);
+  await conFlag(async () => expect((await getFichaInventario(p))!.sugerenciaBodega)
+    .toEqual({ bodega: 1, bodegaId: b1, codigoIngreso: "GLP", administrativa: false }));
+});
+it("asignacion ON: última fila GLX con GLP anterior → null (no retrocede)", async () => {
+  const p = await producto(`${tag}SUG2`);
+  await compra(p, "GLP", "2026-11-01", `${tag}S3`); await compra(p, "GLX", "2026-11-15", `${tag}S4`);
+  await conFlag(async () => expect((await getFichaInventario(p))!.sugerenciaBodega).toBeNull());
+});
+it("asignacion ON: producto sin compras → null", async () => {
+  await conFlag(async () => expect((await getFichaInventario(prodPend))!.sugerenciaBodega).toBeNull());
+});
+it("asignacion ON: GL2 → bodega 1 administrativa y sin datos monetarios", async () => {
+  const p = await producto(`${tag}SUG3`);
+  await compra(p, "GL2", "2026-11-15", `${tag}S5`);
+  await conFlag(async () => {
+    const s = (await getFichaInventario(p))!.sugerenciaBodega;
+    expect(s).toEqual({ bodega: 1, bodegaId: b1, codigoIngreso: "GL2", administrativa: true });
+    expect(JSON.stringify(s)).not.toMatch(/precio|valor/i);
+  });
 });
 it("getHistorialConteos valida params y sin sesión antes de SQL, oculta fallos y producto sin conteos da []", async () => {
   await expect(getHistorialConteos({ productoId: prodPend })).resolves.toEqual({ items: [], nextCursor: null });

@@ -7,6 +7,7 @@ import type { MensajeVista } from "@/components/inventario/FormularioConteoVista
 import { claveBorrador, type BorradorConteo } from "@/lib/inventario/borradores-conteo";
 import type { FilaInventario, PosicionContada } from "@/lib/inventario/consultas";
 import { comparacion, construirUbicacion, posicionVigente, type SeleccionParcial } from "@/lib/inventario/formulario-conteo";
+import { bodegaActivaDe } from "@/lib/inventario/sugerencia-bodega";
 import type { UbicacionInventario } from "@/lib/inventario/ubicaciones";
 
 export const MENSAJE_BORRADOR = "No se pudo conservar el borrador. Intenta nuevamente.";
@@ -30,20 +31,21 @@ export function useEdicionConteo(fila: FilaInventario, usuarioId: string, bloque
   const [edicion, setEdicion] = useState<{ clave: string; texto: string } | null>(null);
   const [mensaje, setMensaje] = useState<MensajeVista | null>(null);
 
-  const seleccion = manual && manual.bodega === bodegaTrabajo ? manual : null;
+  const activa = bodegaActivaDe(bodegaTrabajo, fila.sugerenciaBodega);
+  const seleccion = manual && manual.bodega === activa ? manual : null;
   const ubicacion = seleccion ? construirUbicacion(seleccion) : null;
   const vigente = ubicacion ? posicionVigente(fila.posiciones, ubicacion) : null;
   const draft = ubicacion ? borrador(fila.id, ubicacion) : null;
   const clave = ubicacion ? claveBorrador(fila.id, ubicacion) : null;
   const texto = edicion && edicion.clave === clave ? edicion.texto : draft?.cantidadTexto ?? "";
   const { cantidad, diferencia } = comparacion(vigente?.cantidad ?? null, texto);
-  const restaurable = !ubicacion && bodegaTrabajo ? ultimoCompatible(fila.id, bodegaTrabajo) : null;
+  const restaurable = !ubicacion && activa ? ultimoCompatible(fila.id, activa) : null;
   const invalido = texto.length > 0 && cantidad === null;
   const elegirBodega = (b: 1 | 2 | null) => { fijarBodegaTrabajo(b); setMensaje(null); };
 
   const cambiarCampo = (campo: "planta" | "pasillo" | "posicion", valor: string) => {
-    if (!bodegaTrabajo || bloqueado) return;
-    const base: SeleccionParcial = manual?.bodega === bodegaTrabajo ? manual : { bodega: bodegaTrabajo, planta: "", pasillo: "", posicion: "" };
+    if (!activa || bloqueado) return;
+    const base: SeleccionParcial = manual?.bodega === activa ? manual : { bodega: activa, planta: "", pasillo: "", posicion: "" };
     setManual(campo === "planta" ? { ...base, planta: valor } : campo === "pasillo" ? { ...base, pasillo: valor } : { ...base, posicion: valor });
   };
 

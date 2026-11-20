@@ -6,6 +6,7 @@ import {
   obtenerBorradoresConteo, obtenerTokenBorradores,
 } from "@/components/inventario/borradoresConteoStore";
 import type { UbicacionInventario } from "@/lib/inventario/ubicaciones";
+import type { SugerenciaBodega } from "@/lib/inventario/sugerencia-bodega";
 const R = vi.hoisted(() => {
   const estados: unknown[] = []; let cursor = 0;
   return { estados,
@@ -24,7 +25,8 @@ import { MENSAJE_BORRADOR, useEdicionConteo } from "@/components/inventario/useE
 const N = "11111111-1111-4111-8111-111111111111";
 const U1: UbicacionInventario = { bodega: 1, planta: "", pasillo: "A2", posicion: "P" };
 const U2: UbicacionInventario = { bodega: 2, planta: "ARRIBA", pasillo: "IZQUIERDA", posicion: "M" };
-const FILA = (posiciones: PosicionContada[] = []): FilaInventario => ({ id: 7, codigo: "P1", detalle: null, codigoPersonal: null, packing: null, observaciones: null, imagenUrl: null, posiciones, stockContado: null });
+const FILA = (posiciones: PosicionContada[] = [], sugerenciaBodega: SugerenciaBodega | null = null): FilaInventario => ({ id: 7, codigo: "P1", detalle: null, codigoPersonal: null, packing: null, observaciones: null, imagenUrl: null, posiciones, stockContado: null, sugerenciaBodega });
+const SUG1: SugerenciaBodega = { bodega: 1, bodegaId: 7, codigoIngreso: "GLP", administrativa: false };
 const pos = (o: Partial<PosicionContada> = {}): PosicionContada => ({ id: 9, ...U1, cantidad: 5, usuarioId: 1, usuario: "qa", creadoEn: "2026-11-01T00:00:00.000Z", ...o });
 const draft = (o: Partial<BorradorConteo> = {}): BorradorConteo => ({ productoId: 7, ubicacion: U1, cantidadTexto: "12", expectedConteoId: 5, nonce: N, actualizadoEn: 1, ...o });
 type M = ReturnType<typeof useEdicionConteo>;
@@ -109,6 +111,31 @@ it("bloqueado: mutadores no-op; bodega y descartarEn operativos", () => {
   expect([S.guardar.mock.calls.length, S.descartar.mock.calls.length, m.texto]).toEqual([antes, 0, "3"]);
   m.elegirBodega(2); expect(S.fijar).toHaveBeenLastCalledWith(2);
   m.descartarEn(7, U1, N); expect(S.descartar).toHaveBeenLastCalledWith(7, U1, N);
+});
+it("sin sesión, sugerencia B1: ubicar funciona, no fija sesión y elegir vacío no rompe", () => {
+  let m = usePintar(FILA([], SUG1));
+  m.cambiarCampo("pasillo", "A2"); m = usePintar(FILA([], SUG1)); m.cambiarCampo("posicion", "P"); m = usePintar(FILA([], SUG1));
+  expect(m.ubicacion).toEqual(U1);
+  m.cambiarTexto("3"); m.guardarBorrador();
+  expect(S.fijar).not.toHaveBeenCalled();
+  expect(() => m.elegirBodega(null)).not.toThrow();
+  m = usePintar(FILA([], SUG1)); m.cambiarCampo("posicion", "P"); m = usePintar(FILA([], SUG1));
+  expect(m.seleccion).toMatchObject({ bodega: 1 });
+});
+it("sesión B2 ignora la sugerencia B1", () => {
+  S.bodega = 2;
+  let m = usePintar(FILA([], SUG1));
+  m.cambiarCampo("planta", "ARRIBA"); m = usePintar(FILA([], SUG1));
+  m.cambiarCampo("pasillo", "IZQUIERDA"); m = usePintar(FILA([], SUG1));
+  m.cambiarCampo("posicion", "M"); m = usePintar(FILA([], SUG1));
+  expect(m.ubicacion).toEqual(U2);
+  expect(S.fijar).not.toHaveBeenCalled();
+});
+it("restaurable consulta la bodega sugerida cuando no hay sesión", () => {
+  S.ultimo.mockReturnValue(draft());
+  const m = usePintar(FILA([], SUG1));
+  expect(S.ultimo).toHaveBeenCalledWith(7, 1);
+  expect(m.restaurable).toEqual(draft());
 });
 it("backbone store real: expected null sobrevive a guardar con draft vivo; solo el descarte explícito habilita expected 9", () => {
   const uid = "u-inv-17-3a1-audit-fix";

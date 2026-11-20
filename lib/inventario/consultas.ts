@@ -5,6 +5,8 @@ import { z } from "zod";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import { flagActivo } from "@/lib/feature-flags";
+import { resolverSugerenciaBodega, type SugerenciaBodega } from "@/lib/inventario/sugerencia-bodega";
+import { getBodegaPorCodigoIngreso } from "@/lib/utils/get-bodega-por-codigo-ingreso";
 
 export interface PosicionContada {
   id: number; bodega: number; planta: string; pasillo: string; posicion: string; cantidad: number; usuarioId: number; usuario: string; creadoEn: string;
@@ -12,6 +14,7 @@ export interface PosicionContada {
 export interface FilaInventario {
   id: number; codigo: string; detalle: string | null; codigoPersonal: string | null; packing: number | null; observaciones: string | null; imagenUrl: string | null;
   posiciones: PosicionContada[]; stockContado: number | null;
+  sugerenciaBodega?: SugerenciaBodega | null;
 }
 const idInt4 = z.number().int().positive().max(2147483647);
 const paramsSchema = z.strictObject({
@@ -82,10 +85,27 @@ export async function listarInventario(input: unknown = {}): Promise<{ items: Fi
     return { items: visibles, nextCursor: items.length > limit ? visibles[visibles.length - 1].id : null };
   } catch { throw new Error("No se pudo obtener el inventario. Intente nuevamente."); }
 }
+/** Sugerencia desde la última compra importada; opcional, nunca tumba la ficha. */
+async function obtenerSugerenciaBodega(productoId: number): Promise<SugerenciaBodega | null> {
+  try {
+    const ultima = (await db.execute(sql`SELECT bodega_codigo FROM compras_importadas
+      WHERE producto_id = ${productoId} ORDER BY fecha_confirmacion DESC, id DESC LIMIT 1`)) as unknown as { rows?: { bodega_codigo: string | null }[] };
+    const codigo = ultima.rows?.[0]?.bodega_codigo ?? null;
+    const nombre = getBodegaPorCodigoIngreso(codigo?.trim());
+    if (!nombre) return null;
+    const encontradas = (await db.execute(sql`SELECT id, nombre FROM bodegas WHERE nombre = ${nombre} LIMIT 1`)) as unknown as { rows?: { id: number; nombre: string }[] };
+    return resolverSugerenciaBodega(codigo, encontradas.rows ?? []);
+  } catch (error) {
+    console.error("No se pudo resolver la sugerencia de bodega", error);
+    return null;
+  }
+}
 /** Ficha de un producto por ID exacto; null si no existe. Solo lectura. */
 export async function getFichaInventario(id: unknown): Promise<FilaInventario | null> {
   const { items } = await listarInventario({ productoId: id ?? null, limit: 1 });
-  return items[0] ?? null;
+  const fila = items[0] ?? null;
+  if (fila && flagActivo("asignacion_bodega_compra")) fila.sugerenciaBodega = await obtenerSugerenciaBodega(fila.id);
+  return fila;
 }
 /** Historial paginado de todas las versiones de conteo de un producto. Solo lectura. */
 export async function getHistorialConteos(input: unknown): Promise<{ items: PosicionContada[]; nextCursor: number | null }> {
