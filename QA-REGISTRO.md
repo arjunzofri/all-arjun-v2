@@ -453,3 +453,8 @@ Con pendientes (alta) o (critica) abiertos, el hook pre-commit bloquea el commit
 ## 2026-11-20 19:13 - inv-28 - commit f8a9f7a - FALLA
 - Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-28
 - [x] P-20261120-1913-1 (alta) FALLA: QA-C2 — Contraseña de 2 caracteres aceptada y usuario creado -> DESCARTADO como defecto del slice (pregunta UAT abierta en BUGS): preexistente, el esquema exige solo password no vacio desde antes de inv-28 y el PRD no define politica de contrasenas (R15 conserva restricciones actuales). El caso del plan suponia un minimo inexistente. Usuarios QA creados (qa28-*) borrados por el Director. Ver BUGS.
+
+## 2026-11-20 19:23 - inv-29-off - commit e390c7a - PASA
+- Evidencia: C:\Users\pablo\Documents\app-arjun-v2\_dt\qa\inv-29-off
+- [x] P-20261120-1923-1 (baja) HALLAZGO: EXP-1 — 404 de imagen Cloudinary distinta a la conocida, en /productos -> BACKLOG baja: datos de imagen inexistente en TEST (URL de prueba arjun/nueva.jpg); misma causa que el marcador faltante de ProductoThumbnail (BUGS inv-24).
+- [x] P-20261120-1923-2 (media) CONSOLA: Failed to load resource: the server responded with a status of 404 () (/dbl8yxnjy/image/upload/v2/arjun/nueva.jpg) -> BACKLOG: mismo origen que P-20261120-1923-1 (imagen de prueba inexistente en TEST).

@@ -664,3 +664,7 @@ Causa raiz: la UNIQUE `uq_movimientos_folio_producto (folio, producto_id)` y el 
 ## 2026-11-20 — PREGUNTA UAT: politica minima de contrasenas
 - QA inv-28 C2: crear usuario acepta contrasena de 2 caracteres (schema min 1, preexistente). Proponer a Pablo un minimo (p.ej. 8) antes de produccion; cambio de 1 linea + test + mensaje.
 - 2026-11-20 ARREGLADO inv-28: errores esperados de Usuarios (duplicado/validacion) ahora se devuelven como valor y se muestran; QA C1 PASA.
+
+## 2026-11-20 — inv-29 lecturas legacy con gate de modo (ARREGLADO) y residual
+- ARREGLADO inv-29: las 8 lecturas legacy (getProductos, getBodegas, getModulos, getStockPorUbicacion, getNombreUbicacion, getMovimientosPorProductoUbicacion, getMovimientos, getMovimientosContribuyentes) rechazan en modo ON antes de la DB.
+- Residual (R5, fuera de alcance): en modo OFF esas lecturas no validan sesion dentro de la accion (solo el proxy). Decidir antes del release si se agrega auth en OFF.

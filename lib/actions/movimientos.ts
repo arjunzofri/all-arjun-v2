@@ -3,6 +3,7 @@
 import { db } from "@/db";
 import { movimientos, productos, users, tipoMovimientoEnum } from "@/db/schema";
 import { eq, lt, desc, and, gte, lte } from "drizzle-orm";
+import { exigirModoOperativo } from "@/lib/inventario/modo";
 
 // Tipo real del enum de la DB: evita casts a mano en el filtro.
 type TipoMovimiento = (typeof tipoMovimientoEnum.enumValues)[number];
@@ -27,6 +28,7 @@ export async function getMovimientos(params: {
   limit?: number;
   cursor?: number;
 }) {
+  exigirModoOperativo();
   const { tipo, productoId, desde, hasta, limit = 20, cursor } = params;
 
   const where = and(

@@ -4,9 +4,11 @@ import { db } from "@/db";
 import { bodegas, modulos, stock, productos, movimientos, users } from "@/db/schema";
 import { eq, lt, desc, and, gt, or, ilike, sql, inArray } from "drizzle-orm";
 import { fechaChileDeTimestamp } from "@/lib/utils/fecha-chile";
+import { exigirModoOperativo } from "@/lib/inventario/modo";
 
 // ── Resumen de bodegas ──────────────────────────────────────────────────
 export async function getBodegas() {
+  exigirModoOperativo();
   const rows = await db
     .select({
       id: bodegas.id,
@@ -23,6 +25,7 @@ export async function getBodegas() {
 
 // ── Resumen de módulos ──────────────────────────────────────────────────
 export async function getModulos() {
+  exigirModoOperativo();
   const rows = await db
     .select({
       id: modulos.id,
@@ -46,6 +49,7 @@ export async function getStockPorUbicacion(params: {
   q?: string;
   soloConStock?: boolean;
 }) {
+  exigirModoOperativo();
   const { tipo, ubicacionId, limit = 20, cursor, q, soloConStock = true } = params;
   const columna = tipo === "bodega" ? stock.bodegaId : stock.moduloId;
 
@@ -138,6 +142,7 @@ export async function getNombreUbicacion(
   tipo: "bodega" | "modulo",
   id: number
 ): Promise<string> {
+  exigirModoOperativo();
   if (tipo === "bodega") {
     const rows = await db
       .select({ nombre: bodegas.nombre })
@@ -162,6 +167,7 @@ export async function getMovimientosPorProductoUbicacion(params: {
   tipo: "bodega" | "modulo";
   ubicacionId: number;
 }) {
+  exigirModoOperativo();
   const { productoId, tipo, ubicacionId } = params;
 
   const columnaUbicacion = tipo === "bodega"

@@ -52,6 +52,7 @@ export async function getMovimientosContribuyentes(
   productoId: number,
   ubicacion: Ubicacion,
 ): Promise<MovimientoContribuyente[]> {
+  exigirModoOperativo();
   // 1. Traer salidas y retornos para este producto
   const rows = await db
     .select({

@@ -23,6 +23,7 @@ export async function getProductos(params: {
   limit: number;
   cursor?: number;
 }) {
+  exigirModoOperativo();
   const { q, limit, cursor } = params;
 
   const where = and(
