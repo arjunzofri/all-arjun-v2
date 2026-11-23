@@ -59,8 +59,8 @@ describe("contrato de ubicaciones de inventario", () => {
     expect(opcionesUbicacion(2).plantas).toEqual([{ codigo: "ARRIBA", etiqueta: "Arriba" }, { codigo: "ABAJO", etiqueta: "Abajo" }]);
     expect(opcionesUbicacion(2).pasillos.map((o) => o.codigo)).toEqual(["IZQUIERDA", "DERECHA"]);
   });
-  it("mantiene los flags nuevos apagados", () => {
-    expect(flags.inventario_bodega).toBe(false);
-    expect(flags.asignacion_bodega_compra).toBe(false);
+  it("flags del modo inventario encendidos tras el corte a produccion", () => {
+    expect(flags.inventario_bodega).toBe(true);
+    expect(flags.asignacion_bodega_compra).toBe(true);
   });
 });

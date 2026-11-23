@@ -352,3 +352,6 @@
 - Barrido QA completo modo inventario: 136 filas, 0 rotos, 0 faltantes.
 - docs/UAT-INVENTARIO.md (guia y 7 decisiones para Pablo) y docs/humo-prod-on.json (humo prod para el corte).
 - Estado: backlog del PRD completo. Detenido en gate humano: UAT de Pablo, decisiones de UAT, migraciones prod, CRON_SECRET, push/deploy, Senal 3.
+
+## 2026-11-23 - Corte a produccion (autorizado por Pablo)
+- Migraciones 0001-0004 aplicadas en Neon produccion en una transaccion (item NULL = 0). Verificacion Director: tsc 0, vitest 139 archivos verdes + inventario-compras-producto verde al reintentar (timeout de hook por latencia), lint 45 errores = baseline, build 0. Flags inventario_bodega y asignacion_bodega_compra en true; push de feat/inventario-bodega a main (deploy Vercel).
